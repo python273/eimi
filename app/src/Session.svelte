@@ -181,6 +181,9 @@ async function genResponse(event, regenerate=false) {
 			})
 		}
 	)
+	newItem.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
+	newItem.cropped = parseInt(response.headers.get('x-cropped'), 10)
+
 	const reader = response.body.getReader()
 	const decoder = new TextDecoder()
 	let text = ''
@@ -218,6 +221,12 @@ async function onUpdate() {
 							<option value={A}>{A}</option>
 							<option value={U}>{U}</option>
 						</select>
+						{#if c.tokenLen !== undefined && c.tokenLen > 0}
+							<div class="meta-gray" title="Token length">({c.tokenLen})</div>
+						{/if}
+						{#if c.cropped !== undefined && c.cropped > 0}
+							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
+						{/if}
 						<div class="ml-auto"></div>
 						<button class="deleteButton" on:click="{deleteMessage}">x</button>
 						<button class="gen" on:click="{(e) => genResponse(e, true)}">regen</button>

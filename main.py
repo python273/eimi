@@ -18,6 +18,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=['x-token-len', 'x-cropped'],
 )
 
 async def openai_chat_completions_stream(
@@ -66,15 +67,14 @@ def crop_history(messages):
         token_len_so_far += token_len
         new_messages.append(i)
 
-    return new_messages[::-1]
+    return new_messages[::-1], token_len_so_far
 
 client = httpx.AsyncClient(http2=True)
 
 async def stream_response(messages):
-    cropped_messages = crop_history(messages)
     resp = openai_chat_completions_stream(
         client,
-        messages=cropped_messages
+        messages=messages
     )
     async for chunk in resp:
         c = chunk['choices'][0]
@@ -85,7 +85,12 @@ async def stream_response(messages):
 @app.post("/chain")
 async def post_chain(request: Request):
     data = await request.json()
+    cropped_messages, token_len = crop_history(data['chain'])
     return StreamingResponse(
-        stream_response(data['chain']),
+        stream_response(cropped_messages),
+        headers={
+            'x-token-len': str(token_len),
+            'x-cropped': str(len(data['chain']) - len(cropped_messages)),
+        },
         media_type="text/plain"
     )

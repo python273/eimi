@@ -33,7 +33,14 @@ font-size: 1em;
 .ml-auto { margin-left: auto; }
 .no-vs { color: var(--brand-color) !important; }
 .c-pointer { cursor: pointer; }
+
 /* */
+
+.meta-gray {
+	font-size: 0.9em;
+	color: var(--meta-color);
+	font-weight: 300;
+}
 
 a, button {
 color: var(--brand-color);
