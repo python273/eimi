@@ -1,29 +1,58 @@
 <script>
 import { tick } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
+import Parameters from './lib/Parameters.svelte';
+import { uniqueId } from './utils.js';
 
-function uniqueId() { return Date.now().toString(36) }
+const U = 'user'
+const A = 'assistant'
 
 const SESSION_ID = window.location.hash.slice(1)
 window.addEventListener('hashchange', () => { window.location.reload() })
 if (!SESSION_ID) { window.location.hash = `#${uniqueId()}` }
 
-const U = 'user'
-const A = 'assistant'
+const sessions = [];
+function loadSessionsList() {
+	const keys = Object.keys(localStorage);
+	keys.sort((a, b) => a.localeCompare(b));
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		if (key.indexOf('session-') !== 0) { continue }
+		let obj = JSON.parse(localStorage[key])
+		const message = obj.messages.find(m => m.parentId === null)
+		const title = obj.title
+		sessions.push({key: key.slice(8), message, title})
+	}
+}
+loadSessionsList();
 
 function saveSession(sessionId) {
-	const savedData = data.map(
+	const savedMessages = data.map(
 		({id, parentId, role, content}) => ({id, parentId, role, content})
 	)
-	localStorage.setItem(sessionId, JSON.stringify(savedData))
+	const obj = {...sessionData, messages: savedMessages}
+	localStorage.setItem(`session-${sessionId}`, JSON.stringify(obj))
 }
 function loadSession(sessionId) {
-	const data = localStorage.getItem(sessionId)
-	if (data === null) { return [{id: 'genesis', parentId: null, role: U, content: ''}] }
-	return JSON.parse(data)
+	let obj = localStorage.getItem(`session-${sessionId}`)
+	if (obj === null) {
+		sessionData = {
+			title: sessionId,
+			parameters: {},
+			messages: [{id: 'genesis', parentId: null, role: U, content: ''}]
+		}
+		data = sessionData.messages
+		return;
+	}
+	obj = JSON.parse(obj)
+	if (!obj.parameters) { obj.parameters = {} }
+	sessionData = obj
+	data = obj.messages
 }
 
-let data = loadSession(SESSION_ID)
+let sessionData;
+let data;
+loadSession(SESSION_ID)
 
 function _timerSave() {
 	saveSession(SESSION_ID)
@@ -95,35 +124,162 @@ function relationalToLinear(data) {
 	return out
 }
 
+function getMessageFromEvent(event) {
+	const id = event.target.closest('.message').dataset.id
+	return data.find(i => i.id === id)
+}
+
+function getChain(message, regenerate=false) {
+	const chain = []
+	if (!regenerate) { chain.push(message) }
+	let it = message
+	while (1) {
+		const parent = data.find(i => i.id === it.parentId)
+		if (parent === undefined) { break }
+		chain.unshift(parent)
+		it = parent
+	}
+	return chain
+}
+
+function copyToClipboard(text) {
+	if (!navigator.clipboard) { return }
+	return navigator.clipboard.writeText(text)
+}
+
+async function onExportChain(event) {
+	event.preventDefault()
+	const message = getMessageFromEvent(event)
+	const chain = getChain(message)
+	const text = chain.map(i => i.content).join('\n-\n')
+	copyToClipboard(text)
+}
+
+async function genResponse(event, regenerate=false, attemptNum=0) {
+	event.preventDefault()
+	const message = getMessageFromEvent(event)
+	_genResponse(message, regenerate, attemptNum)
+}
+async function _genResponse(message, regenerate=false, attemptNum=0) {
+	console.log('genResponse', message, regenerate, attemptNum)
+	const chain = getChain(message, regenerate)
+
+	let newMessage
+	if (!regenerate) {
+		newMessage = {
+			id: uniqueId(),
+			parentId: message.id,
+			role: A,
+			content: '',
+			generating: true
+		}
+		data.unshift(newMessage)
+	} else {
+		message.content = ''
+		message.generating = true
+		newMessage = message
+	}
+	data = data
+	await tick()
+
+	if (regenerate && newMessage.aborter !== undefined) {
+		newMessage.aborter.abort()
+		await tick()
+	}
+
+	const aborter = new AbortController()
+	newMessage.aborter = aborter
+	try {
+		const response = await fetch(
+			'http://127.0.0.1:8000/chat_completions', {
+				signal: aborter.signal,
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					...sessionData.parameters,
+					messages: chain.map(i => ({role: i.role, content: i.content}))
+				})
+			}
+		)
+		newMessage.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
+		newMessage.cropped = parseInt(response.headers.get('x-cropped'), 10)
+
+		// TODO: generation cost
+		if (sessionData.parameters.model === 'gpt-4') {
+			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.03
+		} else {
+			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.002
+		}
+
+		const AUTO_ABORT_SUBSTRINGS = [
+			"I'm sorry, but as an",
+			'an AI language model',
+			'OpenAI',
+		];
+
+		const reader = response.body.getReader()
+		const decoder = new TextDecoder()
+		let text = ''
+		while (true) {
+			if (aborter.signal.aborted) break;
+			const { done, value } = await reader.read()
+			if (aborter.signal.aborted) break;
+			if (done) { break }
+			const decoded = decoder.decode(value, {stream: true})
+			text += decoded
+
+			if (attemptNum < 0) {  // disabled
+				for (const s of AUTO_ABORT_SUBSTRINGS) {
+					if (text.includes(s)) {
+						aborter.abort()
+						newMessage.generating = false
+						data = data
+						await tick()
+						_genResponse(newMessage, true, attemptNum + 1)
+						return
+					}
+				}
+			}
+
+			newMessage.content = text
+			data = data
+			await tick()
+		}
+	} catch (e) {
+		console.error(e)
+	} finally {
+		newMessage.generating = false
+		data = data
+	}
+}
+
 async function onReply(event) {
 	event.preventDefault()
-	const index = parseInt(event.target.closest('.message').dataset.index, 10)
-	const item = data[index]
+	const item = getMessageFromEvent(event)
 
-	const newItem = {
+	const newMessage = {
 		id: uniqueId(),
 		parentId: item.id,
 		role: U,
 		content: ''
 	}
-	data.unshift(newItem)
+	data.unshift(newMessage)
 	data = data
 	await tick()
-	const newEl = document.getElementById(`m_${newItem.id}`)
+	const newEl = document.getElementById(`m_${newMessage.id}`)
 	newEl.querySelector('textarea').focus()
 }
 
 async function onRoleChange(event) {
-	const index = parseInt(event.target.closest('.message').dataset.index, 10)
-	data[index].role = event.target.value
+	const item = getMessageFromEvent(event)
+	item.role = event.target.value
 	scheduleSave(0)
 }
 
 async function deleteMessage(event) {
 	event.preventDefault()
 	if (!confirm('Are you sure?')) { return }
-	const index = parseInt(event.target.closest('.message').dataset.index, 10)
-	const item = data[index]
+	const item = getMessageFromEvent(event)
 
 	const idsToDelete = [item.id]
 	function _addChildren(item) {
@@ -139,78 +295,42 @@ async function deleteMessage(event) {
 	scheduleSave(0)
 }
 
-async function genResponse(event, regenerate=false) {
-	event.preventDefault()
-	const index = parseInt(event.target.closest('.message').dataset.index, 10)
-	const item = data[index]
-
-	const chain = []
-	let it = item
-	if (!regenerate) { chain.unshift(item) }
-	while (1) {
-		const parent = data.find(i => i.id === it.parentId)
-		if (parent === undefined) { break }
-		chain.unshift(parent)
-		it = parent
-	}
-
-	let newItem
-	if (!regenerate) {
-		newItem = {
-			id: uniqueId(),
-			parentId: item.id,
-			role: A,
-			content: '',
-			generating: true
-		}
-		data.unshift(newItem)
-	} else {
-		item.content = ''
-		item.generating = true
-		newItem = item
-	}
-	data = data
-	await tick()
-
-	const response = await fetch(
-		'http://127.0.0.1:8000/chain', {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				chain: chain.map((item) => ({role: item.role, content: item.content}))
-			})
-		}
-	)
-	newItem.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
-	newItem.cropped = parseInt(response.headers.get('x-cropped'), 10)
-
-	const reader = response.body.getReader()
-	const decoder = new TextDecoder()
-	let text = ''
-	while (true) {
-		const { done, value } = await reader.read()
-		if (done) { break }
-			const decoded = decoder.decode(value, {stream: true})
-			text += decoded
-			newItem.content = text
-			data = data
-			await tick()
-	}
-	newItem.generating = false
-	data = data
+async function onMessagesUpdate() {
+	scheduleSave()
 }
 
-async function onUpdate() {
+function onParametersUpdate(data) {
+	sessionData.parameters = data
+	scheduleSave()
+}
+
+function onTitleUpdate(event) {
+	sessionData.title = event.target.value
 	scheduleSave()
 }
 </script>
 
 <main>
+<Parameters
+	parameters="{sessionData.parameters}"
+	onUpdate="{onParametersUpdate}"
+/>
+
+<div class="sessions">
+	{#each sessions as s}
+		<a href={`#${s.key}`} title={s.message.content}>{s.title}</a>
+	{/each}
+</div>
+
+<div>
+	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
+</div>
+
 <div class="messages">
 {#each data as c, i (c.id)}
 	<div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
 		<div class="flex">
-			{#each {length: c.ddepth} as _, dpth}
+			{#each {length: c.ddepth} as _}
 				<div class='pad' class:pad-colored="{!c.linear}"></div>
 			{/each}
 
@@ -222,20 +342,22 @@ async function onUpdate() {
 							<option value={U}>{U}</option>
 						</select>
 						{#if c.tokenLen !== undefined && c.tokenLen > 0}
-							<div class="meta-gray" title="Token length">({c.tokenLen})</div>
+							<div class="meta-gray" title="Token length">{c.tokenLen} ${c.promptCost}</div>
 						{/if}
 						{#if c.cropped !== undefined && c.cropped > 0}
 							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
 						{/if}
 						<div class="ml-auto"></div>
 						<button class="deleteButton" on:click="{deleteMessage}">x</button>
+						<button class="gen" on:click="{onExportChain}">export</button>
 						<button class="gen" on:click="{(e) => genResponse(e, true)}">regen</button>
 						<button class="gen" on:click="{(e) => genResponse(e, false)}">gen</button>
 						<button class="reply" on:click="{onReply}">&#10149;&#xFE0E;</button>
 					</div>
-					<CustomInput value={c.content} obj={c} onUpdate="{onUpdate}" />
+					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" />
 				</div>
 				{#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
+				{#if c.lastInChain}<div class="linear-pad1"></div>{/if}
 			</div>
 		</div>
 	</div>
@@ -245,6 +367,31 @@ async function onUpdate() {
 </main>
 
 <style>
+.sessions {
+	position: absolute;
+	left: 0;
+}
+
+.sessions a {
+	color: var(--color-text);
+	display: block;
+	max-width: 20ch;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.title-input {
+	width: 62ch;
+}
+.title-input {
+	border: 1px solid var(--text-color);
+	border-radius: 4px;
+	padding: 2px;
+	margin: 5px;
+	background-color: var(--comment-bg-color);
+	color: var(--text-color);
+}
 main {
 	width: 100%;
 	display: flex;
@@ -277,6 +424,11 @@ main {
 	margin-left: 16px;
 	content: '';
 	background-color: var(--text-color);
+}
+
+.linear-pad1 {
+	margin-top: 30px;
+	content: '';
 }
 
 .message__content {

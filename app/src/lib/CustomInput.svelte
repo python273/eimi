@@ -1,5 +1,6 @@
 <script>
-import {onMount} from 'svelte';
+import { onMount } from 'svelte';
+const inputId = Math.random().toString(36)
 
 export let value = ''
 export let obj
@@ -34,7 +35,14 @@ function handle(event) {
 </script>
 
 <div bind:this={elParent}>
-<textarea bind:value={value} on:input={handle} bind:this={el} rows="1"></textarea>
+<textarea
+	id={`ta-${inputId}`}
+	autocomplete="off"
+	rows="1"
+	bind:value={value}
+	on:input={handle}
+	bind:this={el}
+></textarea>
 </div>
 
 <style>
