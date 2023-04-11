@@ -68,6 +68,7 @@ $: {
 	window._messages = data
 	data = relationalToLinear(data)
 	scheduleSave()
+	document.title = `${sessionData.title} - Eimi LLM UI`;
 }
 
 function relationalToLinear(data) {
@@ -308,6 +309,13 @@ function onTitleUpdate(event) {
 	sessionData.title = event.target.value
 	scheduleSave()
 }
+
+function onFork(event) {
+	event.preventDefault()
+	const newId = uniqueId()
+	saveSession(newId)
+	window.location.hash = `#${newId}`
+}
 </script>
 
 <main>
@@ -324,6 +332,7 @@ function onTitleUpdate(event) {
 
 <div>
 	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
+	<button class="fork-btn" on:click="{onFork}">fork</button>
 </div>
 
 <div class="messages">
@@ -348,11 +357,11 @@ function onTitleUpdate(event) {
 							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
 						{/if}
 						<div class="ml-auto"></div>
-						<button class="deleteButton" on:click="{deleteMessage}">x</button>
-						<button class="gen" on:click="{onExportChain}">export</button>
-						<button class="gen" on:click="{(e) => genResponse(e, true)}">regen</button>
-						<button class="gen" on:click="{(e) => genResponse(e, false)}">gen</button>
-						<button class="reply" on:click="{onReply}">&#10149;&#xFE0E;</button>
+						<button class="deleteButton" on:click="{deleteMessage}" title="delete this message and replies">x</button>
+						<button class="gen" on:click="{onExportChain}" title="copy chain to clipboard">export</button>
+						<button class="gen" on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
+						<button class="gen" on:click="{(e) => genResponse(e, false)}" title="generate a response">gen</button>
+						<button class="reply" on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
 					</div>
 					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" />
 				</div>
