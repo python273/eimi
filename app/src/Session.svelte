@@ -1,15 +1,14 @@
 <script>
-import { tick } from 'svelte';
+import { tick, onDestroy } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
 import { uniqueId } from './utils.js';
 
+export let sessionId;
+if (!sessionId) { throw new Error('sessionId is required') }
+
 const U = 'user'
 const A = 'assistant'
-
-const SESSION_ID = window.location.hash.slice(1)
-window.addEventListener('hashchange', () => { window.location.reload() })
-if (!SESSION_ID) { window.location.hash = `#${uniqueId()}` }
 
 const sessions = [];
 function loadSessionsList() {
@@ -52,16 +51,16 @@ function loadSession(sessionId) {
 
 let sessionData;
 let data;
-loadSession(SESSION_ID)
+loadSession(sessionId)
 
-function _timerSave() {
-	saveSession(SESSION_ID)
+function _saveSession() {
+	saveSession(sessionId)
 	console.log('saved')
 }
 let saveTimeoutId = null
 function scheduleSave(t=1000) {
 	if (saveTimeoutId !== null) { clearTimeout(saveTimeoutId) }
-	saveTimeoutId = setTimeout(_timerSave, t)
+	saveTimeoutId = setTimeout(_saveSession, t)
 }
 
 $: {
@@ -253,6 +252,14 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 		data = data
 	}
 }
+onDestroy(() => {
+	for (const item of data) {
+		if (item.aborter !== undefined) {
+			item.aborter.abort()
+		}
+	}
+	_saveSession()
+})
 
 async function onReply(event) {
 	event.preventDefault()

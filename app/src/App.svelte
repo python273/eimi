@@ -1,5 +1,6 @@
 <script>
 import Session from './Session.svelte';
+import { uniqueId } from './utils.js';
 
 if (!("cfg-dark-theme" in localStorage)) {
 	const val = (
@@ -18,8 +19,20 @@ window.addEventListener('storage', (event) => {
 	darkTheme = localStorage["cfg-dark-theme"] === "1"
 });
 
+let sessionId = window.location.hash.slice(1)
+
+window.addEventListener('hashchange', () => {
+	window.scrollTo(0, 0)
+	sessionId = window.location.hash.slice(1)
+})
+
 let page = 'session';
-let props = {};
+let props = {sessionId};
+
+$: {
+	if (!sessionId) { window.location.hash = `#${uniqueId()}` }
+	props = {sessionId}
+}
 
 function exportLocalstorageToFile() {
 	const data = {};
@@ -95,8 +108,10 @@ function exportLocalstorageToFile() {
 </div>
 
 <div class="page">
-{#if page === "session"}
-	<Session {...props}/>
+{#if page === "session" && props.sessionId}
+	{#key props.sessionId}
+		<Session {...props}/>
+	{/key}
 {/if}
 </div>
 
