@@ -13,7 +13,7 @@ const A = 'assistant'
 const sessions = []
 function loadSessionsList() {
 	const keys = Object.keys(localStorage)
-	keys.sort((a, b) => a.localeCompare(b))
+	keys.sort((a, b) => b.localeCompare(a))
 	for (let i = 0; i < keys.length; i++) {
 		const key = keys[i]
 		if (key.indexOf('session-') !== 0) { continue }
@@ -204,6 +204,7 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
+					token: localStorage["cfg-openai-token"],
 					...sessionData.parameters,
 					messages: chain.map(i => ({role: i.role, content: i.content}))
 				})

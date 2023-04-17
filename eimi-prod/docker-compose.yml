@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  app:
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: ./eimi-prod/Dockerfile
+    expose:
+      - "80"
+    command: "pipenv run uvicorn main:app --host 0.0.0.0 --port 80 --workers 1 --loop uvloop"
+    labels:
+      - "traefik.http.routers.eimi-http.rule=Host(`eimi.cns.wtf`)"
+      - "traefik.http.routers.eimi-http.middlewares=eimi-secure-headers,eimi-compress"
+
+      - "traefik.http.routers.eimi-https.rule=Host(`eimi.cns.wtf`)"
+      - "traefik.http.routers.eimi-https.tls=true"
+      - "traefik.http.routers.eimi-https.tls.certresolver=le"
+      - "traefik.http.routers.eimi-https.middlewares=eimi-secure-headers,eimi-compress"
+
+      - "traefik.http.middlewares.eimi-compress.compress=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.framedeny=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.sslredirect=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.stsSeconds=2592000"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.eimi-secure-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-traefik-net}

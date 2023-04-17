@@ -1,5 +1,6 @@
 <script>
 import Session from './Session.svelte';
+import Settings from './Settings.svelte';
 import { uniqueId } from './utils.js';
 
 if (!("cfg-dark-theme" in localStorage)) {
@@ -19,19 +20,22 @@ window.addEventListener('storage', (event) => {
 	darkTheme = localStorage["cfg-dark-theme"] === "1"
 });
 
-let sessionId = window.location.hash.slice(1)
+let hash = window.location.hash.slice(1)
 
 window.addEventListener('hashchange', () => {
 	window.scrollTo(0, 0)
-	sessionId = window.location.hash.slice(1)
+	hash = window.location.hash.slice(1)
 })
 
-let page = 'session';
-let props = {sessionId};
+let page;
+let props = {};
 
 $: {
-	if (!sessionId) { window.location.hash = `#${uniqueId()}` }
-	props = {sessionId}
+	page = hash == 'settings' ? 'settings' : 'session'
+	if (page === 'session') {
+		if (!hash) { window.location.hash = `#${uniqueId()}` }
+		props = {sessionId: hash}
+	}
 }
 
 function exportLocalstorageToFile() {
@@ -89,6 +93,11 @@ function exportLocalstorageToFile() {
 
 	<div class='ml-auto'></div>
 	<div class="settings">
+		<a
+			class="settings-link"
+			href="#settings"
+			title="settings"
+		>⚙&#xFE0E;</a>
 		<button
 			class="btn-export"
 			on:click={(e) => {
@@ -98,7 +107,7 @@ function exportLocalstorageToFile() {
 			title="export localstorage to file"
 		>⬇</button>
 		<input
-		  class="c-pointer"
+			class="c-pointer"
 			id="dark-theme-checkbox"
 			type="checkbox" bind:checked={darkTheme}
 			title="dark theme"
@@ -112,6 +121,9 @@ function exportLocalstorageToFile() {
 	{#key props.sessionId}
 		<Session {...props}/>
 	{/key}
+{/if}
+{#if page === "settings"}
+	<Settings/>
 {/if}
 </div>
 
@@ -152,5 +164,11 @@ function exportLocalstorageToFile() {
 	color: var(--text-color);
 	font-size: 1.4em;
 	cursor: pointer;
+}
+
+.settings-link {
+	color: var(--text-color);
+	margin-right: 1em;
+	font-size: 1.4em;
 }
 </style>

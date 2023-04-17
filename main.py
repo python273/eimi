@@ -1,14 +1,12 @@
+import asyncio
 import json
-from pathlib import Path
 
 import httpx
 import tiktoken
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-with open(Path(__file__).parent / 'openai_token.txt') as f:
-    OPENAI_API_KEY = f.read().strip()
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -21,7 +19,8 @@ app.add_middleware(
     expose_headers=['x-token-len', 'x-cropped'],
 )
 
-async def openai_chat_completions_stream(http: httpx.AsyncClient, model: str, **kwargs):
+async def openai_chat_completions_stream(
+        http: httpx.AsyncClient, token: str, model: str, **kwargs):
     json_data = {
         'stream': True,
         'model': model,
@@ -31,7 +30,7 @@ async def openai_chat_completions_stream(http: httpx.AsyncClient, model: str, **
     async with http.stream(
             'POST',
             'https://api.openai.com/v1/chat/completions',
-            headers={'Authorization': f"Bearer {OPENAI_API_KEY}"},
+            headers={'Authorization': f"Bearer {token}"},
             json=json_data
         ) as r:
         if r.status_code != 200:
@@ -41,12 +40,10 @@ async def openai_chat_completions_stream(http: httpx.AsyncClient, model: str, **
             return
 
         async for line in r.aiter_lines():
-            if line == 'data: [DONE]\n': break
+            if line.startswith('data: [DONE]'): break
             line = line.strip()
             if not line: continue
             yield json.loads(line.removeprefix('data: '))
-
-        await r.aclose()
 
 ENC = tiktoken.encoding_for_model("gpt-3.5-turbo")
 def get_message_token_len(message):
@@ -63,11 +60,31 @@ def crop_history(messages):
         token_len_so_far += token_len
         new_messages.append(i)
 
+    # TODO: refactor
+    # try to crop the last message to 3800 tokens
+    if len(messages) > 1 and len(new_messages) <= 1:
+        tokens = ENC.encode(i['content'])
+        tokens = tokens[-(3800 - token_len_so_far):]
+        i['content'] = ENC.decode(tokens)
+        token_len_so_far += len(tokens)
+        new_messages.append(i)
+
     return new_messages[::-1], token_len_so_far
 
 client = httpx.AsyncClient(http2=True, timeout=15.0)
 
+DUMMY_TEXT = 'This is a dummy response. Provide a valid OpenAI API key to get real responses.\n'.encode("utf-8")
+async def dummy_openai_chat_completions_stream(**kwargs):
+    for i in range(len(DUMMY_TEXT)):
+        yield DUMMY_TEXT[i:i+1]
+
 async def stream_response(**kwargs):
+    if not kwargs['token']:
+        async for chunk in dummy_openai_chat_completions_stream(**kwargs):
+            yield chunk
+            await asyncio.sleep(0.03)
+        return
+
     resp = openai_chat_completions_stream(client, **kwargs)
     async for chunk in resp:
         c = chunk['choices'][0]
@@ -80,6 +97,7 @@ async def post_chat_completions(request: Request):
     data = await request.json()
     cropped_messages, token_len = crop_history(data['messages'])
     s = stream_response(
+        token=data.get('token'),
         messages=cropped_messages,
         model=data['model'],
         temperature=float(data['temperature']),
@@ -94,3 +112,7 @@ async def post_chat_completions(request: Request):
         },
         media_type="text/plain"
     )
+
+
+# must be last
+app.mount("/", StaticFiles(directory="app/dist/", html=True), name="static")

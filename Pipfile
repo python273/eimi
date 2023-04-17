@@ -7,6 +7,7 @@ name = "pypi"
 fastapi = {extras = ["all"], version = "*"}
 httpx = {extras = ["brotli", "http2", "socks"], version = "*"}
 tiktoken = "*"
+uvloop = "*"
 
 [dev-packages]
 
