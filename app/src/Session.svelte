@@ -4,18 +4,18 @@ import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
 import { uniqueId } from './utils.js';
 
-export let sessionId;
+export let sessionId
 if (!sessionId) { throw new Error('sessionId is required') }
 
 const U = 'user'
 const A = 'assistant'
 
-const sessions = [];
+const sessions = []
 function loadSessionsList() {
-	const keys = Object.keys(localStorage);
-	keys.sort((a, b) => a.localeCompare(b));
+	const keys = Object.keys(localStorage)
+	keys.sort((a, b) => a.localeCompare(b))
 	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i];
+		const key = keys[i]
 		if (key.indexOf('session-') !== 0) { continue }
 		let obj = JSON.parse(localStorage[key])
 		const message = obj.messages.find(m => m.parentId === null)
@@ -23,25 +23,34 @@ function loadSessionsList() {
 		sessions.push({key: key.slice(8), message, title})
 	}
 }
-loadSessionsList();
+loadSessionsList()
 
+let stopSaving = false
 function saveSession(sessionId) {
+	if (stopSaving) return;
 	const savedMessages = data.map(
 		({id, parentId, role, content}) => ({id, parentId, role, content})
 	)
+	if (savedMessages.length === 1 && savedMessages[0].content === '') return;
 	const obj = {...sessionData, messages: savedMessages}
 	localStorage.setItem(`session-${sessionId}`, JSON.stringify(obj))
+	console.log('saved', sessionId)
 }
-function loadSession(sessionId) {
+function deleteSession() {
+	stopSaving = true
+	localStorage.removeItem(`session-${sessionId}`)
+	console.log('deleted', sessionId)
+}
+function loadSession() {
 	let obj = localStorage.getItem(`session-${sessionId}`)
 	if (obj === null) {
 		sessionData = {
-			title: sessionId,
+			title: (new Date()).toLocaleString(),
 			parameters: {},
 			messages: [{id: 'genesis', parentId: null, role: U, content: ''}]
 		}
 		data = sessionData.messages
-		return;
+		return
 	}
 	obj = JSON.parse(obj)
 	if (!obj.parameters) { obj.parameters = {} }
@@ -49,13 +58,12 @@ function loadSession(sessionId) {
 	data = obj.messages
 }
 
-let sessionData;
-let data;
-loadSession(sessionId)
+let sessionData
+let data
+loadSession()
 
 function _saveSession() {
 	saveSession(sessionId)
-	console.log('saved')
 }
 let saveTimeoutId = null
 function scheduleSave(t=1000) {
@@ -67,7 +75,7 @@ $: {
 	window._messages = data
 	data = relationalToLinear(data)
 	scheduleSave()
-	document.title = `${sessionData.title} - Eimi LLM UI`;
+	document.title = `${sessionData.title} - Eimi LLM UI`
 }
 
 function relationalToLinear(data) {
@@ -215,7 +223,7 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 			"I'm sorry, but as an",
 			'an AI language model',
 			'OpenAI',
-		];
+		]
 
 		const reader = response.body.getReader()
 		const decoder = new TextDecoder()
@@ -258,7 +266,7 @@ onDestroy(() => {
 			item.aborter.abort()
 		}
 	}
-	_saveSession()
+	saveSession(sessionId)
 })
 
 async function onReply(event) {
@@ -323,6 +331,12 @@ function onFork(event) {
 	saveSession(newId)
 	window.location.hash = `#${newId}`
 }
+function onDelete(event) {
+	event.preventDefault()
+	if (!confirm('Are you sure?')) { return }
+	deleteSession()
+	window.location.hash = ''
+}
 </script>
 
 <main>
@@ -339,7 +353,8 @@ function onFork(event) {
 
 <div>
 	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
-	<button class="fork-btn" on:click="{onFork}">fork</button>
+	<button on:click="{onFork}" title="make a copy of this session">fork</button>
+	<button on:click="{onDelete}" title="delete session">x</button>
 </div>
 
 <div class="messages">
