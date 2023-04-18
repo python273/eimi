@@ -9,6 +9,7 @@ if (!sessionId) { throw new Error('sessionId is required') }
 
 const U = 'user'
 const A = 'assistant'
+const S = 'system'
 
 const sessions = []
 function loadSessionsList() {
@@ -198,8 +199,13 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 	const aborter = new AbortController()
 	newMessage.aborter = aborter
 	try {
+		const url = (
+			window.location.hostname === 'localhost' ?
+				'http://127.0.0.1:8000/chat_completions' :
+				'/chat_completions'
+		)
 		const response = await fetch(
-			'http://127.0.0.1:8000/chat_completions', {
+			url, {
 				signal: aborter.signal,
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
@@ -372,6 +378,7 @@ function onDelete(event) {
 						<select class="role" value={c.role} on:change="{onRoleChange}">
 							<option value={A}>{A}</option>
 							<option value={U}>{U}</option>
+							<option value={S}>{S}</option>
 						</select>
 						{#if c.tokenLen !== undefined && c.tokenLen > 0}
 							<div class="meta-gray" title="Token length">{c.tokenLen} ${c.promptCost}</div>
