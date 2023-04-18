@@ -54,6 +54,8 @@ $: {
     flex-direction: column;
 }
 label {
+    display: block;
+    width: 100%;
     font-size: 0.8em;
 }
 .parameters > div, select {

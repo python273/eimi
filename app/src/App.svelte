@@ -37,27 +37,6 @@ $: {
 		props = {sessionId: hash}
 	}
 }
-
-function exportLocalstorageToFile() {
-	const data = {};
-	const keys = Object.keys(localStorage);
-	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i];
-		data[key] = localStorage[key];
-	}
-	const json = JSON.stringify(data);
-	const blob = new Blob([json], {type: "application/json"});
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
-	a.href = url;
-	a.download = 'llm-ui-backup.json';
-	document.body.appendChild(a);
-	a.click();
-	setTimeout(function() {
-		document.body.removeChild(a);
-		window.URL.revokeObjectURL(url);
-	}, 0);
-}
 </script>
 
 {#if !darkTheme}
@@ -98,14 +77,6 @@ function exportLocalstorageToFile() {
 			href="#settings"
 			title="settings"
 		>⚙&#xFE0E;</a>
-		<button
-			class="btn-export"
-			on:click={(e) => {
-				e.preventDefault();
-				exportLocalstorageToFile();
-			}}
-			title="export localstorage to file"
-		>⬇</button>
 		<input
 			class="c-pointer"
 			id="dark-theme-checkbox"
@@ -155,15 +126,6 @@ function exportLocalstorageToFile() {
 		position: fixed;
 		right: 16px;
 	}
-}
-
-.btn-export {
-	margin-right: 1em;
-	background: none;
-	border: none;
-	color: var(--text-color);
-	font-size: 1.4em;
-	cursor: pointer;
 }
 
 .settings-link {
