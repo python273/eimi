@@ -3,6 +3,7 @@ import { tick, onDestroy } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
 import { uniqueId } from './utils.js';
+import { db } from './db.js';
 
 export let sessionId
 if (!sessionId) { throw new Error('sessionId is required') }
@@ -11,60 +12,64 @@ const U = 'user'
 const A = 'assistant'
 const S = 'system'
 
-const sessions = []
-function loadSessionsList() {
-	const keys = Object.keys(localStorage)
+let sessions = []
+async function loadSessionsList() {
+	const tx = (await db).transaction('sessions', 'readonly');
+	const keys = await tx.store.getAllKeys()
 	keys.sort((a, b) => b.localeCompare(a))
 	for (let i = 0; i < keys.length; i++) {
 		const key = keys[i]
-		if (key.indexOf('session-') !== 0) { continue }
-		let obj = JSON.parse(localStorage[key])
+		let obj = await tx.store.get(key)
 		const message = obj.messages.find(m => m.parentId === null)
 		const title = obj.title
-		sessions.push({key: key.slice(8), message, title})
+		sessions.push({key, message, title})
 	}
+	sessions = sessions
 }
 loadSessionsList()
 
 let stopSaving = false
-function saveSession(sessionId) {
+async function saveSession(sessionId) {
 	if (stopSaving) return;
 	const savedMessages = data.map(
 		({id, parentId, role, content}) => ({id, parentId, role, content})
 	)
 	if (savedMessages.length === 1 && savedMessages[0].content === '') return;
-	const obj = {...sessionData, messages: savedMessages}
-	localStorage.setItem(`session-${sessionId}`, JSON.stringify(obj))
+	const obj = {...sessionData, messages: savedMessages};
+	(await db).put('sessions', obj, sessionId);
 	console.log('saved', sessionId)
 }
-function deleteSession() {
-	stopSaving = true
-	localStorage.removeItem(`session-${sessionId}`)
+async function deleteSession() {
+	stopSaving = true;
+	(await db).delete('sessions', sessionId);
 	console.log('deleted', sessionId)
 }
-function loadSession() {
-	let obj = localStorage.getItem(`session-${sessionId}`)
-	if (obj === null) {
+
+let sessionLoaded = false
+let sessionData
+let data
+
+async function loadSession() {
+	let obj = await (await db).get('sessions', sessionId);
+	if (obj === undefined) {
 		sessionData = {
 			title: (new Date()).toLocaleString(),
 			parameters: {},
 			messages: [{id: 'genesis', parentId: null, role: U, content: ''}]
 		}
 		data = sessionData.messages
+		sessionLoaded = true
 		return
 	}
-	obj = JSON.parse(obj)
 	if (!obj.parameters) { obj.parameters = {} }
 	sessionData = obj
 	data = obj.messages
+	sessionLoaded = true
 }
-
-let sessionData
-let data
 loadSession()
 
-function _saveSession() {
-	saveSession(sessionId)
+async function _saveSession() {
+	await saveSession(sessionId)
 }
 let saveTimeoutId = null
 function scheduleSave(t=1000) {
@@ -73,10 +78,12 @@ function scheduleSave(t=1000) {
 }
 
 $: {
-	window._messages = data
-	data = relationalToLinear(data)
-	scheduleSave()
-	document.title = `${sessionData.title} - Eimi LLM UI`
+	window._sessionData = sessionData
+	if (data && data.length) {
+		data = relationalToLinear(data)
+		scheduleSave()
+		document.title = `${sessionData.title} - Eimi LLM UI`
+	}
 }
 
 function relationalToLinear(data) {
@@ -200,7 +207,7 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 	newMessage.aborter = aborter
 	try {
 		const url = (
-			window.location.hostname === 'localhost' ?
+			import.meta.env.DEV ?
 				'http://127.0.0.1:8000/chat_completions' :
 				'/chat_completions'
 		)
@@ -267,13 +274,13 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 		data = data
 	}
 }
-onDestroy(() => {
+onDestroy(async () => {
 	for (const item of data) {
 		if (item.aborter !== undefined) {
 			item.aborter.abort()
 		}
 	}
-	saveSession(sessionId)
+	await saveSession(sessionId)
 })
 
 async function onReply(event) {
@@ -332,31 +339,32 @@ function onTitleUpdate(event) {
 	scheduleSave()
 }
 
-function onFork(event) {
+async function onFork(event) {
 	event.preventDefault()
 	const newId = uniqueId()
-	saveSession(newId)
+	await saveSession(newId)
 	window.location.hash = `#${newId}`
 }
-function onDelete(event) {
+async function onDelete(event) {
 	event.preventDefault()
 	if (!confirm('Are you sure?')) { return }
-	deleteSession()
+	await deleteSession()
 	window.location.hash = ''
 }
 </script>
 
 <main>
+<div class="sessions">
+	{#each sessions as s (s.key)}
+		<a href={`#${s.key}`} title={s.message.content}>{s.title}</a>
+	{/each}
+</div>
+
+{#if sessionLoaded}
 <Parameters
 	parameters="{sessionData.parameters}"
 	onUpdate="{onParametersUpdate}"
 />
-
-<div class="sessions">
-	{#each sessions as s}
-		<a href={`#${s.key}`} title={s.message.content}>{s.title}</a>
-	{/each}
-</div>
 
 <div>
 	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
@@ -402,6 +410,7 @@ function onDelete(event) {
 	</div>
 {/each}
 </div>
+{/if}
 <div style="height: max(100vh, 2000px);"></div>
 </main>
 
