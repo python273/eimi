@@ -1,5 +1,6 @@
 import asyncio
 import json
+from pprint import pprint
 
 import httpx
 import tiktoken
@@ -49,22 +50,19 @@ ENC = tiktoken.encoding_for_model("gpt-3.5-turbo")
 def get_message_token_len(message):
     return len(ENC.encode(message['content'])) + 4  # TODO: not correct
 
-def crop_history(messages):
-    # This model's maximum context length is 4097 tokens.
+def crop_history(messages, target_token_len):
     new_messages = []
     token_len_so_far = 0
     for i in messages[::-1]:
         token_len = get_message_token_len(i)
-        if token_len + token_len_so_far > (4097 - 300):
+        if token_len + token_len_so_far > target_token_len:
             break
         token_len_so_far += token_len
         new_messages.append(i)
 
-    # TODO: refactor
-    # try to crop the last message to 3800 tokens
-    if len(messages) > 1 and len(new_messages) <= 1:
+    if len(messages) > len(new_messages) and (target_token_len - token_len_so_far) >= 10:
         tokens = ENC.encode(i['content'])
-        tokens = tokens[-(3800 - token_len_so_far):]
+        tokens = tokens[-(target_token_len - token_len_so_far):]
         i['content'] = ENC.decode(tokens)
         token_len_so_far += len(tokens)
         new_messages.append(i)
@@ -95,7 +93,9 @@ async def stream_response(**kwargs):
 @app.post("/chat_completions")
 async def post_chat_completions(request: Request):
     data = await request.json()
-    cropped_messages, token_len = crop_history(data['messages'])
+    cropped_messages, token_len = crop_history(
+        data['messages'], data['target_token_len']
+    )
     s = stream_response(
         token=data.get('token'),
         messages=cropped_messages,

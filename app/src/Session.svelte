@@ -218,6 +218,7 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					token: localStorage["cfg-openai-token"],
+					target_token_len: 4097 - 400,
 					...sessionData.parameters,
 					messages: chain.map(i => ({role: i.role, content: i.content}))
 				})
