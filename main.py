@@ -51,6 +51,14 @@ def get_message_token_len(message):
     return len(ENC.encode(message['content'])) + 4  # TODO: not correct
 
 def crop_history(messages, target_token_len):
+    for i in messages:
+        if '~~~~\n' not in i['content']: continue
+        new_content = []
+        for x, chunk in enumerate(i['content'].split('~~~~\n')):
+            if x % 2 == 1: continue
+            new_content.append(chunk)
+        i['content'] = ''.join(new_content)
+
     new_messages = []
     token_len_so_far = 0
     for i in messages[::-1]:
