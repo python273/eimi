@@ -1,4 +1,4 @@
-# Eimi LLM UI
+# Eimi
 
 Tree Comments UI for ChatGPT
 

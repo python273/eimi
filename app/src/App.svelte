@@ -68,7 +68,7 @@ $: {
 {/if}
 
 <div class="header">
-	<div class="home"><a href="#" class="no-vs">Eimi LLM UI</a></div>
+	<div class="home"><a href="#" class="no-vs">Eimi</a></div>
 
 	<div class='ml-auto'></div>
 	<div class="settings">

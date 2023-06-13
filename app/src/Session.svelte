@@ -228,10 +228,14 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 		newMessage.cropped = parseInt(response.headers.get('x-cropped'), 10)
 
 		// TODO: generation cost
-		if (sessionData.parameters.model === 'gpt-4') {
+		if (sessionData.parameters.model.indexOf('gpt-4-32k') === 0) {
+			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.06
+		} else if (sessionData.parameters.model.indexOf('gpt-4') === 0) {
 			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.03
-		} else {
-			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.002
+		} else if (sessionData.parameters.model.indexOf('gpt-3.5-turbo-16k') === 0) {
+			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.003
+		} else if (sessionData.parameters.model.indexOf('gpt-3.5-turbo') === 0) {
+			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.0015
 		}
 
 		const AUTO_ABORT_SUBSTRINGS = [
