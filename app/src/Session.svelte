@@ -1,32 +1,21 @@
 <script>
-import { tick, onDestroy } from 'svelte';
+import { tick, onDestroy, onMount } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
 import { uniqueId } from './utils.js';
 import { db } from './db.js';
 
 export let sessionId
+export let autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
 
 const U = 'user'
 const A = 'assistant'
 const S = 'system'
 
-let sessions = []
-async function loadSessionsList() {
-	const tx = (await db).transaction('sessions', 'readonly');
-	const keys = await tx.store.getAllKeys()
-	keys.sort((a, b) => b.localeCompare(a))
-	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i]
-		let obj = await tx.store.get(key)
-		const message = obj.messages.find(m => m.parentId === null)
-		const title = obj.title
-		sessions.push({key, message, title})
-	}
-	sessions = sessions
-}
-loadSessionsList()
+let sessionLoaded = false
+let sessionData
+let data
 
 let stopSaving = false
 async function saveSession(sessionId) {
@@ -39,15 +28,20 @@ async function saveSession(sessionId) {
 	(await db).put('sessions', obj, sessionId);
 	console.log('saved', sessionId)
 }
+onDestroy(async () => {
+	if (!data) return;
+	for (const item of data) {
+		if (item.aborter !== undefined) {
+			item.aborter.abort()
+		}
+	}
+	await saveSession(sessionId)
+})
 async function deleteSession() {
 	stopSaving = true;
 	(await db).delete('sessions', sessionId);
 	console.log('deleted', sessionId)
 }
-
-let sessionLoaded = false
-let sessionData
-let data
 
 async function loadSession() {
 	let obj = await (await db).get('sessions', sessionId);
@@ -59,6 +53,18 @@ async function loadSession() {
 		}
 		data = sessionData.messages
 		sessionLoaded = true
+
+		if (autoReply) {
+			sessionData.messages[0].content = autoReply
+			sessionData.parameters = {
+				model: 'gpt-4-0613',
+				temperature: 0,
+				frequency_penalty: 0,
+				presence_penalty: 0
+			}
+			autoReply = undefined
+			_genResponse(data[0])
+		}
 		return
 	}
 	if (!obj.parameters) { obj.parameters = {} }
@@ -66,7 +72,9 @@ async function loadSession() {
 	data = obj.messages
 	sessionLoaded = true
 }
-loadSession()
+onMount(() => {
+	loadSession()
+})
 
 async function _saveSession() {
 	await saveSession(sessionId)
@@ -171,10 +179,10 @@ async function onExportChain(event) {
 	copyToClipboard(text)
 }
 
-async function genResponse(event, regenerate=false, attemptNum=0) {
+async function genResponse(event, regenerate=false) {
 	event.preventDefault()
 	const message = getMessageFromEvent(event)
-	_genResponse(message, regenerate, attemptNum)
+	_genResponse(message, regenerate)
 }
 async function _genResponse(message, regenerate=false, attemptNum=0) {
 	console.log('genResponse', message, regenerate, attemptNum)
@@ -279,14 +287,6 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 		data = data
 	}
 }
-onDestroy(async () => {
-	for (const item of data) {
-		if (item.aborter !== undefined) {
-			item.aborter.abort()
-		}
-	}
-	await saveSession(sessionId)
-})
 
 async function onReply(event) {
 	event.preventDefault()
@@ -358,13 +358,6 @@ async function onDelete(event) {
 }
 </script>
 
-<main>
-<div class="sessions">
-	{#each sessions as s (s.key)}
-		<a href={`#${s.key}`} title={s.message.content}>{s.title}</a>
-	{/each}
-</div>
-
 {#if sessionLoaded}
 <Parameters
 	parameters="{sessionData.parameters}"
@@ -403,10 +396,10 @@ async function onDelete(event) {
 						<button class="deleteButton" on:click="{deleteMessage}" title="delete this message and replies">x</button>
 						<button class="gen" on:click="{onExportChain}" title="copy chain to clipboard">export</button>
 						<button class="gen" on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
-						<button class="gen" on:click="{(e) => genResponse(e, false)}" title="generate a response">gen</button>
+						<button class="gen" on:click="{genResponse}" title="generate a response">gen</button>
 						<button class="reply" on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
 					</div>
-					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" />
+					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" onSubmit="{genResponse}"/>
 				</div>
 				{#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
 				{#if c.lastInChain}<div class="linear-pad1"></div>{/if}
@@ -416,24 +409,8 @@ async function onDelete(event) {
 {/each}
 </div>
 {/if}
-<div style="height: max(100vh, 2000px);"></div>
-</main>
 
 <style>
-.sessions {
-	position: absolute;
-	left: 0;
-}
-
-.sessions a {
-	color: var(--color-text);
-	display: block;
-	max-width: 20ch;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
 .title-input {
 	width: 62ch;
 }
@@ -445,13 +422,6 @@ async function onDelete(event) {
 	background-color: var(--comment-bg-color);
 	color: var(--text-color);
 }
-main {
-	width: 100%;
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-}
-
 .role {
 	background: none;
 	border: none;

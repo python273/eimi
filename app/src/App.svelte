@@ -1,5 +1,5 @@
 <script>
-import Session from './Session.svelte';
+import SessionPage from './SessionPage.svelte';
 import Settings from './Settings.svelte';
 import { uniqueId } from './utils.js';
 
@@ -31,11 +31,18 @@ let page;
 let props = {};
 
 $: {
-	page = hash == 'settings' ? 'settings' : 'session'
-	if (page === 'session') {
+	let params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
+	if (hash === 'settings') {
+		page = 'settings'
+	} else if (hash.indexOf('?answer=') === 0) {
+		page = ''
+		window.location.hash = `#${uniqueId()}${hash}`
+	} else {
+		page = 'session'
 		if (!hash) { window.location.hash = `#${uniqueId()}` }
-		props = {sessionId: hash}
+		props = {sessionId: hash.split('?')[0], autoReply: params.answer}
 	}
+	console.log(hash, page, props, params);
 }
 </script>
 
@@ -89,9 +96,7 @@ $: {
 
 <div class="page">
 {#if page === "session" && props.sessionId}
-	{#key props.sessionId}
-		<Session {...props}/>
-	{/key}
+	<SessionPage {...props}/>
 {/if}
 {#if page === "settings"}
 	<Settings/>

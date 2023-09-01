@@ -60,10 +60,7 @@ function importSessionsFromFile(e) {
 			type="password"
 			bind:value={openaiToken}
 		/>
-		<p>
-			<strong>Warning</strong>: the token is sent to the backend
-			(not directly to OpenAI API)
-		</p>
+		<p>Notice: the token is sent to the backend (not directly to OpenAI API)</p>
 	</div>
 	<hr/>
 	<div>
