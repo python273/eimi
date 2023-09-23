@@ -226,7 +226,6 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					token: localStorage["cfg-openai-token"],
-					target_token_len: 4097 - 400,
 					...sessionData.parameters,
 					messages: chain.map(i => ({role: i.role, content: i.content}))
 				})
@@ -313,7 +312,7 @@ async function onRoleChange(event) {
 
 async function deleteMessage(event) {
 	event.preventDefault()
-	if (!confirm('Are you sure?')) { return }
+	if (!confirm('Delete message?')) { return }
 	const item = getMessageFromEvent(event)
 
 	const idsToDelete = [item.id]
@@ -352,10 +351,21 @@ async function onFork(event) {
 }
 async function onDelete(event) {
 	event.preventDefault()
-	if (!confirm('Are you sure?')) { return }
+	if (!confirm('Delete session?')) { return }
 	await deleteSession()
 	window.location.hash = ''
 }
+
+let loadedPlugins = window.eimiPlugins || [];
+function updateLoadedPlugins() {
+	loadedPlugins = window.eimiPlugins || [];
+}
+onMount(() => {
+	window.updateLoadedPlugins = updateLoadedPlugins;
+});
+onDestroy(() => {
+	window.updateLoadedPlugins = null;
+});
 </script>
 
 {#if sessionLoaded}
@@ -393,11 +403,15 @@ async function onDelete(event) {
 							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
 						{/if}
 						<div class="ml-auto"></div>
-						<button class="deleteButton" on:click="{deleteMessage}" title="delete this message and replies">x</button>
-						<button class="gen" on:click="{onExportChain}" title="copy chain to clipboard">export</button>
-						<button class="gen" on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
-						<button class="gen" on:click="{genResponse}" title="generate a response">gen</button>
-						<button class="reply" on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
+						{#each loadedPlugins as plugin}
+							<button on:click="{(e) => {plugin.onClick(e, c)}}">{plugin.name}</button>
+						{/each}
+
+						<button on:click="{deleteMessage}" title="delete this message and replies">x</button>
+						<button on:click="{onExportChain}" title="copy chain to clipboard">export</button>
+						<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
+						<button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
+						<button on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
 					</div>
 					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" onSubmit="{genResponse}"/>
 				</div>

@@ -20,20 +20,38 @@ app.add_middleware(
     expose_headers=['x-token-len', 'x-cropped'],
 )
 
+COMPLETIONS_MODELS = [
+    'gpt-3.5-turbo-instruct',
+    'gpt-3.5-turbo-instruct-0914',
+]
+
+class OpenAiTextError:
+    def __init__(self, text):
+        self.text = text
+
 async def openai_chat_completions_stream(
         http: httpx.AsyncClient, token: str, model: str, **kwargs):
     json_data = {
         'stream': True,
         'model': model,
-        # "messages": [{"role": "user", "content": ""}]
         **kwargs,
     }
+    if model in COMPLETIONS_MODELS:
+        url = 'https://api.openai.com/v1/completions'
+    else:
+        url = 'https://api.openai.com/v1/chat/completions'
+
     async with http.stream(
             'POST',
-            'https://api.openai.com/v1/chat/completions',
+            url,
             headers={'Authorization': f"Bearer {token}"},
             json=json_data
         ) as r:
+        if r.status_code == 400:
+            await r.aread()
+            yield OpenAiTextError(str(r.text))
+            return
+
         if r.status_code != 200:
             print(r.status_code)
             print(await r.aread())
@@ -93,9 +111,14 @@ async def stream_response(**kwargs):
 
     resp = openai_chat_completions_stream(client, **kwargs)
     async for chunk in resp:
+        if isinstance(chunk, OpenAiTextError):
+            yield b'API error:\n'
+            yield chunk.text.encode('utf-8')
+            continue
         c = chunk['choices'][0]
-
-        if c['delta'].get('content'):
+        if 'text' in c:
+            yield c['text'].encode('utf-8')
+        elif c['delta'].get('content'):  # chat
             yield c['delta']['content'].encode('utf-8')
 
 @app.post("/chat_completions")
@@ -104,13 +127,22 @@ async def post_chat_completions(request: Request):
     cropped_messages, token_len = crop_history(
         data['messages'], data['target_token_len']
     )
+    kwargs = {}
+    if data['model'] in COMPLETIONS_MODELS:
+        kwargs['prompt'] = ''.join(i['content'] for i in cropped_messages)
+    else:
+        kwargs['messages'] = cropped_messages
+
+    if data['max_tokens'] != 0:
+        kwargs['max_tokens'] = data['max_tokens']
+
     s = stream_response(
         token=data.get('token'),
-        messages=cropped_messages,
         model=data['model'],
         temperature=float(data['temperature']),
         frequency_penalty=float(data['frequency_penalty']),
         presence_penalty=float(data['presence_penalty']),
+        **kwargs,
     )
     return StreamingResponse(
         s,

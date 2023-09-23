@@ -1,5 +1,5 @@
 <script>
-import { onMount } from 'svelte';
+import { onMount, tick } from 'svelte';
 const inputId = Math.random().toString(36)
 
 export let value = ''
@@ -16,19 +16,22 @@ onMount(() => {
 	el.style.height = `${el.scrollHeight} px`
 })
 
-$: {
-	value
-	if (el) {
-		// lock parent height, to not trigger scroll
-		// because of textarea shrinking temporarily
-		elParent.style.height = `${el.offsetHeight}px`
+async function autoresize(value) {
+	await tick()
 
-		el.style.height = "auto"
-		el.style.height = `calc(${el.scrollHeight}px + 1.1em)`
+	if (!el) { return; }
 
-		elParent.style.height = `auto`
-	}
+	// lock parent height, to not trigger scroll
+	// because of textarea shrinking temporarily
+	elParent.style.height = `${el.offsetHeight}px`
+
+	el.style.height = "auto"
+	el.style.height = `calc(${el.scrollHeight}px)`
+
+	elParent.style.height = `auto`
 }
+$: { autoresize(value) }
+
 function handle(event) {
 	obj.content = value
 	onUpdate(obj)

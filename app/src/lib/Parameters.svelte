@@ -6,6 +6,7 @@ const MODELS = [
     'gpt-3.5-turbo',
     'gpt-3.5-turbo-16k',
     'gpt-4',
+    'gpt-3.5-turbo-instruct',
 
     'gpt-3.5-turbo-0301',
     'gpt-3.5-turbo-0613',
@@ -14,6 +15,8 @@ const MODELS = [
     'gpt-4-0314',
     'gpt-4-0613',
     'gpt-4-32k-0613',
+
+    'gpt-3.5-turbo-instruct-0914',
 ];
 function getModelMaxTokenLen(model) {
     if (model.indexOf('gpt-4-32k') === 0) {
@@ -22,6 +25,8 @@ function getModelMaxTokenLen(model) {
         return 8192
     } else if (model.indexOf('gpt-3.5-turbo-16k') === 0) {
         return 16384
+    } else if (model.indexOf('gpt-3.5-turbo-instruct') === 0) {
+        return 4096
     } else if (model.indexOf('gpt-3.5-turbo') === 0) {
         return 4096
     }
@@ -34,13 +39,15 @@ let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameter
 
 let modelMaxTokenLen = getModelMaxTokenLen(model);
 let target_token_len = parameters.hasOwnProperty('target_token_len') ? parameters.target_token_len : modelMaxTokenLen - 400;
+let max_tokens = parameters.hasOwnProperty('max_tokens') ? parameters.max_tokens : 0;
 
 $: {
     modelMaxTokenLen = getModelMaxTokenLen(model);
     if (target_token_len >= modelMaxTokenLen) {
         target_token_len = modelMaxTokenLen - 400;
+        max_tokens = modelMaxTokenLen;
     }
-    onUpdate({model, temperature, frequency_penalty, presence_penalty, target_token_len});
+    onUpdate({model, temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens});
 }
 </script>
 
@@ -71,6 +78,11 @@ $: {
         <label for="target_token_len">History Token Len</label>
         <input type="range" id="target_token_len" min="0" max={modelMaxTokenLen} step="1" bind:value={target_token_len} />
         <span>{target_token_len}</span>
+    </div>
+    <div>
+        <label for="max_tokens">Max Tokens</label>
+        <input type="range" id="max_tokens" min="0" max={modelMaxTokenLen} step="1" bind:value={max_tokens} />
+        <span>{max_tokens}</span>
     </div>
 </div>
 
