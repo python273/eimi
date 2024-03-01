@@ -1,9 +1,9 @@
 <script>
 import { db } from './db.js';
 
-let openaiToken = localStorage["cfg-openai-token"] || ""
+let config = localStorage["cfg-config"] || ""
 $: {
-	localStorage["cfg-openai-token"] = openaiToken
+	localStorage["cfg-config"] = config
 }
 
 async function exportSessionsToFile() {
@@ -54,13 +54,8 @@ function importSessionsFromFile(e) {
 
 <main>
 	<div>
-		<label for="openai-token">OpenAI API key</label><br/>
-		<input
-			id="openai-token"
-			type="password"
-			bind:value={openaiToken}
-		/>
-		<p>Notice: the token is sent to the backend (not directly to OpenAI API)</p>
+		<label for="config">Config</label><br/>
+		<textarea id="config" bind:value={config} style="width: 60ch; height: 300px;"/>
 	</div>
 	<hr/>
 	<div>
@@ -80,10 +75,15 @@ function importSessionsFromFile(e) {
 </main>
 
 <style>
-	main {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-direction: column;
-	}
+main {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+input, textarea {
+	color: var(--text-color);
+	background-color: var(--comment-bg-color);
+}
 </style>

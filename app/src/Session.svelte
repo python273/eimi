@@ -9,6 +9,8 @@ export let sessionId
 export let autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
 
+const CONFIG = JSON.parse(localStorage['cfg-config']);
+
 const U = 'user'
 const A = 'assistant'
 const S = 'system'
@@ -57,7 +59,7 @@ async function loadSession() {
 		if (autoReply) {
 			sessionData.messages[0].content = autoReply
 			sessionData.parameters = {
-				model: 'gpt-4-0613',
+				_api: "oai",
 				temperature: 0,
 				frequency_penalty: 0,
 				presence_penalty: 0
@@ -219,16 +221,22 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 				'http://127.0.0.1:8000/chat_completions' :
 				'/chat_completions'
 		)
+		const apiData = CONFIG.apis[sessionData.parameters._api]
+		const jsonBody = {
+			baseurl: apiData.baseurl,
+			token: apiData.token,
+			messages: chain.map(i => ({role: i.role, content: i.content}))
+		};
+		[
+			'model', 'temperature', 'frequency_penalty', 'presence_penalty',
+			'target_token_len', 'max_tokens'
+		].forEach(i => { jsonBody[i] = sessionData.parameters[i] })
 		const response = await fetch(
 			url, {
 				signal: aborter.signal,
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({
-					token: localStorage["cfg-openai-token"],
-					...sessionData.parameters,
-					messages: chain.map(i => ({role: i.role, content: i.content}))
-				})
+				body: JSON.stringify(jsonBody)
 			}
 		)
 		newMessage.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
@@ -334,6 +342,7 @@ async function onMessagesUpdate() {
 }
 
 function onParametersUpdate(data) {
+	console.log('Params:', data);
 	sessionData.parameters = data
 	scheduleSave()
 }

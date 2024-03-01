@@ -20,6 +20,11 @@ app.add_middleware(
     expose_headers=['x-token-len', 'x-cropped'],
 )
 
+ALLOWED_BASEURLS = [
+    "https://api.openai.com/v1/",
+    "https://openrouter.ai/api/v1/",
+]
+
 COMPLETIONS_MODELS = [
     'gpt-3.5-turbo-instruct',
     'gpt-3.5-turbo-instruct-0914',
@@ -30,7 +35,7 @@ class OpenAiTextError:
         self.text = text
 
 async def openai_chat_completions_stream(
-        http: httpx.AsyncClient, token: str, model: str, **kwargs):
+        http: httpx.AsyncClient, baseurl: str, token: str, model: str, **kwargs):
     json_data = {
         'stream': True,
         'model': model,
@@ -38,6 +43,8 @@ async def openai_chat_completions_stream(
     }
     if model in COMPLETIONS_MODELS:
         url = 'https://api.openai.com/v1/completions'
+    elif baseurl:
+        url = f'{baseurl}chat/completions'
     else:
         url = 'https://api.openai.com/v1/chat/completions'
 
@@ -62,7 +69,8 @@ async def openai_chat_completions_stream(
             if line.startswith('data: [DONE]'): break
             line = line.strip()
             if not line: continue
-            yield json.loads(line.removeprefix('data: '))
+            if line.startswith('data: '):
+                yield json.loads(line.removeprefix('data: '))
 
 ENC = tiktoken.encoding_for_model("gpt-3.5-turbo")
 def get_message_token_len(message):
@@ -124,6 +132,9 @@ async def stream_response(**kwargs):
 @app.post("/chat_completions")
 async def post_chat_completions(request: Request):
     data = await request.json()
+    if data.get('baseurl') not in ALLOWED_BASEURLS:
+        return 'API base url is not allowed'
+
     cropped_messages, token_len = crop_history(
         data['messages'], data['target_token_len']
     )
@@ -138,6 +149,7 @@ async def post_chat_completions(request: Request):
 
     s = stream_response(
         token=data.get('token'),
+        baseurl=data['baseurl'],
         model=data['model'],
         temperature=float(data['temperature']),
         frequency_penalty=float(data['frequency_penalty']),

@@ -2,22 +2,10 @@
 export let parameters;
 export let onUpdate;
 
-const MODELS = [
-    'gpt-3.5-turbo',
-    'gpt-3.5-turbo-16k',
-    'gpt-4',
-    'gpt-3.5-turbo-instruct',
+const CONFIG = JSON.parse(localStorage['cfg-config']);
+const MODELS = CONFIG.models || [];
+const DEFAULT_MODEL = MODELS.filter(i => i.defaultModel)[0].id || 'gpt-4-0125-preview';
 
-    'gpt-3.5-turbo-0301',
-    'gpt-3.5-turbo-0613',
-    'gpt-3.5-turbo-16k-0613',
-
-    'gpt-4-0314',
-    'gpt-4-0613',
-    'gpt-4-32k-0613',
-
-    'gpt-3.5-turbo-instruct-0914',
-];
 function getModelMaxTokenLen(model) {
     if (model.indexOf('gpt-4-32k') === 0) {
         return 32768
@@ -30,12 +18,13 @@ function getModelMaxTokenLen(model) {
     } else if (model.indexOf('gpt-3.5-turbo') === 0) {
         return 4096
     }
+    return 32768;
 }
 
-let model = parameters.model || MODELS[0];
-let temperature = parameters.hasOwnProperty('temperature') ? parameters.temperature : 0.7;
-let frequency_penalty = parameters.hasOwnProperty('frequency_penalty') ? parameters.frequency_penalty : 0.1;
-let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameters.presence_penalty : 0.1;
+let model = parameters.model || DEFAULT_MODEL;
+let temperature = parameters.hasOwnProperty('temperature') ? parameters.temperature : 0.0;
+let frequency_penalty = parameters.hasOwnProperty('frequency_penalty') ? parameters.frequency_penalty : 0.0;
+let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameters.presence_penalty : 0.0;
 
 let modelMaxTokenLen = getModelMaxTokenLen(model);
 let target_token_len = parameters.hasOwnProperty('target_token_len') ? parameters.target_token_len : modelMaxTokenLen - 400;
@@ -47,7 +36,11 @@ $: {
         target_token_len = modelMaxTokenLen - 400;
         max_tokens = modelMaxTokenLen;
     }
-    onUpdate({model, temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens});
+    const modelInfo = MODELS.filter(m => m.id == model)[0];
+    onUpdate({
+        _api: modelInfo.api,
+        model, temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens
+    })
 }
 </script>
 
@@ -55,7 +48,7 @@ $: {
     <div>
         <select bind:value={model}>
             {#each MODELS as m}
-                <option value={m}>{m}</option>
+                <option value={m.id}>{m.name}</option>
             {/each}
         </select>
     </div>
