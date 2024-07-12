@@ -83,7 +83,7 @@ $: {
 			class="settings-link"
 			href="#settings"
 			title="settings"
-		>⚙&#xFE0E;</a>
+		>settings</a>
 		<input
 			class="c-pointer"
 			id="dark-theme-checkbox"
@@ -134,8 +134,7 @@ $: {
 }
 
 .settings-link {
-	color: var(--text-color);
+	color: var(--brand-color);
 	margin-right: 1em;
-	font-size: 1.4em;
 }
 </style>

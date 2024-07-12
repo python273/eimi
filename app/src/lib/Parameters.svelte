@@ -68,7 +68,7 @@ $: {
         <span>{presence_penalty}</span>
     </div>
     <div>
-        <label for="target_token_len">History Token Len</label>
+        <label for="target_token_len">Crop Context Tokens</label>
         <input type="range" id="target_token_len" min="0" max={modelMaxTokenLen} step="1" bind:value={target_token_len} />
         <span>{target_token_len}</span>
     </div>

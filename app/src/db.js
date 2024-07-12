@@ -49,3 +49,4 @@ async function initDb() {
 }
 
 export let db = initDb();
+window._db = db;

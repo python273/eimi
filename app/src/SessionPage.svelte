@@ -14,9 +14,8 @@ async function loadSessionsList() {
 	for (let i = 0; i < keys.length; i++) {
 		const key = keys[i]
 		let obj = await tx.store.get(key)
-		const message = obj.messages.find(m => m.parentId === null)
 		const title = obj.title
-		sessions.push({key, message, title})
+		sessions.push({key, title})
 	}
 	sessions = sessions
 }
@@ -26,7 +25,7 @@ loadSessionsList()
 <main>
 <div class="sessions">
 	{#each sessions as s (s.key)}
-		<a href={`#${s.key}`} title={s.message.content}>{s.title}</a>
+		<a href={`#${s.key}`}>{s.title}</a>
 	{/each}
 </div>
 
@@ -41,6 +40,7 @@ loadSessionsList()
 .sessions {
 	position: absolute;
 	left: 0;
+	margin: 0 10px;
 }
 .sessions a {
 	color: var(--color-text);

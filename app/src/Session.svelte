@@ -416,9 +416,13 @@ onDestroy(() => {
 							<button on:click="{(e) => {plugin.onClick(e, c)}}">{plugin.name}</button>
 						{/each}
 
-						<button on:click="{deleteMessage}" title="delete this message and replies">x</button>
+						{#if c.parentId !== null}
+							<button on:click="{deleteMessage}" title="delete this message and replies">x</button>
+						{/if}
 						<button on:click="{onExportChain}" title="copy chain to clipboard">export</button>
-						<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
+						{#if c.role === A}
+							<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
+						{/if}
 						<button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
 						<button on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
 					</div>

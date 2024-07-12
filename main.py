@@ -23,6 +23,7 @@ app.add_middleware(
 ALLOWED_BASEURLS = [
     "https://api.openai.com/v1/",
     "https://openrouter.ai/api/v1/",
+    "https://api.anthropic.com/v1/messages",
 ]
 
 COMPLETIONS_MODELS = [
@@ -30,7 +31,7 @@ COMPLETIONS_MODELS = [
     'gpt-3.5-turbo-instruct-0914',
 ]
 
-class OpenAiTextError:
+class ErrorText:
     def __init__(self, text):
         self.text = text
 
@@ -56,7 +57,7 @@ async def openai_chat_completions_stream(
         ) as r:
         if r.status_code == 400:
             await r.aread()
-            yield OpenAiTextError(str(r.text))
+            yield ErrorText(str(r.text))
             return
 
         if r.status_code != 200:
@@ -71,6 +72,57 @@ async def openai_chat_completions_stream(
             if not line: continue
             if line.startswith('data: '):
                 yield json.loads(line.removeprefix('data: '))
+
+ANTHROPIC_API_PARAMS = [
+    'model', 'messages', 'system', 'max_tokens', 'metadata', 'stop_sequences',
+    'temperature', 'top_p', 'top_k'
+]
+
+async def anthropic_chat_completions_stream(
+        http: httpx.AsyncClient, token: str, **kwargs):
+    json_data = {'stream': True}
+    for k in ANTHROPIC_API_PARAMS:
+        if k in kwargs:
+            json_data[k] = kwargs[k]
+
+    async with http.stream(
+            'POST',
+            'https://api.anthropic.com/v1/messages',
+            headers={
+                'x-api-key': token,
+                'anthropic-version': '2023-06-01',
+            },
+            json=json_data
+        ) as r:
+        if r.status_code == 400:
+            await r.aread()
+            yield ErrorText(str(r.text))
+            return
+
+        if r.status_code != 200:
+            print(r.status_code)
+            print(await r.aread())
+            yield b'err'
+            return
+
+        async for line in r.aiter_lines():
+            line = line.strip()
+            if line.startswith('data: '):
+                yield json.loads(line.removeprefix('data: '))
+
+async def anthropic_stream_response(**kwargs):
+    resp = anthropic_chat_completions_stream(client, **kwargs)
+    async for chunk in resp:
+        if isinstance(chunk, ErrorText):
+            yield b'API error:\n'
+            yield chunk.text.encode('utf-8')
+            continue
+        if chunk.get('type') != 'content_block_delta':
+            continue
+        if chunk['delta']['type'] != 'text_delta':
+            continue
+
+        yield chunk['delta']['text'].encode('utf-8')
 
 ENC = tiktoken.encoding_for_model("gpt-3.5-turbo")
 def get_message_token_len(message):
@@ -105,25 +157,42 @@ def crop_history(messages, target_token_len):
 
 client = httpx.AsyncClient(http2=True, timeout=15.0)
 
-DUMMY_TEXT = 'This is a dummy response. Provide a valid OpenAI API key to get real responses.\n'.encode("utf-8")
-async def dummy_openai_chat_completions_stream(**kwargs):
+DUMMY_TEXT = 'This is a dummy response. Update token in settings to get real responses.'.encode("utf-8")
+async def dummy_openai_chat_completions_stream():
     for i in range(len(DUMMY_TEXT)):
         yield DUMMY_TEXT[i:i+1]
 
 async def stream_response(**kwargs):
     if not kwargs['token']:
-        async for chunk in dummy_openai_chat_completions_stream(**kwargs):
+        async for chunk in dummy_openai_chat_completions_stream():
             yield chunk
             await asyncio.sleep(0.03)
         return
 
+    if kwargs['baseurl'] == 'https://api.anthropic.com/v1/messages':
+        messages = kwargs.pop('messages')
+        system_msgs = [i for i in messages if i['role'] == 'system']
+        if system_msgs:
+            kwargs['system'] = system_msgs[0]['content']
+            kwargs['messages'] = [i for i in messages if i['role'] != 'system']
+        else:
+            kwargs['messages'] = messages
+
+        async for chunk in anthropic_stream_response(**kwargs):
+            yield chunk
+        return
+
     resp = openai_chat_completions_stream(client, **kwargs)
     async for chunk in resp:
-        if isinstance(chunk, OpenAiTextError):
+        if isinstance(chunk, ErrorText):
             yield b'API error:\n'
             yield chunk.text.encode('utf-8')
             continue
-        c = chunk['choices'][0]
+        try:
+            c = chunk['choices'][0]
+        except KeyError:
+            yield 'Err: ' + str(chunk).encode('utf-8')
+            raise
         if 'text' in c:
             yield c['text'].encode('utf-8')
         elif c['delta'].get('content'):  # chat
