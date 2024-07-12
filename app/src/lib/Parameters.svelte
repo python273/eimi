@@ -55,37 +55,52 @@ $: {
     <div>
         <label for="temperature">Temperature</label>
         <input type="range" id="temperature" min="0" max="2" step="0.1" bind:value={temperature} />
-        <span>{temperature}</span>
+        <input type="number" bind:value={temperature} min="0" max="2" step="0.1" />
     </div>
     <div>
         <label for="frequency_penalty">Frequency Penalty</label>
         <input type="range" id="frequency_penalty" min="0" max="2" step="0.1" bind:value={frequency_penalty} />
-        <span>{frequency_penalty}</span>
+        <input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.1" />
     </div>
     <div>
         <label for="presence_penalty">Presence Penalty</label>
         <input type="range" id="presence_penalty" min="0" max="2" step="0.1" bind:value={presence_penalty} />
-        <span>{presence_penalty}</span>
+        <input type="number" bind:value={presence_penalty} min="0" max="2" step="0.1" />
     </div>
     <div>
         <label for="target_token_len">Crop Context Tokens</label>
         <input type="range" id="target_token_len" min="0" max={modelMaxTokenLen} step="1" bind:value={target_token_len} />
-        <span>{target_token_len}</span>
+        <input type="number" bind:value={target_token_len} min="0" max={modelMaxTokenLen} step="1" />
     </div>
     <div>
         <label for="max_tokens">Max Tokens</label>
         <input type="range" id="max_tokens" min="0" max={modelMaxTokenLen} step="1" bind:value={max_tokens} />
-        <span>{max_tokens}</span>
+        <input type="number" bind:value={max_tokens} min="0" max={modelMaxTokenLen} step="1" />
     </div>
 </div>
 
 <style>
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    width: 6ch;
+}
+
+input {
+    vertical-align: middle;
+    margin: 2px 0 6px 0;
+}
+
 .parameters {
     position: fixed;
     right: 0;
     background-color: var(--comment-bg-color);
     color: var(--text-color);
-    border: 1px solid var(--text-color);
     width: 256px;
 	border-radius: 5px;
     padding: 10px;
