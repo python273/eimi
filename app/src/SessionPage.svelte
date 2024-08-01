@@ -33,19 +33,25 @@ loadSessionsList()
 	<Session sessionId={sessionId} autoReply={autoReply} />
 {/key}
 
-<div style="height: max(100vh, 2000px);"></div>
+<div style="height: max(60vh);"></div>
 </main>
 
 <style>
 .sessions {
-	position: absolute;
+	position: fixed;
 	left: 0;
-	margin: 0 10px;
+	padding: 5px 10px;
+	height: calc(100% - 32px);
+	width: 22ch;
+	overflow-y: auto;
+	background-color: var(--panel-bg-color);
+	border-radius: 5px;
+	margin: 0 0 0 8px;
+	font-size: 0.94em;
 }
 .sessions a {
 	color: var(--color-text);
 	display: block;
-	max-width: 20ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

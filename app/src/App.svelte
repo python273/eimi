@@ -1,7 +1,8 @@
 <script>
 import SessionPage from './SessionPage.svelte';
 import Settings from './Settings.svelte';
-import { uniqueId } from './utils.js';
+import JsService from './jsService/JsService.svelte';
+import { genSessionId } from './utils.js';
 
 if (!("cfg-dark-theme" in localStorage)) {
 	const val = (
@@ -22,10 +23,10 @@ window.addEventListener('storage', (event) => {
 
 let hash = window.location.hash.slice(1)
 
-window.addEventListener('hashchange', () => {
-	window.scrollTo(0, 0)
-	hash = window.location.hash.slice(1)
-})
+window.addEventListener('popstate', () => {
+    window.scrollTo(0, 0);
+    hash = window.location.hash.slice(1);
+});
 
 let page;
 let props = {};
@@ -34,15 +35,19 @@ $: {
 	let params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
 	if (hash === 'settings') {
 		page = 'settings'
-	} else if (hash.indexOf('?answer=') === 0) {
-		page = ''
-		window.location.hash = `#${uniqueId()}${hash}`
 	} else {
 		page = 'session'
-		if (!hash) { window.location.hash = `#${uniqueId()}` }
+		if (!hash) {
+			hash = genSessionId();
+			history.replaceState(null, '', '#' + hash);
+		} else if (hash.indexOf('?answer=') === 0) {
+			hash = `${genSessionId()}${hash}`;
+			params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
+			history.replaceState(null, '', '#' + hash);
+		}
 		props = {sessionId: hash.split('?')[0], autoReply: params.answer}
 	}
-	console.log(hash, page, props, params);
+	console.log('page', hash, page, props, params);
 }
 </script>
 
@@ -52,6 +57,7 @@ $: {
 		--bg-color: #ecedee;
 		--text-color: #000;
 		--comment-bg-color: #fff;
+		--panel-bg-color: #f7f7f7;
 		--meta-color: rgb(94, 126, 142);
 	}
 
@@ -65,6 +71,7 @@ $: {
 		--bg-color: #181412;
 		--text-color: rgb(233, 225, 204);
 		--comment-bg-color: rgb(55, 45, 40);
+		--panel-bg-color: #241e1b;
 		--meta-color: rgb(179, 172, 152);
 	}
 
@@ -76,11 +83,11 @@ $: {
 
 <div class="header">
 	<div class="home"><a href="#" class="no-vs">Eimi</a></div>
-
 	<div class='ml-auto'></div>
 	<div class="settings">
+		<JsService/>
 		<a
-			class="settings-link"
+			class="settings-link no-vs"
 			href="#settings"
 			title="settings"
 		>settings</a>
@@ -115,26 +122,28 @@ $: {
 }
 
 .header {
+	position: fixed;
+	top: 0;
 	width: 100%;
 	height: 32px;
 	padding: 0 16px;
 	display: flex;
 	align-items: center;
+	pointer-events: none;
+}
+.header > * {
+	pointer-events: initial;
 }
 
 .page {
+	margin-top: 32px;
 	width: 100%;
 	overflow-x: hidden;
 }
-@media only screen and (min-width: 900px) {
-	.settings {
-		position: fixed;
-		right: 16px;
-	}
+.settings {
+	right: 16px;
 }
-
 .settings-link {
-	color: var(--brand-color);
 	margin-right: 1em;
 }
 </style>

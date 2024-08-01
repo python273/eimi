@@ -68,7 +68,7 @@ function importSessionsFromFile(e) {
 	</div>
 	<hr/>
 	<div>
-		<label for="import-sessions-file">Import sessions from a file (overwrites)</label><br/>
+		<label for="import-sessions-file">Import sessions from a file (deletes existing data)</label><br/>
 		<input id="import-sessions-file" type="file" accept=".json"/>
 		<button on:click={importSessionsFromFile}>Import</button>
 	</div>
@@ -80,10 +80,5 @@ main {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
-}
-
-input, textarea {
-	color: var(--text-color);
-	background-color: var(--comment-bg-color);
 }
 </style>

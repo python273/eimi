@@ -58,6 +58,9 @@ function onkeydown(event) {
 
 <style>
 textarea {
+	padding: 0;
+	margin: 0;
+	border-radius: 0;
 	color: var(--text-color);
 	display: block;
 	width: 100%;

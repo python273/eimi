@@ -1,37 +1,27 @@
-*, :after, :before {
-  box-sizing: border-box;
-}
-
-* {
-padding: 0;
-}
+*, :after, :before { box-sizing: border-box; }
+* { padding: 0; }
 
 :root {
   --brand-color: #1ec14a;
+  --brand-hover-color: #11d545;
+  --brand-active-color: #0cb339;
   --visited-link: #c143f9;
 }
 
-body,
-input,
-button,
-select,
-optgroup,
-textarea {
-margin: 0;
+body, input, button, select, optgroup, textarea {
+  margin: 0;
 }
 
 body, textarea {
-font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
 }
 
-button {
-font-size: 1em;
-}
+button { font-size: 1em; }
 
 .none { display: none !important; }
 .flex { display: flex; }
 .ml-auto { margin-left: auto; }
-.no-vs { color: var(--brand-color) !important; }
+.no-vs:visited { color: var(--brand-color); }
 .c-pointer { cursor: pointer; }
 
 /* */
@@ -43,17 +33,38 @@ font-size: 1em;
 }
 
 a, button {
-color: var(--brand-color);
-text-decoration: none;
-cursor: pointer;
+  color: var(--brand-color);
+  text-decoration: none;
+  cursor: pointer;
 }
+
+a:hover, button:hover, .no-vs:hover {
+  color: var(--brand-hover-color);
+}
+a:active, button:active, .no-vs:active {
+  color: var(--brand-active-color);
+}
+
 
 a:visited {
   color: var(--visited-link);
 }
 
 button {
-padding: 0;
-border: none;
-background: inherit;
+  padding: 0 5px;
+  border: none;
+  background: inherit;
+}
+
+input, textarea {
+	border: 1px solid var(--text-color);
+	border-radius: 4px;
+	padding: 2px;
+	margin: 5px;
+	background-color: var(--comment-bg-color);
+	color: var(--text-color);
+}
+
+input[type=checkbox] {
+  margin: 0;
 }

@@ -2,8 +2,9 @@
 import { tick, onDestroy, onMount } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
-import { uniqueId } from './utils.js';
+import { uniqueId, genSessionId } from './utils.js';
 import { db } from './db.js';
+import jsServiceStore from './jsService/jsServiceStore';
 
 export let sessionId
 export let autoReply
@@ -51,7 +52,7 @@ async function loadSession() {
 		sessionData = {
 			title: (new Date()).toLocaleString(),
 			parameters: {},
-			messages: [{id: 'genesis', parentId: null, role: U, content: ''}]
+			messages: [{id: uniqueId(), parentId: null, role: U, content: ''}]
 		}
 		data = sessionData.messages
 		sessionLoaded = true
@@ -186,8 +187,8 @@ async function genResponse(event, regenerate=false) {
 	const message = getMessageFromEvent(event)
 	_genResponse(message, regenerate)
 }
-async function _genResponse(message, regenerate=false, attemptNum=0) {
-	console.log('genResponse', message, regenerate, attemptNum)
+async function _genResponse(message, regenerate=false) {
+	console.log('genResponse', message, regenerate)
 	const chain = getChain(message, regenerate)
 
 	let newMessage
@@ -242,23 +243,6 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 		newMessage.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
 		newMessage.cropped = parseInt(response.headers.get('x-cropped'), 10)
 
-		// TODO: generation cost
-		if (sessionData.parameters.model.indexOf('gpt-4-32k') === 0) {
-			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.06
-		} else if (sessionData.parameters.model.indexOf('gpt-4') === 0) {
-			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.03
-		} else if (sessionData.parameters.model.indexOf('gpt-3.5-turbo-16k') === 0) {
-			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.003
-		} else if (sessionData.parameters.model.indexOf('gpt-3.5-turbo') === 0) {
-			newMessage.promptCost = (newMessage.tokenLen / 1000) * 0.0015
-		}
-
-		const AUTO_ABORT_SUBSTRINGS = [
-			"I'm sorry, but as an",
-			'an AI language model',
-			'OpenAI',
-		]
-
 		const reader = response.body.getReader()
 		const decoder = new TextDecoder()
 		let text = ''
@@ -269,20 +253,6 @@ async function _genResponse(message, regenerate=false, attemptNum=0) {
 			if (done) { break }
 			const decoded = decoder.decode(value, {stream: true})
 			text += decoded
-
-			if (attemptNum < 0) {  // disabled
-				for (const s of AUTO_ABORT_SUBSTRINGS) {
-					if (text.includes(s)) {
-						aborter.abort()
-						newMessage.generating = false
-						data = data
-						await tick()
-						_genResponse(newMessage, true, attemptNum + 1)
-						return
-					}
-				}
-			}
-
 			newMessage.content = text
 			data = data
 			await tick()
@@ -354,7 +324,7 @@ function onTitleUpdate(event) {
 
 async function onFork(event) {
 	event.preventDefault()
-	const newId = uniqueId()
+	const newId = genSessionId()
 	await saveSession(newId)
 	window.location.hash = `#${newId}`
 }
@@ -376,6 +346,8 @@ onDestroy(() => {
 	window.updateLoadedPlugins = null;
 });
 </script>
+
+{#if !sessionLoaded}<div style="height: 20000px;"></div> <!-- scroll restoration -->{/if}
 
 {#if sessionLoaded}
 <Parameters
@@ -399,23 +371,27 @@ onDestroy(() => {
 
 			<div>
 				<div class="message__content" class:generating="{c.generating}">
-					<div class="message__header">
+					<div class="message_header">
 						<select class="role" value={c.role} on:change="{onRoleChange}">
 							<option value={A}>{A}</option>
 							<option value={U}>{U}</option>
 							<option value={S}>{S}</option>
 						</select>
 						{#if c.tokenLen !== undefined && c.tokenLen > 0}
-							<div class="meta-gray" title="Token length">{c.tokenLen} ${c.promptCost}</div>
+							<div class="meta-gray" title="Token length (gpt-4o)">{c.tokenLen}</div>
 						{/if}
 						{#if c.cropped !== undefined && c.cropped > 0}
 							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
 						{/if}
 						<div class="ml-auto"></div>
+
 						{#each loadedPlugins as plugin}
 							<button on:click="{(e) => {plugin.onClick(e, c)}}">{plugin.name}</button>
 						{/each}
 
+						<button
+							on:click="{() => {jsServiceStore.add(c.content)}}"
+							title="run JavaScript">JS</button>
 						{#if c.parentId !== null}
 							<button on:click="{deleteMessage}" title="delete this message and replies">x</button>
 						{/if}
@@ -440,14 +416,6 @@ onDestroy(() => {
 <style>
 .title-input {
 	width: 62ch;
-}
-.title-input {
-	border: 1px solid var(--text-color);
-	border-radius: 4px;
-	padding: 2px;
-	margin: 5px;
-	background-color: var(--comment-bg-color);
-	color: var(--text-color);
 }
 .role {
 	background: none;
@@ -494,17 +462,16 @@ onDestroy(() => {
 	border: 1px solid var(--brand-color);
 }
 
-.message__header * {
+.message_header * {
 	text-decoration: none;
 	white-space: nowrap;
 }
 
-.message__header {
-	margin: 0 5px 0 0;
+.message_header {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 14px;
+	gap: 4px;
 	font-size: 0.9em;
 }
 </style>

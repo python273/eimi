@@ -24,6 +24,10 @@ ALLOWED_BASEURLS = [
     "https://api.openai.com/v1/",
     "https://openrouter.ai/api/v1/",
     "https://api.anthropic.com/v1/messages",
+    "https://api.endpoints.anyscale.com/v1/",
+    "https://api.together.xyz/v1/",
+    "https://api.fireworks.ai/inference/v1/",
+    "https://api.hyperbolic.xyz/v1/",
 ]
 
 COMPLETIONS_MODELS = [
@@ -63,7 +67,7 @@ async def openai_chat_completions_stream(
         if r.status_code != 200:
             print(r.status_code)
             print(await r.aread())
-            yield b'err'
+            yield ErrorText(str(r.text))
             return
 
         async for line in r.aiter_lines():
@@ -124,7 +128,7 @@ async def anthropic_stream_response(**kwargs):
 
         yield chunk['delta']['text'].encode('utf-8')
 
-ENC = tiktoken.encoding_for_model("gpt-3.5-turbo")
+ENC = tiktoken.encoding_for_model("gpt-4o")
 def get_message_token_len(message):
     return len(ENC.encode(message['content'])) + 4  # TODO: not correct
 
@@ -136,6 +140,9 @@ def crop_history(messages, target_token_len):
             if x % 2 == 1: continue
             new_content.append(chunk)
         i['content'] = ''.join(new_content)
+
+    if target_token_len == 0:
+        return messages, sum(get_message_token_len(i) for i in messages)
 
     new_messages = []
     token_len_so_far = 0
