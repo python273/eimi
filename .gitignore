@@ -3,3 +3,4 @@
 openai_token.txt
 sync.sh
 NOTES.md
+secrets.env

@@ -28,11 +28,7 @@ ALLOWED_BASEURLS = [
     "https://api.together.xyz/v1/",
     "https://api.fireworks.ai/inference/v1/",
     "https://api.hyperbolic.xyz/v1/",
-]
-
-COMPLETIONS_MODELS = [
-    'gpt-3.5-turbo-instruct',
-    'gpt-3.5-turbo-instruct-0914',
+    "https://api.deepseek.com/v1/",
 ]
 
 class ErrorText:
@@ -40,16 +36,19 @@ class ErrorText:
         self.text = text
 
 async def openai_chat_completions_stream(
-        http: httpx.AsyncClient, baseurl: str, token: str, model: str, **kwargs):
+        http: httpx.AsyncClient, baseurl: str, token: str, model: str,
+        completion: bool, **kwargs):
     json_data = {
         'stream': True,
         'model': model,
         **kwargs,
     }
-    if model in COMPLETIONS_MODELS:
-        url = 'https://api.openai.com/v1/completions'
+    if baseurl and completion:
+        url = f'{baseurl}completions'
     elif baseurl:
         url = f'{baseurl}chat/completions'
+    elif completion:
+        url = 'https://api.openai.com/v1/completions'
     else:
         url = 'https://api.openai.com/v1/chat/completions'
 
@@ -165,14 +164,12 @@ def crop_history(messages, target_token_len):
 client = httpx.AsyncClient(http2=True, timeout=15.0)
 
 DUMMY_TEXT = 'This is a dummy response. Update token in settings to get real responses.'.encode("utf-8")
-async def dummy_openai_chat_completions_stream():
-    for i in range(len(DUMMY_TEXT)):
-        yield DUMMY_TEXT[i:i+1]
+
 
 async def stream_response(**kwargs):
     if not kwargs['token']:
-        async for chunk in dummy_openai_chat_completions_stream():
-            yield chunk
+        for i in range(len(DUMMY_TEXT)):
+            yield DUMMY_TEXT[i:i+1]
             await asyncio.sleep(0.03)
         return
 
@@ -205,6 +202,7 @@ async def stream_response(**kwargs):
         elif c['delta'].get('content'):  # chat
             yield c['delta']['content'].encode('utf-8')
 
+
 @app.post("/chat_completions")
 async def post_chat_completions(request: Request):
     data = await request.json()
@@ -215,7 +213,8 @@ async def post_chat_completions(request: Request):
         data['messages'], data['target_token_len']
     )
     kwargs = {}
-    if data['model'] in COMPLETIONS_MODELS:
+    completion = bool(data.get('completion'))
+    if completion:
         kwargs['prompt'] = ''.join(i['content'] for i in cropped_messages)
     else:
         kwargs['messages'] = cropped_messages
@@ -226,6 +225,7 @@ async def post_chat_completions(request: Request):
     s = stream_response(
         token=data.get('token'),
         baseurl=data['baseurl'],
+        completion=completion,
         model=data['model'],
         temperature=float(data['temperature']),
         frequency_penalty=float(data['frequency_penalty']),

@@ -229,8 +229,9 @@ async function _genResponse(message, regenerate=false) {
 			messages: chain.map(i => ({role: i.role, content: i.content}))
 		};
 		[
-			'model', 'temperature', 'frequency_penalty', 'presence_penalty',
-			'target_token_len', 'max_tokens'
+			'model', 'completion',
+			'temperature', 'frequency_penalty', 'presence_penalty',
+			'max_tokens', 'target_token_len'
 		].forEach(i => { jsonBody[i] = sessionData.parameters[i] })
 		const response = await fetch(
 			url, {

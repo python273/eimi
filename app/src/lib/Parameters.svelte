@@ -24,7 +24,9 @@ $: {
 	}
 	onUpdate({
 		_api: modelInfo.api,
-		model, temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens
+		model,
+		completion: modelInfo.completion,  // TODO: move out of params, get from model info
+		temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens
 	})
 }
 
