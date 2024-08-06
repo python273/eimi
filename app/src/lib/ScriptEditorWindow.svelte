@@ -60,8 +60,9 @@ $: {
 	scheduleSave();
 }
 
-async function deleteScript() {
-	if (!confirm('Delete script?')) { return; }
+async function deleteScript(event) {
+	event.preventDefault()
+	if (!event.shiftKey && !confirm('Delete script?')) { return; }
 	await (await db).delete('scripts', id);
 	notifyDbScripts();
 	windowsStore.close(windowId);
@@ -80,7 +81,7 @@ async function deleteScript() {
 		{#if script.sessionId}
 			<button on:click="{convertToGlobal}" title="convert to global">global</button>
 		{/if}
-		<button on:click="{deleteScript}" title="delete script">x</button>
+		<button on:click="{deleteScript}" title="delete script (hold shift)">x</button>
 	</div>
 	<textarea
 		bind:value={script.scriptChainProcess}

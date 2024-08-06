@@ -312,7 +312,7 @@ async function onRoleChange(event) {
 
 async function deleteMessage(event) {
 	event.preventDefault()
-	if (!confirm('Delete message?')) { return }
+	if (!event.shiftKey && !confirm('Delete message?')) { return }
 	const item = getMessageFromEvent(event)
 
 	const idsToDelete = [item.id]
@@ -352,7 +352,7 @@ async function onFork(event) {
 }
 async function onDelete(event) {
 	event.preventDefault()
-	if (!confirm('Delete session?')) { return }
+	if (!event.shiftKey && !confirm('Delete session?')) { return }
 	await deleteSession()
 	window.location.hash = ''
 }
@@ -397,7 +397,7 @@ subDbScripts(loadScripts);
 <div>
 	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
 	<button on:click="{onFork}" title="make a copy of this session">fork</button>
-	<button on:click="{onDelete}" title="delete session">x</button>
+	<button on:click="{onDelete}" title="delete session (hold shift)">x</button>
 </div>
 
 <div class="messages">
@@ -431,7 +431,7 @@ subDbScripts(loadScripts);
 							on:click="{() => {createJsWindow(c.content)}}"
 							title="run JavaScript">JS</button>
 						{#if c.parentId !== null}
-							<button on:click="{deleteMessage}" title="delete this message and replies">x</button>
+							<button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
 						{/if}
 						<button on:click="{onExportChain}" title="copy chain to clipboard">export</button>
 						{#if c.role === A}
