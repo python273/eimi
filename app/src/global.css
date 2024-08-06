@@ -23,6 +23,8 @@ button { font-size: 1em; }
 .ml-auto { margin-left: auto; }
 .no-vs:visited { color: var(--brand-color); }
 .c-pointer { cursor: pointer; }
+.w100 { width: 100%; }
+.nowrap { white-space: nowrap; }
 
 /* */
 
@@ -68,3 +70,5 @@ input, textarea {
 input[type=checkbox] {
   margin: 0;
 }
+
+hr { border-color: var(--text-color); }

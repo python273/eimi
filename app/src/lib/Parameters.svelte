@@ -1,5 +1,12 @@
 <script>
+import { db } from "../db";
+import { notifyDbScripts, uniqueId } from "../utils";
+import ScriptEditorWindow from "./ScriptEditorWindow.svelte";
+import windowsStore from "./windowsStore";
+
+export let sessionId;
 export let parameters;
+export let scripts;
 export let onUpdate;
 
 const CONFIG = JSON.parse(localStorage['cfg-config']);
@@ -15,6 +22,30 @@ let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameter
 let target_token_len = parameters.hasOwnProperty('target_token_len') ? parameters.target_token_len : 0;
 let max_tokens = parameters.hasOwnProperty('max_tokens') ? parameters.max_tokens : 0;
 
+let scriptsEnabled = parameters.scriptsEnabled || [];
+
+function toggleScript(id) {
+	if (scriptsEnabled.includes(id)) {
+		scriptsEnabled =  scriptsEnabled.filter(i => i != id);
+	} else {
+		scriptsEnabled = [...scriptsEnabled, id]
+	}
+}
+
+async function createScript() {
+	const newScript = {
+		id: uniqueId(),
+		enabled: false,  // global
+		name: 'New Script',
+		sessionId: sessionId,
+		scriptChainProcess: 'return chain;',
+	};
+	await (await db).put('scripts', newScript);
+	scriptsEnabled = [...scriptsEnabled, newScript.id]
+	notifyDbScripts();
+	windowsStore.add(ScriptEditorWindow, { id: newScript.id });
+}
+
 $: {
 	if (model.indexOf('claude-') === 0 && max_tokens === 0) { max_tokens = modelMaxToken; }
 	let modelInfo = MODELS.filter(m => m.id == model)[0];
@@ -26,7 +57,9 @@ $: {
 		_api: modelInfo.api,
 		model,
 		completion: modelInfo.completion,  // TODO: move out of params, get from model info
-		temperature, frequency_penalty, presence_penalty, target_token_len, max_tokens
+		temperature, frequency_penalty, presence_penalty,
+		target_token_len, max_tokens,
+		scriptsEnabled,
 	})
 }
 
@@ -39,20 +72,6 @@ $: {
 </script>
 
 <div class="parameters">
-	<div>
-		<input bind:value={modelQuery} placeholder="Search model..." />
-		<div class="current-model">{model}</div>
-	</div>
-	<div class="model-options-container">
-		<div class="model-options">
-			{#each visibleModels as m}
-				<label class:model-selected={model == m.id}>
-					<input type="radio" bind:group={model} value={m.id}>
-					<span class="custom-radio">{m.name}</span>
-				</label>
-			{/each}
-		</div>
-	</div>
 	<div>
 		<label for="temperature">Temperature</label>
 		<input type="range" id="temperature" min="0" max="2" step="0.1" bind:value={temperature} />
@@ -78,12 +97,60 @@ $: {
 		<input type="range" id="max_tokens" min="0" max={modelMaxToken} step="1" bind:value={max_tokens} />
 		<input type="number" bind:value={max_tokens} min="0" max={modelMaxToken} step="1" />
 	</div>
+	<div>
+		<div class="flex">
+			<div>Scripts:</div>
+			<div class="ml-auto"></div>
+			<button on:click={createScript}>create</button>
+		</div>
+		{#each scripts as i}
+			<div class="flex">
+				<input
+					type="checkbox"
+					title="toggle in session"
+					checked={scriptsEnabled.includes(i.id)}
+					on:change={() => { toggleScript(i.id) }}
+				/>
+				<div class="script-name">{i.name}</div>
+				<div class="ml-auto"></div>
+				{#if !i.sessionId}
+					<input
+						type="checkbox"
+						title="toggle global"
+						checked={i.enabled}
+						on:change={async () => {
+							i.enabled = !i.enabled;
+							await (await db).put('scripts', i);
+							notifyDbScripts();
+						}}
+					/>
+				{/if}
+				<button on:click={() => {
+					windowsStore.add(ScriptEditorWindow, { id: i.id });
+				}}>edit</button>
+			</div>
+		{/each}
+	</div>
+	<div>
+		<hr/>
+		<input bind:value={modelQuery} placeholder="Search model..." />
+		<div class="current-model">{model}</div>
+	</div>
+	<div class="model-options-container">
+		<div class="model-options">
+			{#each visibleModels as m}
+				<label class:model-selected={model == m.id}>
+					<input type="radio" bind:group={model} value={m.id}>
+					<span class="custom-radio">{m.name}</span>
+				</label>
+			{/each}
+		</div>
+	</div>
 </div>
 
 <style>
 .model-options-container {
 	min-height: 12em;
-	max-height: 12em;
 	overflow: auto;
 	border: 1px solid var(--bg-color);
 	border-radius: 3px;
@@ -132,22 +199,31 @@ input {
 .parameters {
 	position: fixed;
 	right: 0;
-	background-color: var(--panel-bg-color);
-	color: var(--text-color);
 	width: 256px;
-	border-radius: 5px;
 	padding: 10px;
 	margin: 0 8px 0 0;
+	overflow-y: auto;
+	max-height: calc(100vh - 2.5em);
+	border-radius: 5px;
 
 	display: flex;
 	flex-direction: column;
+
+	background-color: var(--panel-bg-color);
+	color: var(--text-color);
 }
 label {
 	display: block;
 	width: 100%;
 	font-size: 0.8em;
 }
-.parameters > div, select {
+.parameters > div {
 	width: 100%;
+}
+.script-name {
+	margin-left: 0.3em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 </style>

@@ -2,9 +2,9 @@
 import { tick, onDestroy, onMount } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
-import { uniqueId, genSessionId } from './utils.js';
+import { uniqueId, genSessionId, subDbScripts } from './utils.js';
 import { db } from './db.js';
-import jsServiceStore from './jsService/jsServiceStore';
+import { createJsWindow } from './jsService/jsService';
 
 export let sessionId
 export let autoReply
@@ -189,7 +189,28 @@ async function genResponse(event, regenerate=false) {
 }
 async function _genResponse(message, regenerate=false) {
 	console.log('genResponse', message, regenerate)
-	const chain = getChain(message, regenerate)
+	let chain = getChain(message, regenerate)
+
+	const scriptsEnabled = sessionData.parameters.scriptsEnabled || [];
+	const scriptsGlobalEnabled = scripts.filter(script => script.enabled).map(script => script.id);
+	const allScriptsEnabled = new Set([...scriptsEnabled, ...scriptsGlobalEnabled]);
+
+	const orderedScriptsEnabled = scripts
+		.filter(script => allScriptsEnabled.has(script.id));
+
+	console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name));
+	for (let script of orderedScriptsEnabled) {
+		const fn = new Function('chain', script.scriptChainProcess);
+		let updatedChain;
+		try {
+			updatedChain = fn(chain)
+		} catch (e) {
+			console.error(e);
+			alert(`Script '${script.name}' error:\n${e}`);
+			return
+		}
+		if (updatedChain != undefined) chain = updatedChain;
+	}
 
 	let newMessage
 	if (!regenerate) {
@@ -346,13 +367,30 @@ onMount(() => {
 onDestroy(() => {
 	window.updateLoadedPlugins = null;
 });
+
+let scripts = [];
+async function loadScripts() {
+	const all = await (await db).getAll('scripts');
+	let newScripts = all
+		.filter(i => (!i.sessionId || i.sessionId === sessionId))
+		.sort((a, b) => {
+			if (!a.sessionId && b.sessionId) return -1;
+			if (a.sessionId && !b.sessionId) return 1;
+			return a.name.localeCompare(b.name);
+		});
+	scripts = newScripts;
+}
+loadScripts();
+subDbScripts(loadScripts);
 </script>
 
 {#if !sessionLoaded}<div style="height: 20000px;"></div> <!-- scroll restoration -->{/if}
 
 {#if sessionLoaded}
 <Parameters
+	sessionId="{sessionId}"
 	parameters="{sessionData.parameters}"
+	scripts={scripts}
 	onUpdate="{onParametersUpdate}"
 />
 
@@ -369,7 +407,6 @@ onDestroy(() => {
 			{#each {length: c.ddepth} as _}
 				<div class='pad' class:pad-colored="{!c.linear}"></div>
 			{/each}
-
 			<div>
 				<div class="message__content" class:generating="{c.generating}">
 					<div class="message_header">
@@ -391,7 +428,7 @@ onDestroy(() => {
 						{/each}
 
 						<button
-							on:click="{() => {jsServiceStore.add(c.content)}}"
+							on:click="{() => {createJsWindow(c.content)}}"
 							title="run JavaScript">JS</button>
 						{#if c.parentId !== null}
 							<button on:click="{deleteMessage}" title="delete this message and replies">x</button>

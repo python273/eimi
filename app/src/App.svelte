@@ -1,7 +1,8 @@
 <script>
 import SessionPage from './SessionPage.svelte';
 import Settings from './Settings.svelte';
-import JsService from './jsService/JsService.svelte';
+import WindowManager from './lib/WindowManager.svelte';
+import windowsStore from './lib/windowsStore';
 import { genSessionId } from './utils.js';
 
 if (!("cfg-dark-theme" in localStorage)) {
@@ -85,7 +86,6 @@ $: {
 	<div class="home"><a href="#" class="no-vs">Eimi</a></div>
 	<div class='ml-auto'></div>
 	<div class="settings">
-		<JsService/>
 		<a
 			class="settings-link no-vs"
 			href="#settings"
@@ -109,6 +109,8 @@ $: {
 	<Settings/>
 {/if}
 </div>
+
+<WindowManager store={windowsStore}/>
 
 <style>
 :global(html, body) {

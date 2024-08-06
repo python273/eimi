@@ -26,6 +26,8 @@ loadSessionsList()
 <div class="sessions">
 	{#each sessions as s (s.key)}
 		<a href={`#${s.key}`}>{s.title}</a>
+	{:else}
+		<span style="filter: opacity(30%);">Sessions will be here.</span>
 	{/each}
 </div>
 

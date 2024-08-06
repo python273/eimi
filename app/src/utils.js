@@ -1,3 +1,5 @@
+import { writable } from 'svelte/store';
+
 let _nextId = 0
 export function genTabUniqueIntId() { return _nextId++ }
 export function genSessionId() { return Date.now().toString(36) }
@@ -13,3 +15,7 @@ export function uniqueId() {
     _cnt = 0;
     return i;
 }
+
+const dbScriptsUpdate = writable(0);
+export const notifyDbScripts = () => { dbScriptsUpdate.update(n => n + 1); };
+export const subDbScripts = dbScriptsUpdate.subscribe;

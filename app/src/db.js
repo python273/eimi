@@ -5,33 +5,27 @@ async function initDb() {
 		navigator.storage.persist().then((persistent) => {});
 	}
 
-	let q
 	try {
-		q = await openDB('eimi', 1, {
+		return await openDB('eimi', 2, {
 			upgrade: async function upgrade(db, oldVersion, newVersion, transaction, event) {
-				console.log(db, oldVersion, newVersion, transaction, event)
+				console.log('db upgrade', db, oldVersion, newVersion, transaction, event)
 				if (oldVersion < 1) {
 					db.createObjectStore('sessions')
-					const store = transaction.objectStore('sessions')
-
-					const keys = Object.keys(localStorage)
-					for (let i = 0; i < keys.length; i++) {
-						const key = keys[i]
-						if (key.indexOf('session-') !== 0) { continue }
-						await store.put(JSON.parse(localStorage[key]), key.replace(/^session-/, ''))
-					}
+				}
+				if (oldVersion < 2) {
+					db.createObjectStore('scripts', { keyPath: 'id' });
+					await transaction.objectStore('scripts').put({
+						id: "lzflks6m",
+						enabled: true,
+						name: "Trim Messages",
+						sessionId: "",
+						scriptChainProcess: "return chain.map(m => {\n    if (!m.content.includes('~~~~\\n')) return m;\n    const newContent = m.content.split('~~~~\\n')\n        .filter((_, index) => index % 2 === 0)\n        .join('');\n    return { ...m, content: newContent };\n});"
+					})
 				}
 				await transaction.done
-
-				const keys = Object.keys(localStorage)
-				for (let i = 0; i < keys.length; i++) {
-					const key = keys[i]
-					if (key.indexOf('session-') !== 0) { continue }
-					localStorage.removeItem(key)
-				}
 			},
 			blocked(currentVersion, blockedVersion, event) {
-				alert('please close other tabs')
+				alert('please close other tabs to upgrade db')
 			},
 			blocking(currentVersion, blockedVersion, event) {
 			},
@@ -39,13 +33,11 @@ async function initDb() {
 				alert('idb terminated')
 			},
 		});
-		console.log(q);
 	} catch (e) {
 		alert('Could not create IndexedDB, try in non-private tab');
-		return null;
 	}
 
-	return q;
+	return null;
 }
 
 export let db = initDb();
