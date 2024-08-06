@@ -18,9 +18,46 @@ if (localStorage.getItem('cfg-config') === null) {
     "ant": {
       "baseurl": "https://api.anthropic.com/v1/messages",
       "token": ""
+    },
+    "tog": {
+      "baseurl": "https://api.together.xyz/v1/",
+      "token": ""
+    },
+    "firew": {
+      "baseurl": "https://api.fireworks.ai/inference/v1/",
+      "token": ""
+    },
+    "hyperbolic": {
+      "baseurl": "https://api.hyperbolic.xyz/v1/",
+      "token": ""
     }
   },
   "models": [
+    {
+      "api": "firew",
+      "id": "accounts/fireworks/models/llama-v3p1-405b-instruct",
+      "name": "fireworks/llama-v3p1-405b-instruct",
+      "max_tokens": 4096
+    },
+    {
+      "api": "tog",
+      "id": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+      "name": "together/Meta-Llama-3.1-405B-Instruct-Turbo",
+      "max_tokens": 4096
+    },
+    {
+      "api": "hyperbolic",
+      "id": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+      "name": "hyperbolic/Meta-Llama-3.1-405B-Instruct",
+      "max_tokens": 4096
+    },
+    {
+      "api": "hyperbolic",
+      "id": "meta-llama/Meta-Llama-3.1-405B-FP8",
+      "name": "hyperbolic/Meta-Llama-3.1-405B-FP8",
+      "max_tokens": 4096,
+      "completion": true
+    },
     {
       "api": "ant",
       "id": "claude-3-opus-20240229",
@@ -84,6 +121,11 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "oai",
+      "id": "gpt-4o-2024-08-06",
+      "name": "gpt-4o-2024-08-06"
+    },
+    {
+      "api": "oai",
       "id": "gpt-4o-mini-2024-07-18",
       "name": "gpt-4o-mini-2024-07-18",
       "max_tokens": 128000
@@ -116,13 +158,15 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "oai",
       "id": "gpt-3.5-turbo-instruct",
       "name": "gpt-3.5-turbo-instruct",
-      "max_tokens": 4096
+      "max_tokens": 4096,
+      "completion": true
     },
     {
       "api": "oai",
       "id": "gpt-3.5-turbo-instruct-0914",
       "name": "gpt-3.5-turbo-instruct-0914",
-      "max_tokens": 4096
+      "max_tokens": 4096,
+      "completion": true
     },
     {
       "api": "oai",
@@ -166,7 +210,22 @@ if (localStorage.getItem('cfg-config') === null) {
     {
       "api": "or",
       "id": "01-ai/yi-large",
-      "name": "01-ai/yi-large Yi Large"
+      "name": "01-ai/yi-large 01.AI: Yi Large"
+    },
+    {
+      "api": "or",
+      "id": "01-ai/yi-large-fc",
+      "name": "01-ai/yi-large-fc 01.AI: Yi Large FC"
+    },
+    {
+      "api": "or",
+      "id": "01-ai/yi-large-turbo",
+      "name": "01-ai/yi-large-turbo 01.AI: Yi Large Turbo"
+    },
+    {
+      "api": "or",
+      "id": "01-ai/yi-vision",
+      "name": "01-ai/yi-vision 01.AI: Yi Vision"
     },
     {
       "api": "or",
@@ -360,6 +419,11 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "google/gemini-pro-1.5-exp",
+      "name": "google/gemini-pro-1.5-exp Google: Gemini Pro 1.5 (0801)"
+    },
+    {
+      "api": "or",
       "id": "google/gemini-pro-vision",
       "name": "google/gemini-pro-vision Google: Gemini Pro Vision 1.0"
     },
@@ -445,18 +509,8 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "intel/neural-chat-7b",
-      "name": "intel/neural-chat-7b Neural Chat 7B v3.1"
-    },
-    {
-      "api": "or",
       "id": "jondurbin/airoboros-l2-70b",
       "name": "jondurbin/airoboros-l2-70b Airoboros 70B"
-    },
-    {
-      "api": "or",
-      "id": "koboldai/psyfighter-13b-2",
-      "name": "koboldai/psyfighter-13b-2 Psyfighter v2 13B"
     },
     {
       "api": "or",
@@ -532,6 +586,31 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "meta-llama/llama-3-8b-instruct:nitro",
       "name": "meta-llama/llama-3-8b-instruct:nitro Meta: Llama 3 8B Instruct (nitro)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-405b",
+      "name": "meta-llama/llama-3.1-405b Meta: Llama 3.1 405B (base)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-405b-instruct",
+      "name": "meta-llama/llama-3.1-405b-instruct Meta: Llama 3.1 405B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-70b-instruct",
+      "name": "meta-llama/llama-3.1-70b-instruct Meta: Llama 3.1 70B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-8b-instruct",
+      "name": "meta-llama/llama-3.1-8b-instruct Meta: Llama 3.1 8B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-8b-instruct:free",
+      "name": "meta-llama/llama-3.1-8b-instruct:free Meta: Llama 3.1 8B Instruct (free)"
     },
     {
       "api": "or",
@@ -680,8 +759,8 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "neversleep/noromaid-mixtral-8x7b-instruct",
-      "name": "neversleep/noromaid-mixtral-8x7b-instruct Noromaid Mixtral 8x7B Instruct"
+      "id": "nothingiisreal/mn-celeste-12b",
+      "name": "nothingiisreal/mn-celeste-12b Mistral Nemo 12B Celeste"
     },
     {
       "api": "or",
@@ -727,11 +806,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "nousresearch/nous-hermes-yi-34b",
       "name": "nousresearch/nous-hermes-yi-34b Nous: Hermes 2 Yi 34B"
-    },
-    {
-      "api": "or",
-      "id": "nvidia/nemotron-4-340b-instruct",
-      "name": "nvidia/nemotron-4-340b-instruct NVIDIA Nemotron-4 340B Instruct"
     },
     {
       "api": "or",
@@ -877,6 +951,26 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "perplexity/llama-3-sonar-small-32k-online",
       "name": "perplexity/llama-3-sonar-small-32k-online Perplexity: Llama3 Sonar 8B Online"
+    },
+    {
+      "api": "or",
+      "id": "perplexity/llama-3.1-sonar-large-128k-chat",
+      "name": "perplexity/llama-3.1-sonar-large-128k-chat Perplexity: Llama 3.1 Sonar 70B"
+    },
+    {
+      "api": "or",
+      "id": "perplexity/llama-3.1-sonar-large-128k-online",
+      "name": "perplexity/llama-3.1-sonar-large-128k-online Perplexity: Llama 3.1 Sonar 70B Online"
+    },
+    {
+      "api": "or",
+      "id": "perplexity/llama-3.1-sonar-small-128k-chat",
+      "name": "perplexity/llama-3.1-sonar-small-128k-chat Perplexity: Llama 3.1 Sonar 8B"
+    },
+    {
+      "api": "or",
+      "id": "perplexity/llama-3.1-sonar-small-128k-online",
+      "name": "perplexity/llama-3.1-sonar-small-128k-online Perplexity: Llama 3.1 Sonar 8B Online"
     },
     {
       "api": "or",
