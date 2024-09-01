@@ -29,6 +29,7 @@ ALLOWED_BASEURLS = [
     "https://api.fireworks.ai/inference/v1/",
     "https://api.hyperbolic.xyz/v1/",
     "https://api.deepseek.com/v1/",
+    "https://api.groq.com/openai/v1/",
 ]
 
 class ErrorText:
@@ -105,7 +106,7 @@ async def anthropic_chat_completions_stream(
         if r.status_code != 200:
             print(r.status_code)
             print(await r.aread())
-            yield b'err'
+            yield ErrorText(str(r.text))
             return
 
         async for line in r.aiter_lines():
@@ -132,14 +133,6 @@ def get_message_token_len(message):
     return len(ENC.encode(message['content'])) + 4  # TODO: not correct
 
 def crop_history(messages, target_token_len):
-    for i in messages:
-        if '~~~~\n' not in i['content']: continue
-        new_content = []
-        for x, chunk in enumerate(i['content'].split('~~~~\n')):
-            if x % 2 == 1: continue
-            new_content.append(chunk)
-        i['content'] = ''.join(new_content)
-
     if target_token_len == 0:
         return messages, sum(get_message_token_len(i) for i in messages)
 
@@ -161,7 +154,7 @@ def crop_history(messages, target_token_len):
 
     return new_messages[::-1], token_len_so_far
 
-client = httpx.AsyncClient(http2=True, timeout=15.0)
+client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(timeout=10.0, read=20.0))
 
 DUMMY_TEXT = 'This is a dummy response. Update token in settings to get real responses.'.encode("utf-8")
 
@@ -195,7 +188,7 @@ async def stream_response(**kwargs):
         try:
             c = chunk['choices'][0]
         except KeyError:
-            yield 'Err: ' + str(chunk).encode('utf-8')
+            yield b'Err: ' + str(chunk).encode('utf-8')
             raise
         if 'text' in c:
             yield c['text'].encode('utf-8')
@@ -221,6 +214,9 @@ async def post_chat_completions(request: Request):
 
     if data['max_tokens'] != 0:
         kwargs['max_tokens'] = data['max_tokens']
+
+    if data.get('stop'):
+        kwargs['stop'] = data['stop']
 
     s = stream_response(
         token=data.get('token'),

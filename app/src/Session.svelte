@@ -51,7 +51,11 @@ async function loadSession() {
 	if (obj === undefined) {
 		sessionData = {
 			title: (new Date()).toLocaleString(),
-			parameters: {},
+			parameters: {
+				scriptsEnabled: (await (await db).getAll('scripts'))
+										.filter(script => script.enabled)
+										.map(script => script.id)
+			},
 			messages: [{id: uniqueId(), parentId: null, role: U, content: ''}]
 		}
 		data = sessionData.messages
@@ -60,6 +64,7 @@ async function loadSession() {
 		if (autoReply) {
 			sessionData.messages[0].content = autoReply
 			sessionData.parameters = {
+				...sessionData.parameters,
 				_api: "oai",
 				temperature: 0,
 				frequency_penalty: 0,
@@ -192,8 +197,7 @@ async function _genResponse(message, regenerate=false) {
 	let chain = getChain(message, regenerate)
 
 	const scriptsEnabled = sessionData.parameters.scriptsEnabled || [];
-	const scriptsGlobalEnabled = scripts.filter(script => script.enabled).map(script => script.id);
-	const allScriptsEnabled = new Set([...scriptsEnabled, ...scriptsGlobalEnabled]);
+	const allScriptsEnabled = new Set([...scriptsEnabled]);
 
 	const orderedScriptsEnabled = scripts
 		.filter(script => allScriptsEnabled.has(script.id));

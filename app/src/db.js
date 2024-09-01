@@ -17,7 +17,7 @@ async function initDb() {
 					await transaction.objectStore('scripts').put({
 						id: "lzflks6m",
 						enabled: true,
-						name: "Trim Messages",
+						name: "01 Trim Messages",
 						sessionId: "",
 						scriptChainProcess: "return chain.map(m => {\n    if (!m.content.includes('~~~~\\n')) return m;\n    const newContent = m.content.split('~~~~\\n')\n        .filter((_, index) => index % 2 === 0)\n        .join('');\n    return { ...m, content: newContent };\n});"
 					})

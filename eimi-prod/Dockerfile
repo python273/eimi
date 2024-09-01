@@ -2,8 +2,7 @@ FROM node:19-alpine
 
 WORKDIR /src/app/
 
-COPY ./app/package.json ./
-COPY ./app/package-lock.json ./
+COPY ./app/package.json ./app/package-lock.json ./
 RUN npm ci --no-progress
 
 COPY ./app/ /src/app/
@@ -13,8 +12,7 @@ FROM python:3.11-alpine
 RUN pip install pipenv
 
 WORKDIR /src/
-COPY ./Pipfile ./
-COPY ./Pipfile.lock ./
+COPY ./Pipfile ./Pipfile.lock ./
 RUN export PIPENV_MAX_SUBPROCESS=2 && pipenv sync
 
 COPY ./ ./

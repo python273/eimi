@@ -35,7 +35,7 @@ function toggleScript(id) {
 async function createScript() {
 	const newScript = {
 		id: uniqueId(),
-		enabled: false,  // global
+		enabled: false,  // global new sessions
 		name: 'New Script',
 		sessionId: sessionId,
 		scriptChainProcess: 'return chain;',
@@ -116,7 +116,7 @@ $: {
 				{#if !i.sessionId}
 					<input
 						type="checkbox"
-						title="toggle global"
+						title="auto-enable for new sessions"
 						checked={i.enabled}
 						on:change={async () => {
 							i.enabled = !i.enabled;
