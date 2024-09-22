@@ -69,6 +69,11 @@ $: {
 	let re = new RegExp(modelQuery, "i");
 	visibleModels = MODELS.filter(i => re.test(i.name));
 }
+function onModelQueryKeydown(e) {
+	if (e.key === 'Enter' && visibleModels.length) {
+		model = visibleModels[0].id;
+	}
+}
 </script>
 
 <div class="parameters">
@@ -133,7 +138,7 @@ $: {
 	</div>
 	<div>
 		<hr/>
-		<input bind:value={modelQuery} placeholder="Search model..." />
+		<input bind:value={modelQuery} on:keydown={onModelQueryKeydown} placeholder="Search model..." />
 		<div class="current-model">{model}</div>
 	</div>
 	<div class="model-options-container">

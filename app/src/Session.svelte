@@ -18,6 +18,22 @@ const S = 'system'
 
 let sessionLoaded = false
 let sessionData
+/**
+ * @type {Array<{
+ *   id: string,
+ *   parentId: string|null,
+ *   role: string,
+ *   content: string,
+ *   depth?: number,
+ *   ddepth?: number,
+ *   linear?: boolean,
+ *   lastInChain?: boolean,
+ *   generating?: boolean,
+ *   tokenLen?: number,
+ *   cropped?: number,
+ *   aborter?: AbortController,
+ * }>}
+ */
 let data
 
 let stopSaving = false
@@ -84,13 +100,19 @@ onMount(() => {
 	loadSession()
 })
 
+let saveTimeoutId = null
+let lastSaveTime = Date.now()
 async function _saveSession() {
 	await saveSession(sessionId)
+	lastSaveTime = Date.now()
 }
-let saveTimeoutId = null
-function scheduleSave(t=1000) {
-	if (saveTimeoutId !== null) { clearTimeout(saveTimeoutId) }
-	saveTimeoutId = setTimeout(_saveSession, t)
+function scheduleSave(t = 500) {
+	if (saveTimeoutId !== null) clearTimeout(saveTimeoutId);
+	if ((Date.now() - lastSaveTime) >= 2000) {
+		_saveSession();
+	} else {
+		saveTimeoutId = setTimeout(_saveSession, t)
+	}
 }
 
 $: {
@@ -258,12 +280,13 @@ async function _genResponse(message, regenerate=false) {
 			'temperature', 'frequency_penalty', 'presence_penalty',
 			'max_tokens', 'target_token_len'
 		].forEach(i => { jsonBody[i] = sessionData.parameters[i] })
+		window._patchApiData && window._patchApiData(jsonBody);
 		const response = await fetch(
 			url, {
 				signal: aborter.signal,
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(jsonBody)
+				body: JSON.stringify(jsonBody),
 			}
 		)
 		newMessage.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
@@ -298,8 +321,8 @@ async function onReply(event) {
 	const newMessage = {
 		id: uniqueId(),
 		parentId: item.id,
-		role: U,
-		content: ''
+		role: item.role === U ? A : U,
+		content: '',
 	}
 	data.unshift(newMessage)
 	data = data
@@ -316,8 +339,9 @@ async function onRoleChange(event) {
 
 async function deleteMessage(event) {
 	event.preventDefault()
-	if (!event.shiftKey && !confirm('Delete message?')) { return }
 	const item = getMessageFromEvent(event)
+	if (!item.parentId) return;
+	if (!event.shiftKey && !confirm('Delete message?')) return;
 
 	const idsToDelete = [item.id]
 	function _addChildren(item) {
@@ -335,6 +359,62 @@ async function deleteMessage(event) {
 
 async function onMessagesUpdate() {
 	scheduleSave()
+}
+
+function onMessageKeyDown(event) {
+	// Hotkeys:
+	// Ctrl+Enter - gen response
+	// Shift+Enter - reply
+	// (textarea)+Esc - focus on message
+	// R - regen
+	// x / X - delete
+	// j - down
+	// k - up
+	// A - focus on textarea
+	if (event.target.tagName === 'TEXTAREA' && event.key === 'Escape') {
+		event.preventDefault();
+        event.target.closest('.message_content')?.focus({focusVisible: true});
+		return;
+	} else if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
+		event.preventDefault();
+		return genResponse(event);
+	} else if (event.shiftKey && event.code === "Enter") {
+		event.preventDefault();
+		return onReply(event);
+	}
+
+	if (!event.target.classList.contains('message_content')) return;
+	const item = getMessageFromEvent(event)
+
+	if (event.key === 'R') {
+		event.preventDefault();
+		return genResponse(event, true);
+	} else if (event.key === 'x' || event.key === 'X') {
+		event.preventDefault();
+		let i = data.findIndex(i => i.id == item.id) - 1;
+		deleteMessage(event);
+		if (i < 0) return;
+		document.getElementById(`m_${data[i].id}`)
+			?.querySelector('.message_content')
+			?.focus({focusVisible: true});
+	} else if (event.key === 'j' || event.key === 'k') {
+		event.preventDefault();
+		let i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1);
+		if (i < 0 || i >= data.length) return;
+		const el = document.getElementById(`m_${data[i].id}`)
+						?.querySelector('.message_content');
+		if (!el) return;
+
+		const rect = el.getBoundingClientRect();
+		const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight;
+		if (isPartiallyOffscreen) el.scrollIntoView(true);
+		el.focus({preventScroll: true, focusVisible: true});
+	} else if (event.key === 'A') {
+		event.preventDefault();
+		const textarea = event.target.querySelector('textarea');
+		textarea?.focus();
+		textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
+	}
 }
 
 function onParametersUpdate(data) {
@@ -365,12 +445,8 @@ let loadedPlugins = window.eimiPlugins || [];
 function updateLoadedPlugins() {
 	loadedPlugins = window.eimiPlugins || [];
 }
-onMount(() => {
-	window.updateLoadedPlugins = updateLoadedPlugins;
-});
-onDestroy(() => {
-	window.updateLoadedPlugins = null;
-});
+onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins; });
+onDestroy(() => { window.updateLoadedPlugins = null; });
 
 let scripts = [];
 async function loadScripts() {
@@ -412,7 +488,9 @@ subDbScripts(loadScripts);
 				<div class='pad' class:pad-colored="{!c.linear}"></div>
 			{/each}
 			<div>
-				<div class="message__content" class:generating="{c.generating}">
+				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
+				<div class="message_content" class:generating="{c.generating}" tabindex="0" on:keydown={onMessageKeyDown}>
 					<div class="message_header">
 						<select class="role" value={c.role} on:change="{onRoleChange}">
 							<option value={A}>{A}</option>
@@ -442,9 +520,14 @@ subDbScripts(loadScripts);
 							<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
 						{/if}
 						<button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
-						<button on:click="{onReply}" title="create an empty reply">&#10149;&#xFE0E;</button>
+						<button on:click="{onReply}" title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
 					</div>
-					<CustomInput value={c.content} obj={c} onUpdate="{onMessagesUpdate}" onSubmit="{genResponse}"/>
+					<CustomInput
+						generating={c.generating}
+						value={c.content}
+						obj={c}
+						onUpdate="{onMessagesUpdate}"
+					/>
 				</div>
 				{#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
 				{#if c.lastInChain}<div class="linear-pad1"></div>{/if}
@@ -466,10 +549,10 @@ subDbScripts(loadScripts);
 }
 
 .pad {
-	margin-right: 8px;
-	width: 5px;
-	max-width: 5px;
-	min-width: 5px;
+	margin-right: 6px;
+	width: 4px;
+	max-width: 4px;
+	min-width: 4px;
 	content: '';
 	background-color: var(--text-color);
 }
@@ -491,10 +574,9 @@ subDbScripts(loadScripts);
 	content: '';
 }
 
-.message__content {
+.message_content {
 	width: 62ch;
 	margin: 1px 0;
-	padding: 0 10px 5px 10px;
 	border-radius: 5px;
 	background-color: var(--comment-bg-color);
 	border: 1px solid var(--comment-bg-color);
@@ -515,5 +597,6 @@ subDbScripts(loadScripts);
 	align-items: center;
 	gap: 4px;
 	font-size: 0.9em;
+	margin: 0 0.6em;
 }
 </style>

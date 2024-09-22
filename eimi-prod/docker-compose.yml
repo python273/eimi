@@ -8,7 +8,7 @@ services:
       dockerfile: ./eimi-prod/Dockerfile
     expose:
       - "80"
-    command: "pipenv run uvicorn main:app --host 0.0.0.0 --port 80 --workers 1 --loop uvloop"
+    command: "pipenv run uvicorn main:app --host 0.0.0.0 --port 80 --workers 1 --loop uvloop --forwarded-allow-ips '*' --no-server-header --no-date-header"
     labels:
       - "traefik.http.routers.eimi-http.rule=Host(`eimi.cns.wtf`)"
       - "traefik.http.routers.eimi-http.middlewares=eimi-secure-headers,eimi-compress"
@@ -19,6 +19,7 @@ services:
       - "traefik.http.routers.eimi-https.middlewares=eimi-secure-headers,eimi-compress"
 
       - "traefik.http.middlewares.eimi-compress.compress=true"
+      - "traefik.http.middlewares.eimi-compress.compress.excludedcontenttypes=text/plain"
       - "traefik.http.middlewares.eimi-secure-headers.headers.framedeny=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.sslredirect=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.browserXssFilter=true"
@@ -29,5 +30,5 @@ services:
 
 networks:
   default:
-    external:
-      name: ${NETWORK:-traefik-net}
+    name: ${NETWORK:-traefik-net}
+    external: true

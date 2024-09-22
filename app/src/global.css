@@ -65,6 +65,7 @@ input, textarea {
 	margin: 5px;
 	background-color: var(--comment-bg-color);
 	color: var(--text-color);
+  accent-color: var(--brand-color);
 }
 
 input[type=checkbox] {

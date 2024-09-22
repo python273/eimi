@@ -2,6 +2,7 @@ import asyncio
 import json
 from pprint import pprint
 
+import urllib.parse
 import httpx
 import tiktoken
 from fastapi import FastAPI, Request
@@ -20,25 +21,34 @@ app.add_middleware(
     expose_headers=['x-token-len', 'x-cropped'],
 )
 
+client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(timeout=10.0, read=20.0))
+
 ALLOWED_BASEURLS = [
     "https://api.openai.com/v1/",
     "https://openrouter.ai/api/v1/",
-    "https://api.anthropic.com/v1/messages",
     "https://api.endpoints.anyscale.com/v1/",
     "https://api.together.xyz/v1/",
     "https://api.fireworks.ai/inference/v1/",
     "https://api.hyperbolic.xyz/v1/",
     "https://api.deepseek.com/v1/",
     "https://api.groq.com/openai/v1/",
+
+    #
+    "https://api.anthropic.com/v1/messages",
+    "anthropic://",
+    "google://",
 ]
+
 
 class ErrorText:
     def __init__(self, text):
         self.text = text
+    def __repr__(self) -> str:
+        return f'ErrorText({self.text!r})'
 
-async def openai_chat_completions_stream(
-        http: httpx.AsyncClient, baseurl: str, token: str, model: str,
-        completion: bool, **kwargs):
+
+async def stream_openai(
+        baseurl: str, token: str, model: str, completion: bool, **kwargs):
     json_data = {
         'stream': True,
         'model': model,
@@ -53,43 +63,53 @@ async def openai_chat_completions_stream(
     else:
         url = 'https://api.openai.com/v1/chat/completions'
 
-    async with http.stream(
+    async with client.stream(
             'POST',
             url,
             headers={'Authorization': f"Bearer {token}"},
             json=json_data
         ) as r:
-        if r.status_code == 400:
-            await r.aread()
-            yield ErrorText(str(r.text))
-            return
-
         if r.status_code != 200:
-            print(r.status_code)
-            print(await r.aread())
+            print(r.status_code, r.headers)
+            await r.aread()
             yield ErrorText(str(r.text))
             return
 
         async for line in r.aiter_lines():
             if line.startswith('data: [DONE]'): break
-            line = line.strip()
-            if not line: continue
             if line.startswith('data: '):
                 yield json.loads(line.removeprefix('data: '))
+
+
+async def openai_stream_response(**kwargs):
+    async for chunk in stream_openai(**kwargs):
+        if isinstance(chunk, ErrorText):
+            yield b'API error:\n'
+            yield chunk.text.encode('utf-8')
+            continue
+        try:
+            c = chunk['choices'][0]
+        except KeyError:
+            yield b'Err: ' + str(chunk).encode('utf-8')
+            raise
+        if 'text' in c:
+            yield c['text'].encode('utf-8')
+        elif c['delta'].get('content'):  # chat
+            yield c['delta']['content'].encode('utf-8')
+
 
 ANTHROPIC_API_PARAMS = [
     'model', 'messages', 'system', 'max_tokens', 'metadata', 'stop_sequences',
     'temperature', 'top_p', 'top_k'
 ]
 
-async def anthropic_chat_completions_stream(
-        http: httpx.AsyncClient, token: str, **kwargs):
+async def stream_anthropic(token: str, **kwargs):
     json_data = {'stream': True}
     for k in ANTHROPIC_API_PARAMS:
         if k in kwargs:
             json_data[k] = kwargs[k]
 
-    async with http.stream(
+    async with client.stream(
             'POST',
             'https://api.anthropic.com/v1/messages',
             headers={
@@ -98,28 +118,33 @@ async def anthropic_chat_completions_stream(
             },
             json=json_data
         ) as r:
-        if r.status_code == 400:
+        if r.status_code != 200:
+            print(r.status_code, r.headers)
             await r.aread()
             yield ErrorText(str(r.text))
             return
 
-        if r.status_code != 200:
-            print(r.status_code)
-            print(await r.aread())
-            yield ErrorText(str(r.text))
-            return
-
         async for line in r.aiter_lines():
-            line = line.strip()
             if line.startswith('data: '):
                 yield json.loads(line.removeprefix('data: '))
 
+
 async def anthropic_stream_response(**kwargs):
-    resp = anthropic_chat_completions_stream(client, **kwargs)
-    async for chunk in resp:
+    messages = kwargs.pop('messages')
+    system_msgs = [i for i in messages if i['role'] == 'system']
+    if system_msgs:
+        kwargs['system'] = system_msgs[0]['content']
+        kwargs['messages'] = [i for i in messages if i['role'] != 'system']
+    else:
+        kwargs['messages'] = messages
+
+    async for chunk in stream_anthropic(**kwargs):
         if isinstance(chunk, ErrorText):
             yield b'API error:\n'
             yield chunk.text.encode('utf-8')
+            continue
+        if chunk.get('type') == 'error':
+            yield json.dumps(chunk)
             continue
         if chunk.get('type') != 'content_block_delta':
             continue
@@ -128,8 +153,70 @@ async def anthropic_stream_response(**kwargs):
 
         yield chunk['delta']['text'].encode('utf-8')
 
+
+async def stream_google(token: str, model: str, **kwargs):
+    url_model = urllib.parse.quote(model)
+    async with client.stream(
+            'POST',
+            f'https://generativelanguage.googleapis.com/v1beta/models/{url_model}:streamGenerateContent',
+            params={'alt': 'sse', 'key': token},
+            json=kwargs,
+        ) as r:
+        if r.status_code != 200:
+            print(r.status_code, r.headers)
+            await r.aread()
+            yield ErrorText(str(r.text))
+            return
+
+        async for line in r.aiter_lines():
+            if line.startswith('data: '):
+                yield json.loads(line.removeprefix('data: '))
+
+
+async def google_stream_response(token, model, **kwargs):
+    converted_data = {
+        "contents":[],
+        "generationConfig": {
+            "responseMimeType": "text/plain"
+        },
+        "safetySettings": [
+            {'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_NONE'},
+            {'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_NONE'},
+            {'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_NONE'},
+            {'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_NONE'},
+            {'category': 'HARM_CATEGORY_CIVIC_INTEGRITY', 'threshold': 'BLOCK_NONE'}
+        ],
+    }
+
+    messages = kwargs['messages']
+    system_msgs = [i for i in messages if i['role'] == 'system']
+    if system_msgs:
+        converted_data['systemInstruction'] = {'parts': [{'text': system_msgs[0]['content']}]}
+        messages = [i for i in messages if i['role'] != 'system']
+    for i in messages:
+        converted_data['contents'].append({
+            'role': 'model' if i['role'] == 'assistant' else i['role'],
+            'parts': [{'text': i['content']}] if isinstance(i['content'], str) else i['content'],
+        })
+
+    if kwargs.get('temperature') is not None:
+        converted_data['generationConfig']['temperature'] = kwargs['temperature']
+    if kwargs.get('max_tokens') is not None:
+        converted_data['generationConfig']['maxOutputTokens'] = kwargs['max_tokens']
+
+    async for chunk in stream_google(token, model, **converted_data):
+        if isinstance(chunk, ErrorText):
+            yield b'API error:\n'
+            yield chunk.text.encode('utf-8')
+            continue
+
+        yield chunk['candidates'][0]['content']['parts'][0]['text'].encode('utf-8')
+
+
 ENC = tiktoken.encoding_for_model("gpt-4o")
 def get_message_token_len(message):
+    if not isinstance(message.get('content'), str):
+        return 0
     return len(ENC.encode(message['content'])) + 4  # TODO: not correct
 
 def crop_history(messages, target_token_len):
@@ -154,46 +241,27 @@ def crop_history(messages, target_token_len):
 
     return new_messages[::-1], token_len_so_far
 
-client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(timeout=10.0, read=20.0))
-
-DUMMY_TEXT = 'This is a dummy response. Update token in settings to get real responses.'.encode("utf-8")
-
 
 async def stream_response(**kwargs):
     if not kwargs['token']:
-        for i in range(len(DUMMY_TEXT)):
-            yield DUMMY_TEXT[i:i+1]
-            await asyncio.sleep(0.03)
+        for _ in range(30):
+            for i in b'This is a dummy response. Update token in settings to get real responses.\n':
+                yield i
+                await asyncio.sleep(0.01)
         return
 
-    if kwargs['baseurl'] == 'https://api.anthropic.com/v1/messages':
-        messages = kwargs.pop('messages')
-        system_msgs = [i for i in messages if i['role'] == 'system']
-        if system_msgs:
-            kwargs['system'] = system_msgs[0]['content']
-            kwargs['messages'] = [i for i in messages if i['role'] != 'system']
-        else:
-            kwargs['messages'] = messages
+    if kwargs['baseurl'] == 'google://':
+        async for chunk in google_stream_response(**kwargs):
+            yield chunk
+        return
 
+    if kwargs['baseurl'] in ['anthropic://', 'https://api.anthropic.com/v1/messages']:
         async for chunk in anthropic_stream_response(**kwargs):
             yield chunk
         return
 
-    resp = openai_chat_completions_stream(client, **kwargs)
-    async for chunk in resp:
-        if isinstance(chunk, ErrorText):
-            yield b'API error:\n'
-            yield chunk.text.encode('utf-8')
-            continue
-        try:
-            c = chunk['choices'][0]
-        except KeyError:
-            yield b'Err: ' + str(chunk).encode('utf-8')
-            raise
-        if 'text' in c:
-            yield c['text'].encode('utf-8')
-        elif c['delta'].get('content'):  # chat
-            yield c['delta']['content'].encode('utf-8')
+    async for chunk in openai_stream_response(**kwargs):
+        yield chunk
 
 
 @app.post("/chat_completions")
