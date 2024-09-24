@@ -1,4 +1,9 @@
 <script>
+/* Custom Textarea:
+- Auto-resizing to text height
+- Updating value preserves cursor and selection position
+    (e.g. to copy while generating)
+*/
 import { onMount, tick } from 'svelte';
 const inputId = Math.random().toString(36)
 
@@ -19,6 +24,7 @@ onMount(() => {
 async function valueChanged(value) {
 	if (!el) await tick();
 	if (!el) return;
+	if (el.value === value) return;
 
 	const start = el.selectionStart;
 	const end = el.selectionEnd;
@@ -45,7 +51,6 @@ $: {
 	autoresize(value)
 }
 
-// TODO: fix scrolling back to input when offscreen
 function onInput(event) {
 	value = el.value
 	obj.content = el.value
@@ -65,9 +70,13 @@ function onInput(event) {
 </div>
 
 <style>
+div {
+	margin: 0 0.4em 5px 0.4em;
+}
+/* check changes to style don't trigger scroll flash on typing! */
 textarea {
-	padding: 0 0.6em;
-	margin: 0 0 5px 0;
+	padding: 0 0.2em;
+	margin: 0;
 	border-radius: 0;
 	color: var(--text-color);
 	display: block;

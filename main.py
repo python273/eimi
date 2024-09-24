@@ -244,9 +244,10 @@ def crop_history(messages, target_token_len):
 
 async def stream_response(**kwargs):
     if not kwargs['token']:
+        t = b'This is a dummy response. Update token in settings to get real responses.\n'
         for _ in range(30):
-            for i in b'This is a dummy response. Update token in settings to get real responses.\n':
-                yield i
+            for i in range(len(t)):
+                yield t[i:i+1]
                 await asyncio.sleep(0.01)
         return
 
@@ -271,7 +272,7 @@ async def post_chat_completions(request: Request):
         return 'API base url is not allowed'
 
     cropped_messages, token_len = crop_history(
-        data['messages'], data['target_token_len']
+        data['messages'], data.get('target_token_len', 0)
     )
     kwargs = {}
     completion = bool(data.get('completion'))

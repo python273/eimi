@@ -245,7 +245,7 @@ async function _genResponse(message, regenerate=false) {
 			parentId: message.id,
 			role: A,
 			content: '',
-			generating: true
+			generating: true,
 		}
 		data.unshift(newMessage)
 	} else {
@@ -254,13 +254,8 @@ async function _genResponse(message, regenerate=false) {
 		newMessage = message
 	}
 	data = data
-	await tick()
 
-	if (regenerate && newMessage.aborter !== undefined) {
-		newMessage.aborter.abort()
-		await tick()
-	}
-
+	newMessage.aborter?.abort();
 	const aborter = new AbortController()
 	newMessage.aborter = aborter
 	try {
@@ -294,24 +289,18 @@ async function _genResponse(message, regenerate=false) {
 
 		const reader = response.body.getReader()
 		const decoder = new TextDecoder()
-		let text = ''
 		while (true) {
-			if (aborter.signal.aborted) break;
 			const { done, value } = await reader.read()
-			if (aborter.signal.aborted) break;
-			if (done) { break }
-			const decoded = decoder.decode(value, {stream: true})
-			text += decoded
-			newMessage.content = text
+			if (done) break;
+			newMessage.content += decoder.decode(value, {stream: true})
 			data = data
-			await tick()
 		}
 	} catch (e) {
+		if (e.name === 'AbortError') return;
 		console.error(e)
-	} finally {
-		newMessage.generating = false
-		data = data
 	}
+	newMessage.generating = false
+	data = data
 }
 
 async function onReply(event) {
