@@ -16,31 +16,43 @@ if (localStorage.getItem('cfg-config') === null) {
       "token": ""
     },
     "ant": {
-      "baseurl": "https://api.anthropic.com/v1/messages",
+      "baseurl": "anthropic://",
       "token": ""
     },
-    "tog": {
+    "google": {
+      "baseurl": "google://",
+      "token": ""
+    },
+    "together": {
       "baseurl": "https://api.together.xyz/v1/",
       "token": ""
     },
-    "firew": {
+    "fireworks": {
       "baseurl": "https://api.fireworks.ai/inference/v1/",
       "token": ""
     },
     "hyperbolic": {
       "baseurl": "https://api.hyperbolic.xyz/v1/",
       "token": ""
+    },
+    "groq": {
+      "baseurl": "https://api.groq.com/openai/v1/",
+      "token": ""
+    },
+    "dummy": {
+      "baseurl": "https://api.openai.com/v1/",
+      "token": ""
     }
   },
   "models": [
     {
-      "api": "firew",
+      "api": "fireworks",
       "id": "accounts/fireworks/models/llama-v3p1-405b-instruct",
       "name": "fireworks/llama-v3p1-405b-instruct",
       "max_tokens": 4096
     },
     {
-      "api": "tog",
+      "api": "together",
       "id": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
       "name": "together/Meta-Llama-3.1-405B-Instruct-Turbo",
       "max_tokens": 4096
@@ -49,14 +61,64 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "hyperbolic",
       "id": "meta-llama/Meta-Llama-3.1-405B-Instruct",
       "name": "hyperbolic/Meta-Llama-3.1-405B-Instruct",
-      "max_tokens": 4096
+      "max_tokens": 8192
+    },
+    {
+      "api": "hyperbolic",
+      "id": "meta-llama/Meta-Llama-3.1-405B",
+      "name": "hyperbolic/Meta-Llama-3.1-405B",
+      "max_tokens": 32768,
+      "completion": true
     },
     {
       "api": "hyperbolic",
       "id": "meta-llama/Meta-Llama-3.1-405B-FP8",
       "name": "hyperbolic/Meta-Llama-3.1-405B-FP8",
-      "max_tokens": 4096,
+      "max_tokens": 32764,
       "completion": true
+    },
+    {
+      "api": "hyperbolic",
+      "id": "NousResearch/Hermes-3-Llama-3.1-70B",
+      "name": "hyperbolic/Hermes-3-Llama-3.1-70B",
+      "max_tokens": 12288
+    },
+    {
+      "api": "hyperbolic",
+      "id": "deepseek-ai/DeepSeek-V2.5",
+      "name": "hyperbolic/DeepSeek-V2.5",
+      "max_tokens": 8192
+    },
+    {
+      "api": "groq",
+      "id": "llama-3.1-8b-instant",
+      "name": "groq/llama-3.1-8b-instant",
+      "max_tokens": 4096
+    },
+    {
+      "api": "google",
+      "id": "gemini-1.5-flash-latest",
+      "name": "gemini-1.5-flash-latest",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-1.5-pro",
+      "name": "gemini-1.5-pro",
+      "max_tokens": 8192
+    },
+    {
+      "api": "ant",
+      "id": "claude-3-5-sonnet-20241022",
+      "name": "claude-3-5-sonnet-20241022",
+      "max_tokens": 4096,
+      "defaultModel": true
+    },
+    {
+      "api": "ant",
+      "id": "claude-3-5-sonnet-20240620",
+      "name": "claude-3-5-sonnet-20240620",
+      "max_tokens": 4096
     },
     {
       "api": "ant",
@@ -74,12 +136,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "ant",
       "id": "claude-3-haiku-20240307",
       "name": "claude-3-haiku-20240307",
-      "max_tokens": 4096
-    },
-    {
-      "api": "ant",
-      "id": "claude-3-5-sonnet-20240620",
-      "name": "claude-3-5-sonnet-20240620",
       "max_tokens": 4096
     },
     {
@@ -116,18 +172,24 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "oai",
       "id": "gpt-4o-2024-05-13",
       "name": "gpt-4o-2024-05-13",
-      "max_tokens": 128000,
-      "defaultModel": true
+      "max_tokens": 128000
     },
     {
       "api": "oai",
       "id": "gpt-4o-2024-08-06",
-      "name": "gpt-4o-2024-08-06"
+      "name": "gpt-4o-2024-08-06",
+      "max_tokens": 128000
     },
     {
       "api": "oai",
       "id": "gpt-4o-mini-2024-07-18",
       "name": "gpt-4o-mini-2024-07-18",
+      "max_tokens": 128000
+    },
+    {
+      "api": "oai",
+      "id": "chatgpt-4o-latest",
+      "name": "chatgpt-4o-latest",
       "max_tokens": 128000
     },
     {
@@ -194,48 +256,23 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "01-ai/yi-34b",
-      "name": "01-ai/yi-34b Yi 34B (base)"
+      "id": "aetherwiing/mn-starcannon-12b",
+      "name": "aetherwiing/mn-starcannon-12b Mistral Nemo 12B Starcannon"
     },
     {
       "api": "or",
-      "id": "01-ai/yi-34b-chat",
-      "name": "01-ai/yi-34b-chat Yi 34B Chat"
+      "id": "ai21/jamba-1-5-large",
+      "name": "ai21/jamba-1-5-large AI21: Jamba 1.5 Large"
     },
     {
       "api": "or",
-      "id": "01-ai/yi-6b",
-      "name": "01-ai/yi-6b Yi 6B (base)"
-    },
-    {
-      "api": "or",
-      "id": "01-ai/yi-large",
-      "name": "01-ai/yi-large 01.AI: Yi Large"
-    },
-    {
-      "api": "or",
-      "id": "01-ai/yi-large-fc",
-      "name": "01-ai/yi-large-fc 01.AI: Yi Large FC"
-    },
-    {
-      "api": "or",
-      "id": "01-ai/yi-large-turbo",
-      "name": "01-ai/yi-large-turbo 01.AI: Yi Large Turbo"
-    },
-    {
-      "api": "or",
-      "id": "01-ai/yi-vision",
-      "name": "01-ai/yi-vision 01.AI: Yi Vision"
+      "id": "ai21/jamba-1-5-mini",
+      "name": "ai21/jamba-1-5-mini AI21: Jamba 1.5 Mini"
     },
     {
       "api": "or",
       "id": "ai21/jamba-instruct",
       "name": "ai21/jamba-instruct AI21: Jamba Instruct"
-    },
-    {
-      "api": "or",
-      "id": "allenai/olmo-7b-instruct",
-      "name": "allenai/olmo-7b-instruct OLMo 7B Instruct"
     },
     {
       "api": "or",
@@ -246,6 +283,11 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "alpindale/magnum-72b",
       "name": "alpindale/magnum-72b Magnum 72B"
+    },
+    {
+      "api": "or",
+      "id": "anthracite-org/magnum-v2-72b",
+      "name": "anthracite-org/magnum-v2-72b Magnum v2 72B"
     },
     {
       "api": "or",
@@ -349,16 +391,6 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "austism/chronos-hermes-13b",
-      "name": "austism/chronos-hermes-13b Chronos Hermes 13B v2"
-    },
-    {
-      "api": "or",
-      "id": "cognitivecomputations/dolphin-llama-3-70b",
-      "name": "cognitivecomputations/dolphin-llama-3-70b Dolphin Llama 3 70B \ud83d\udc2c"
-    },
-    {
-      "api": "or",
       "id": "cognitivecomputations/dolphin-mixtral-8x22b",
       "name": "cognitivecomputations/dolphin-mixtral-8x22b Dolphin 2.9.2 Mixtral 8x22B \ud83d\udc2c"
     },
@@ -379,8 +411,28 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "cohere/command-r-03-2024",
+      "name": "cohere/command-r-03-2024 Cohere: Command R (03-2024)"
+    },
+    {
+      "api": "or",
+      "id": "cohere/command-r-08-2024",
+      "name": "cohere/command-r-08-2024 Cohere: Command R (08-2024)"
+    },
+    {
+      "api": "or",
       "id": "cohere/command-r-plus",
       "name": "cohere/command-r-plus Cohere: Command R+"
+    },
+    {
+      "api": "or",
+      "id": "cohere/command-r-plus-04-2024",
+      "name": "cohere/command-r-plus-04-2024 Cohere: Command R+ (04-2024)"
+    },
+    {
+      "api": "or",
+      "id": "cohere/command-r-plus-08-2024",
+      "name": "cohere/command-r-plus-08-2024 Cohere: Command R+ (08-2024)"
     },
     {
       "api": "or",
@@ -390,22 +442,32 @@ if (localStorage.getItem('cfg-config') === null) {
     {
       "api": "or",
       "id": "deepseek/deepseek-chat",
-      "name": "deepseek/deepseek-chat DeepSeek-V2 Chat"
+      "name": "deepseek/deepseek-chat DeepSeek V2.5"
     },
     {
       "api": "or",
-      "id": "deepseek/deepseek-coder",
-      "name": "deepseek/deepseek-coder DeepSeek-Coder-V2"
-    },
-    {
-      "api": "or",
-      "id": "fireworks/firellava-13b",
-      "name": "fireworks/firellava-13b FireLLaVA 13B"
+      "id": "eva-unit-01/eva-qwen-2.5-14b",
+      "name": "eva-unit-01/eva-qwen-2.5-14b EVA Qwen2.5 14B"
     },
     {
       "api": "or",
       "id": "google/gemini-flash-1.5",
       "name": "google/gemini-flash-1.5 Google: Gemini Flash 1.5"
+    },
+    {
+      "api": "or",
+      "id": "google/gemini-flash-1.5-8b",
+      "name": "google/gemini-flash-1.5-8b Google: Gemini 1.5 Flash-8B"
+    },
+    {
+      "api": "or",
+      "id": "google/gemini-flash-1.5-8b-exp",
+      "name": "google/gemini-flash-1.5-8b-exp Google: Gemini Flash 8B 1.5 Experimental"
+    },
+    {
+      "api": "or",
+      "id": "google/gemini-flash-1.5-exp",
+      "name": "google/gemini-flash-1.5-exp Google: Gemini Flash 1.5 Experimental"
     },
     {
       "api": "or",
@@ -420,7 +482,7 @@ if (localStorage.getItem('cfg-config') === null) {
     {
       "api": "or",
       "id": "google/gemini-pro-1.5-exp",
-      "name": "google/gemini-pro-1.5-exp Google: Gemini Pro 1.5 (0801)"
+      "name": "google/gemini-pro-1.5-exp Google: Gemini Pro 1.5 Experimental"
     },
     {
       "api": "or",
@@ -441,21 +503,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "google/gemma-2-9b-it:free",
       "name": "google/gemma-2-9b-it:free Google: Gemma 2 9B (free)"
-    },
-    {
-      "api": "or",
-      "id": "google/gemma-7b-it",
-      "name": "google/gemma-7b-it Google: Gemma 7B"
-    },
-    {
-      "api": "or",
-      "id": "google/gemma-7b-it:free",
-      "name": "google/gemma-7b-it:free Google: Gemma 7B (free)"
-    },
-    {
-      "api": "or",
-      "id": "google/gemma-7b-it:nitro",
-      "name": "google/gemma-7b-it:nitro Google: Gemma 7B (nitro)"
     },
     {
       "api": "or",
@@ -489,6 +536,11 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "gryphe/mythomax-l2-13b:free",
+      "name": "gryphe/mythomax-l2-13b:free MythoMax 13B (free)"
+    },
+    {
+      "api": "or",
       "id": "gryphe/mythomax-l2-13b:nitro",
       "name": "gryphe/mythomax-l2-13b:nitro MythoMax 13B (nitro)"
     },
@@ -509,8 +561,28 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "inflection/inflection-3-pi",
+      "name": "inflection/inflection-3-pi Inflection: Inflection 3 Pi"
+    },
+    {
+      "api": "or",
+      "id": "inflection/inflection-3-productivity",
+      "name": "inflection/inflection-3-productivity Inflection: Inflection 3 Productivity"
+    },
+    {
+      "api": "or",
       "id": "jondurbin/airoboros-l2-70b",
       "name": "jondurbin/airoboros-l2-70b Airoboros 70B"
+    },
+    {
+      "api": "or",
+      "id": "liquid/lfm-40b",
+      "name": "liquid/lfm-40b Liquid: LFM 40B MoE"
+    },
+    {
+      "api": "or",
+      "id": "liquid/lfm-40b:free",
+      "name": "liquid/lfm-40b:free Liquid: LFM 40B MoE (free)"
     },
     {
       "api": "or",
@@ -519,38 +591,13 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "lynn/soliloquy-l3",
-      "name": "lynn/soliloquy-l3 Lynn: Llama 3 Soliloquy 8B v2"
-    },
-    {
-      "api": "or",
       "id": "mancer/weaver",
       "name": "mancer/weaver Mancer: Weaver (alpha)"
     },
     {
       "api": "or",
-      "id": "meta-llama/codellama-34b-instruct",
-      "name": "meta-llama/codellama-34b-instruct Meta: CodeLlama 34B Instruct"
-    },
-    {
-      "api": "or",
-      "id": "meta-llama/codellama-70b-instruct",
-      "name": "meta-llama/codellama-70b-instruct Meta: CodeLlama 70B Instruct"
-    },
-    {
-      "api": "or",
       "id": "meta-llama/llama-2-13b-chat",
       "name": "meta-llama/llama-2-13b-chat Meta: Llama v2 13B Chat"
-    },
-    {
-      "api": "or",
-      "id": "meta-llama/llama-2-70b-chat",
-      "name": "meta-llama/llama-2-70b-chat Meta: Llama v2 70B Chat"
-    },
-    {
-      "api": "or",
-      "id": "meta-llama/llama-3-70b",
-      "name": "meta-llama/llama-3-70b Meta: Llama 3 70B (Base)"
     },
     {
       "api": "or",
@@ -561,11 +608,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "meta-llama/llama-3-70b-instruct:nitro",
       "name": "meta-llama/llama-3-70b-instruct:nitro Meta: Llama 3 70B Instruct (nitro)"
-    },
-    {
-      "api": "or",
-      "id": "meta-llama/llama-3-8b",
-      "name": "meta-llama/llama-3-8b Meta: Llama 3 8B (Base)"
     },
     {
       "api": "or",
@@ -599,8 +641,28 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "meta-llama/llama-3.1-405b-instruct:free",
+      "name": "meta-llama/llama-3.1-405b-instruct:free Meta: Llama 3.1 405B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-405b-instruct:nitro",
+      "name": "meta-llama/llama-3.1-405b-instruct:nitro Meta: Llama 3.1 405B Instruct (nitro)"
+    },
+    {
+      "api": "or",
       "id": "meta-llama/llama-3.1-70b-instruct",
       "name": "meta-llama/llama-3.1-70b-instruct Meta: Llama 3.1 70B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-70b-instruct:free",
+      "name": "meta-llama/llama-3.1-70b-instruct:free Meta: Llama 3.1 70B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.1-70b-instruct:nitro",
+      "name": "meta-llama/llama-3.1-70b-instruct:nitro Meta: Llama 3.1 70B Instruct (nitro)"
     },
     {
       "api": "or",
@@ -611,6 +673,41 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "meta-llama/llama-3.1-8b-instruct:free",
       "name": "meta-llama/llama-3.1-8b-instruct:free Meta: Llama 3.1 8B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-11b-vision-instruct",
+      "name": "meta-llama/llama-3.2-11b-vision-instruct Meta: Llama 3.2 11B Vision Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-11b-vision-instruct:free",
+      "name": "meta-llama/llama-3.2-11b-vision-instruct:free Meta: Llama 3.2 11B Vision Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-1b-instruct",
+      "name": "meta-llama/llama-3.2-1b-instruct Meta: Llama 3.2 1B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-1b-instruct:free",
+      "name": "meta-llama/llama-3.2-1b-instruct:free Meta: Llama 3.2 1B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-3b-instruct",
+      "name": "meta-llama/llama-3.2-3b-instruct Meta: Llama 3.2 3B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-3b-instruct:free",
+      "name": "meta-llama/llama-3.2-3b-instruct:free Meta: Llama 3.2 3B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "meta-llama/llama-3.2-90b-vision-instruct",
+      "name": "meta-llama/llama-3.2-90b-vision-instruct Meta: Llama 3.2 90B Vision Instruct"
     },
     {
       "api": "or",
@@ -629,11 +726,6 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "microsoft/phi-3-medium-4k-instruct",
-      "name": "microsoft/phi-3-medium-4k-instruct Phi-3 Medium 4K Instruct"
-    },
-    {
-      "api": "or",
       "id": "microsoft/phi-3-mini-128k-instruct",
       "name": "microsoft/phi-3-mini-128k-instruct Phi-3 Mini 128K Instruct"
     },
@@ -641,6 +733,11 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "microsoft/phi-3-mini-128k-instruct:free",
       "name": "microsoft/phi-3-mini-128k-instruct:free Phi-3 Mini 128K Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "microsoft/phi-3.5-mini-128k-instruct",
+      "name": "microsoft/phi-3.5-mini-128k-instruct Phi-3.5 Mini 128K Instruct"
     },
     {
       "api": "or",
@@ -656,6 +753,16 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "mistralai/codestral-mamba",
       "name": "mistralai/codestral-mamba Mistral: Codestral Mamba"
+    },
+    {
+      "api": "or",
+      "id": "mistralai/ministral-3b",
+      "name": "mistralai/ministral-3b Ministral 3B"
+    },
+    {
+      "api": "or",
+      "id": "mistralai/ministral-8b",
+      "name": "mistralai/ministral-8b Ministral 8B"
     },
     {
       "api": "or",
@@ -714,11 +821,6 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "mistralai/mixtral-8x22b",
-      "name": "mistralai/mixtral-8x22b Mistral: Mixtral 8x22B (base)"
-    },
-    {
-      "api": "or",
       "id": "mistralai/mixtral-8x22b-instruct",
       "name": "mistralai/mixtral-8x22b-instruct Mistral: Mixtral 8x22B Instruct"
     },
@@ -739,6 +841,11 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "mistralai/pixtral-12b",
+      "name": "mistralai/pixtral-12b Mistral: Pixtral 12B"
+    },
+    {
+      "api": "or",
       "id": "neversleep/llama-3-lumimaid-70b",
       "name": "neversleep/llama-3-lumimaid-70b Llama 3 Lumimaid 70B"
     },
@@ -751,6 +858,11 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "neversleep/llama-3-lumimaid-8b:extended",
       "name": "neversleep/llama-3-lumimaid-8b:extended Llama 3 Lumimaid 8B (extended)"
+    },
+    {
+      "api": "or",
+      "id": "neversleep/llama-3.1-lumimaid-8b",
+      "name": "neversleep/llama-3.1-lumimaid-8b Lumimaid v0.2 8B"
     },
     {
       "api": "or",
@@ -774,18 +886,23 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "nousresearch/nous-capybara-7b",
-      "name": "nousresearch/nous-capybara-7b Nous: Capybara 7B"
+      "id": "nousresearch/hermes-3-llama-3.1-405b",
+      "name": "nousresearch/hermes-3-llama-3.1-405b Nous: Hermes 3 405B Instruct"
     },
     {
       "api": "or",
-      "id": "nousresearch/nous-capybara-7b:free",
-      "name": "nousresearch/nous-capybara-7b:free Nous: Capybara 7B (free)"
+      "id": "nousresearch/hermes-3-llama-3.1-405b:extended",
+      "name": "nousresearch/hermes-3-llama-3.1-405b:extended Nous: Hermes 3 405B Instruct (extended)"
     },
     {
       "api": "or",
-      "id": "nousresearch/nous-hermes-2-mistral-7b-dpo",
-      "name": "nousresearch/nous-hermes-2-mistral-7b-dpo Nous: Hermes 2 Mistral 7B DPO"
+      "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+      "name": "nousresearch/hermes-3-llama-3.1-405b:free Nous: Hermes 3 405B Instruct (free)"
+    },
+    {
+      "api": "or",
+      "id": "nousresearch/hermes-3-llama-3.1-70b",
+      "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct"
     },
     {
       "api": "or",
@@ -794,23 +911,18 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "nousresearch/nous-hermes-2-mixtral-8x7b-sft",
-      "name": "nousresearch/nous-hermes-2-mixtral-8x7b-sft Nous: Hermes 2 Mixtral 8x7B SFT"
-    },
-    {
-      "api": "or",
       "id": "nousresearch/nous-hermes-llama2-13b",
       "name": "nousresearch/nous-hermes-llama2-13b Nous: Hermes 13B"
     },
     {
       "api": "or",
-      "id": "nousresearch/nous-hermes-yi-34b",
-      "name": "nousresearch/nous-hermes-yi-34b Nous: Hermes 2 Yi 34B"
+      "id": "nvidia/llama-3.1-nemotron-70b-instruct",
+      "name": "nvidia/llama-3.1-nemotron-70b-instruct NVIDIA: Llama 3.1 Nemotron 70B Instruct"
     },
     {
       "api": "or",
-      "id": "open-orca/mistral-7b-openorca",
-      "name": "open-orca/mistral-7b-openorca Mistral OpenOrca 7B"
+      "id": "openai/chatgpt-4o-latest",
+      "name": "openai/chatgpt-4o-latest OpenAI: ChatGPT-4o"
     },
     {
       "api": "or",
@@ -821,11 +933,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "openai/gpt-3.5-turbo-0125",
       "name": "openai/gpt-3.5-turbo-0125 OpenAI: GPT-3.5 Turbo 16k"
-    },
-    {
-      "api": "or",
-      "id": "openai/gpt-3.5-turbo-0301",
-      "name": "openai/gpt-3.5-turbo-0301 OpenAI: GPT-3.5 Turbo (older v0301)"
     },
     {
       "api": "or",
@@ -899,6 +1006,11 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "openai/gpt-4o-2024-08-06",
+      "name": "openai/gpt-4o-2024-08-06 OpenAI: GPT-4o (2024-08-06)"
+    },
+    {
+      "api": "or",
       "id": "openai/gpt-4o-mini",
       "name": "openai/gpt-4o-mini OpenAI: GPT-4o-mini"
     },
@@ -906,6 +1018,31 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "openai/gpt-4o-mini-2024-07-18",
       "name": "openai/gpt-4o-mini-2024-07-18 OpenAI: GPT-4o-mini (2024-07-18)"
+    },
+    {
+      "api": "or",
+      "id": "openai/gpt-4o:extended",
+      "name": "openai/gpt-4o:extended OpenAI: GPT-4o (extended)"
+    },
+    {
+      "api": "or",
+      "id": "openai/o1-mini",
+      "name": "openai/o1-mini OpenAI: o1-mini"
+    },
+    {
+      "api": "or",
+      "id": "openai/o1-mini-2024-09-12",
+      "name": "openai/o1-mini-2024-09-12 OpenAI: o1-mini (2024-09-12)"
+    },
+    {
+      "api": "or",
+      "id": "openai/o1-preview",
+      "name": "openai/o1-preview OpenAI: o1-preview"
+    },
+    {
+      "api": "or",
+      "id": "openai/o1-preview-2024-09-12",
+      "name": "openai/o1-preview-2024-09-12 OpenAI: o1-preview (2024-09-12)"
     },
     {
       "api": "or",
@@ -919,18 +1056,8 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "openchat/openchat-8b",
-      "name": "openchat/openchat-8b OpenChat 3.6 8B"
-    },
-    {
-      "api": "or",
       "id": "openrouter/auto",
       "name": "openrouter/auto Auto (best for prompt)"
-    },
-    {
-      "api": "or",
-      "id": "openrouter/flavor-of-the-week",
-      "name": "openrouter/flavor-of-the-week Flavor of The Week"
     },
     {
       "api": "or",
@@ -949,8 +1076,8 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "perplexity/llama-3-sonar-small-32k-online",
-      "name": "perplexity/llama-3-sonar-small-32k-online Perplexity: Llama3 Sonar 8B Online"
+      "id": "perplexity/llama-3.1-sonar-huge-128k-online",
+      "name": "perplexity/llama-3.1-sonar-huge-128k-online Perplexity: Llama 3.1 Sonar 405B Online"
     },
     {
       "api": "or",
@@ -974,11 +1101,6 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "phind/phind-codellama-34b",
-      "name": "phind/phind-codellama-34b Phind: CodeLlama 34B v2"
-    },
-    {
-      "api": "or",
       "id": "pygmalionai/mythalion-13b",
       "name": "pygmalionai/mythalion-13b Pygmalion: Mythalion 13B"
     },
@@ -986,11 +1108,6 @@ if (localStorage.getItem('cfg-config') === null) {
       "api": "or",
       "id": "qwen/qwen-110b-chat",
       "name": "qwen/qwen-110b-chat Qwen 1.5 110B Chat"
-    },
-    {
-      "api": "or",
-      "id": "qwen/qwen-14b-chat",
-      "name": "qwen/qwen-14b-chat Qwen 1.5 14B Chat"
     },
     {
       "api": "or",
@@ -1009,38 +1126,28 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "qwen/qwen-32b-chat",
-      "name": "qwen/qwen-32b-chat Qwen 1.5 32B Chat"
+      "id": "qwen/qwen-2-vl-72b-instruct",
+      "name": "qwen/qwen-2-vl-72b-instruct Qwen2-VL 72B Instruct"
     },
     {
       "api": "or",
-      "id": "qwen/qwen-4b-chat",
-      "name": "qwen/qwen-4b-chat Qwen 1.5 4B Chat"
+      "id": "qwen/qwen-2-vl-7b-instruct",
+      "name": "qwen/qwen-2-vl-7b-instruct Qwen2-VL 7B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "qwen/qwen-2.5-72b-instruct",
+      "name": "qwen/qwen-2.5-72b-instruct Qwen2.5 72B Instruct"
+    },
+    {
+      "api": "or",
+      "id": "qwen/qwen-2.5-7b-instruct",
+      "name": "qwen/qwen-2.5-7b-instruct Qwen2.5 7B Instruct"
     },
     {
       "api": "or",
       "id": "qwen/qwen-72b-chat",
       "name": "qwen/qwen-72b-chat Qwen 1.5 72B Chat"
-    },
-    {
-      "api": "or",
-      "id": "qwen/qwen-7b-chat",
-      "name": "qwen/qwen-7b-chat Qwen 1.5 7B Chat"
-    },
-    {
-      "api": "or",
-      "id": "recursal/eagle-7b",
-      "name": "recursal/eagle-7b RWKV v5: Eagle 7B"
-    },
-    {
-      "api": "or",
-      "id": "recursal/rwkv-5-3b-ai-town",
-      "name": "recursal/rwkv-5-3b-ai-town RWKV v5 3B AI Town"
-    },
-    {
-      "api": "or",
-      "id": "rwkv/rwkv-5-world-3b",
-      "name": "rwkv/rwkv-5-world-3b RWKV v5 World 3B"
     },
     {
       "api": "or",
@@ -1054,13 +1161,13 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "sao10k/l3-stheno-8b",
-      "name": "sao10k/l3-stheno-8b Llama 3 Stheno 8B v3.3 32K"
+      "id": "sao10k/l3-lunaris-8b",
+      "name": "sao10k/l3-lunaris-8b Llama 3 8B Lunaris"
     },
     {
       "api": "or",
-      "id": "snowflake/snowflake-arctic-instruct",
-      "name": "snowflake/snowflake-arctic-instruct Snowflake: Arctic Instruct"
+      "id": "sao10k/l3.1-euryale-70b",
+      "name": "sao10k/l3.1-euryale-70b Llama 3.1 Euryale 70B v2.2"
     },
     {
       "api": "or",
@@ -1069,23 +1176,13 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
-      "id": "teknium/openhermes-2-mistral-7b",
-      "name": "teknium/openhermes-2-mistral-7b OpenHermes 2 Mistral 7B"
-    },
-    {
-      "api": "or",
       "id": "teknium/openhermes-2.5-mistral-7b",
       "name": "teknium/openhermes-2.5-mistral-7b OpenHermes 2.5 Mistral 7B"
     },
     {
       "api": "or",
-      "id": "togethercomputer/stripedhyena-hessian-7b",
-      "name": "togethercomputer/stripedhyena-hessian-7b StripedHyena Hessian 7B (base)"
-    },
-    {
-      "api": "or",
-      "id": "togethercomputer/stripedhyena-nous-7b",
-      "name": "togethercomputer/stripedhyena-nous-7b StripedHyena Nous 7B"
+      "id": "thedrummer/rocinante-12b",
+      "name": "thedrummer/rocinante-12b Rocinante 12B"
     },
     {
       "api": "or",
@@ -1114,8 +1211,18 @@ if (localStorage.getItem('cfg-config') === null) {
     },
     {
       "api": "or",
+      "id": "x-ai/grok-beta",
+      "name": "x-ai/grok-beta xAI: Grok Beta"
+    },
+    {
+      "api": "or",
       "id": "xwin-lm/xwin-lm-70b",
       "name": "xwin-lm/xwin-lm-70b Xwin 70B"
+    },
+    {
+      "api": "dummy",
+      "id": "dummy",
+      "name": "dummy"
     }
   ]
 }`;

@@ -293,6 +293,7 @@ async def post_chat_completions(request: Request):
         completion=completion,
         model=data['model'],
         temperature=float(data['temperature']),
+        top_p=float(data.get('top_p') or 1.0),
         frequency_penalty=float(data['frequency_penalty']),
         presence_penalty=float(data['presence_penalty']),
         **kwargs,

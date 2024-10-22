@@ -17,6 +17,7 @@ let model = MODELS.some(i => i.id == parameters.model) ? parameters.model : DEFA
 let modelMaxToken = 4096;
 
 let temperature = parameters.hasOwnProperty('temperature') ? parameters.temperature : 0.0;
+let top_p = parameters.hasOwnProperty('top_p') ? parameters.top_p : 1.0;
 let frequency_penalty = parameters.hasOwnProperty('frequency_penalty') ? parameters.frequency_penalty : 0.0;
 let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameters.presence_penalty : 0.0;
 let target_token_len = parameters.hasOwnProperty('target_token_len') ? parameters.target_token_len : 0;
@@ -79,18 +80,23 @@ function onModelQueryKeydown(e) {
 <div class="parameters">
 	<div>
 		<label for="temperature">Temperature</label>
-		<input type="range" id="temperature" min="0" max="2" step="0.1" bind:value={temperature} />
-		<input type="number" bind:value={temperature} min="0" max="2" step="0.1" />
+		<input type="range" id="temperature" min="0" max="2" step="0.01" bind:value={temperature} />
+		<input type="number" bind:value={temperature} min="0" max="2" step="0.01" />
+	</div>
+	<div>
+		<label for="top_p">Top P</label>
+		<input type="range" id="top_p" min="0" max="1" step="0.01" bind:value={top_p} />
+		<input type="number" bind:value={top_p} min="0" max="1" step="0.01" />
 	</div>
 	<div>
 		<label for="frequency_penalty">Frequency Penalty</label>
-		<input type="range" id="frequency_penalty" min="0" max="2" step="0.1" bind:value={frequency_penalty} />
-		<input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.1" />
+		<input type="range" id="frequency_penalty" min="0" max="2" step="0.01" bind:value={frequency_penalty} />
+		<input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.01" />
 	</div>
 	<div>
 		<label for="presence_penalty">Presence Penalty</label>
-		<input type="range" id="presence_penalty" min="0" max="2" step="0.1" bind:value={presence_penalty} />
-		<input type="number" bind:value={presence_penalty} min="0" max="2" step="0.1" />
+		<input type="range" id="presence_penalty" min="0" max="2" step="0.01" bind:value={presence_penalty} />
+		<input type="number" bind:value={presence_penalty} min="0" max="2" step="0.01" />
 	</div>
 	<div>
 		<label for="target_token_len">Crop Context Tokens (gpt-4o)</label>
@@ -198,7 +204,7 @@ input[type="number"] {
 
 input {
 	vertical-align: middle;
-	margin: 2px 0 6px 0;
+	margin: 0 0 4px 0;
 }
 
 .parameters {
@@ -220,7 +226,7 @@ input {
 label {
 	display: block;
 	width: 100%;
-	font-size: 0.8em;
+	font-size: 0.75em;
 }
 .parameters > div {
 	width: 100%;
