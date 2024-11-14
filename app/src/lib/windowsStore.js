@@ -6,16 +6,25 @@ const { subscribe, update } = writable([]);
 const windowsStore = {
 	subscribe,
 	update,
-	add: (component, data, title='') => {
-		update(x => [...x, { id: genTabUniqueIntId(), title, component, data }]);
+	add: ({component, data, title='', left=8, top=8, buttons=[]}) => {
+		update(windows => {
+			windows.push({
+				id: genTabUniqueIntId(), title, component, data, left, top, buttons
+			});
+			return windows;
+		});
+	},
+	updateById: (wid, newProperties) => {
+		update(windows => {
+			const window = windows.find(w => w.id === wid);
+			if (window) Object.assign(window, newProperties);
+			return windows;
+		});
 	},
 	close: (wid) => {
-		update(x => x.filter(window => window.id !== wid));
-	},
-	updateTitle: (id, newTitle) => {
 		update(windows => {
-			const windowToUpdate = windows.find(window => window.id === id);
-			if (windowToUpdate) windowToUpdate.title = newTitle;
+			const index = windows.findIndex(w => w.id === wid);
+			if (index > -1) windows.splice(index, 1);
 			return windows;
 		});
 	},

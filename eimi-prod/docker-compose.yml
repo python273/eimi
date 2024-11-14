@@ -19,7 +19,7 @@ services:
       - "traefik.http.routers.eimi-https.middlewares=eimi-secure-headers,eimi-compress"
 
       - "traefik.http.middlewares.eimi-compress.compress=true"
-      - "traefik.http.middlewares.eimi-compress.compress.excludedcontenttypes=text/plain"
+      - "traefik.http.middlewares.eimi-compress.compress.excludedcontenttypes=text/plain,text/event-stream"
       - "traefik.http.middlewares.eimi-secure-headers.headers.framedeny=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.sslredirect=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.browserXssFilter=true"

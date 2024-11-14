@@ -56,7 +56,7 @@ function scheduleSave(t=250) {
 }
 $: {
 	script;
-	windowsStore.updateTitle(windowId, getWindowTitle());
+	windowsStore.updateById(windowId, {title: getWindowTitle()});
 	scheduleSave();
 }
 

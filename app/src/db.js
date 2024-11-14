@@ -1,5 +1,33 @@
 import { openDB } from 'idb';
 
+const scriptTrimMessages = `/* Hides text from a message
+~~~~
+like here
+~~~~
+*/
+return chain.map(m => {
+    if (!m.content.includes('~~~~\\n')) return m;
+    const newContent = m.content.split('~~~~\\n')
+        .filter((_, index) => index % 2 === 0)
+        .join('');
+    return { ...m, content: newContent };
+});
+`;
+
+const scriptPrompts = `/* Prompts. Start a message with:
+- %%R for short answers
+*/
+const PROMPTS = {
+    R: \`You are a helpful assistant. Your responses have no babbling! No code explanations unless asked.\\n\\n\`,
+};
+
+return chain.map(m => {
+    let newContent = m.content.replace(/%%(\\w+)/g, (match, p1) => PROMPTS[p1] || match);
+    return { ...m, content: newContent };
+});
+`;
+
+
 async function initDb() {
 	if (navigator.storage && navigator.storage.persist) {
 		navigator.storage.persist().then((persistent) => {});
@@ -19,7 +47,14 @@ async function initDb() {
 						enabled: true,
 						name: "01 Trim Messages",
 						sessionId: "",
-						scriptChainProcess: "return chain.map(m => {\n    if (!m.content.includes('~~~~\\n')) return m;\n    const newContent = m.content.split('~~~~\\n')\n        .filter((_, index) => index % 2 === 0)\n        .join('');\n    return { ...m, content: newContent };\n});"
+						scriptChainProcess: scriptTrimMessages,
+					})
+					await transaction.objectStore('scripts').put({
+						id:"lziy5kpb",
+						enabled: true,
+						name: "02 Prompts",
+						sessionId: "",
+						scriptChainProcess: scriptPrompts,
 					})
 				}
 				await transaction.done

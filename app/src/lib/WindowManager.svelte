@@ -3,6 +3,7 @@ import { onMount } from "svelte";
 import Portal from "./Portal.svelte";
 
 export let store;
+const instances = {};
 
 let isDragging = false;
 let previousX = 0;
@@ -14,7 +15,7 @@ let windowLastZIndex = 9999;
 const getElById = (i) => `window-${i}`;
 
 function closeWindow(id) {
-	store.update((windows) => windows.filter((window) => window.id !== id));
+	store.update((windows) => windows.filter((w) => w.id !== id));
 }
 
 function updateZIndex(id) {
@@ -70,10 +71,9 @@ function handleMouseMove(event) {
 
 	newTop = Math.max(newTop, 0);
 
-	container.style.left = `${newLeft}px`;
-	container.style.top = `${newTop}px`;
 	previousX = event.clientX;
 	previousY = event.clientY;
+	store.updateById(draggingWindowId, {left: newLeft, top: newTop});
 }
 
 onMount(() => {
@@ -88,25 +88,32 @@ onMount(() => {
 </script>
 
 <Portal>
-	{#each $store as window (window.id)}
+	{#each $store as w (w.id)}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<div
-			id={getElById(window.id)}
+			id={getElById(w.id)}
 			class="window"
-			on:mousedown={() => updateZIndex(window.id)}
+			on:mousedown={() => updateZIndex(w.id)}
+			style="left: {w.left}px; top: {w.top}px;"
 		>
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
 			<div
 				class="header"
-				on:mousedown={(e) => handleMouseDown(e, window.id)}
+				on:mousedown={(e) => handleMouseDown(e, w.id)}
 			>
-				<button on:click={() => closeWindow(window.id)}>x</button>
-				{window.title}
+				<button on:click={() => closeWindow(w.id)}>x</button>
+				{#each w.buttons as button}
+					<button on:click={() => instances[w.id][button.methodName]()}>
+						{button.label}
+					</button>
+				{/each}
+				{w.title}
 			</div>
 			<svelte:component
-				this={window.component}
-				windowId={window.id}
-				{...window.data}
+				this={w.component}
+				bind:this={instances[w.id]}
+				windowId={w.id}
+				{...w.data}
 			/>
 		</div>
 	{/each}

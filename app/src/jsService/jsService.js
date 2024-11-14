@@ -1,26 +1,37 @@
 import windowsStore from "../lib/windowsStore";
 import JsWindow from "./JsWindow.svelte";
 
-export function createJsWindow(content) {
+const jsRegex = /```(javascript|js)\n(.*?\n)```/s;
+const htmlRegex = /```html\n(.*?\n)```/s;
+
+export function hasCodeBlocks(content) {
+    return jsRegex.test(content) || htmlRegex.test(content);
+}
+
+export function getCode({content}) {
     let mode = null;
     let code = "";
 
-    const jsMatch = content.match(/```(javascript|js)\n(.*?)\n```/s);
+    const jsMatch = content.match(jsRegex);
     if (jsMatch) {
         mode = "js";
         code = jsMatch[2];
     } else {
-        // TODO: broken
-        const htmlMatch = content.match(/```html\n(.*?)\n```/s);
+        const htmlMatch = content.match(htmlRegex);
         if (htmlMatch) {
             mode = "html";
             code = htmlMatch[1];
         }
     }
 
-    if (mode && code) {
-        windowsStore.add(JsWindow, {mode, code}, 'JS exec');
-    } else {
-        console.error('No Markdown Block With JS/HTML Code Found');
-    }
+    return {mode, code};
+}
+
+export function createJsWindow(comment) {
+    windowsStore.add({
+        component: JsWindow,
+        data: {comment},
+        title: 'HTML/JS exec',
+        buttons: [{methodName: 'refresh', label: 'refresh'}]
+    });
 }

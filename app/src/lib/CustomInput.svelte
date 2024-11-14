@@ -75,6 +75,7 @@ div {
 }
 /* check changes to style don't trigger scroll flash on typing! */
 textarea {
+	line-height: 1.188em;
 	padding: 0 0.2em;
 	margin: 0;
 	border-radius: 0;

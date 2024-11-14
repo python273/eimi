@@ -3,24 +3,25 @@ import { db } from "../db";
 import { notifyDbScripts, uniqueId } from "../utils";
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte";
 import windowsStore from "./windowsStore";
+import { CONFIG } from '../config';
 
 export let sessionId;
 export let parameters;
 export let scripts;
 export let onUpdate;
 
-const CONFIG = JSON.parse(localStorage['cfg-config']);
+// TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || [];
-const DEFAULT_MODEL = MODELS.filter(i => i.defaultModel)[0].id || 'gpt-4o-2024-05-13';
+const MODELS_FAVORITE = CONFIG.models_favorite || [];
+const DEFAULT_MODEL = MODELS_FAVORITE[0].id || MODELS[0].id;
 
-let model = MODELS.some(i => i.id == parameters.model) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL;
+let model = MODELS.some(i => (i.api === parameters._api && i.id === parameters.model)) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL;
 let modelMaxToken = 4096;
 
 let temperature = parameters.hasOwnProperty('temperature') ? parameters.temperature : 0.0;
 let top_p = parameters.hasOwnProperty('top_p') ? parameters.top_p : 1.0;
 let frequency_penalty = parameters.hasOwnProperty('frequency_penalty') ? parameters.frequency_penalty : 0.0;
 let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameters.presence_penalty : 0.0;
-let target_token_len = parameters.hasOwnProperty('target_token_len') ? parameters.target_token_len : 0;
 let max_tokens = parameters.hasOwnProperty('max_tokens') ? parameters.max_tokens : 0;
 
 let scriptsEnabled = parameters.scriptsEnabled || [];
@@ -33,7 +34,8 @@ function toggleScript(id) {
 	}
 }
 
-async function createScript() {
+async function createScript(event) {
+	event.preventDefault();
 	const newScript = {
 		id: uniqueId(),
 		enabled: false,  // global new sessions
@@ -44,7 +46,10 @@ async function createScript() {
 	await (await db).put('scripts', newScript);
 	scriptsEnabled = [...scriptsEnabled, newScript.id]
 	notifyDbScripts();
-	windowsStore.add(ScriptEditorWindow, { id: newScript.id });
+	let { clientX: left, clientY: top } = event;
+	top += 16;
+	left -= 512;
+	windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top});
 }
 
 $: {
@@ -59,7 +64,7 @@ $: {
 		model,
 		completion: modelInfo.completion,  // TODO: move out of params, get from model info
 		temperature, frequency_penalty, presence_penalty,
-		target_token_len, max_tokens,
+		max_tokens,
 		scriptsEnabled,
 	})
 }
@@ -77,36 +82,41 @@ function onModelQueryKeydown(e) {
 }
 </script>
 
-<div class="parameters">
-	<div>
+<div class="params-panel">
+	<div class="param">
 		<label for="temperature">Temperature</label>
-		<input type="range" id="temperature" min="0" max="2" step="0.01" bind:value={temperature} />
-		<input type="number" bind:value={temperature} min="0" max="2" step="0.01" />
+		<div>
+			<input type="range" id="temperature" min="0" max="2" step="0.01" bind:value={temperature} />
+			<input type="number" bind:value={temperature} min="0" max="2" step="0.01" />
+		</div>
 	</div>
-	<div>
+	<div class="param">
 		<label for="top_p">Top P</label>
-		<input type="range" id="top_p" min="0" max="1" step="0.01" bind:value={top_p} />
-		<input type="number" bind:value={top_p} min="0" max="1" step="0.01" />
+		<div>
+			<input type="range" id="top_p" min="0" max="1" step="0.01" bind:value={top_p} />
+			<input type="number" bind:value={top_p} min="0" max="1" step="0.01" />
+		</div>
 	</div>
-	<div>
+	<div class="param">
 		<label for="frequency_penalty">Frequency Penalty</label>
-		<input type="range" id="frequency_penalty" min="0" max="2" step="0.01" bind:value={frequency_penalty} />
-		<input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.01" />
+		<div>
+			<input type="range" id="frequency_penalty" min="0" max="2" step="0.01" bind:value={frequency_penalty} />
+			<input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.01" />
+		</div>
 	</div>
-	<div>
+	<div class="param">
 		<label for="presence_penalty">Presence Penalty</label>
-		<input type="range" id="presence_penalty" min="0" max="2" step="0.01" bind:value={presence_penalty} />
-		<input type="number" bind:value={presence_penalty} min="0" max="2" step="0.01" />
+		<div>
+			<input type="range" id="presence_penalty" min="0" max="2" step="0.01" bind:value={presence_penalty} />
+			<input type="number" bind:value={presence_penalty} min="0" max="2" step="0.01" />
+		</div>
 	</div>
-	<div>
-		<label for="target_token_len">Crop Context Tokens (gpt-4o)</label>
-		<input type="range" id="target_token_len" min="0" max={32768} step="1" bind:value={target_token_len} />
-		<input type="number" bind:value={target_token_len} min="0" max={32768} step="1" />
-	</div>
-	<div>
+	<div class="param">
 		<label for="max_tokens">Max Tokens</label>
-		<input type="range" id="max_tokens" min="0" max={modelMaxToken} step="1" bind:value={max_tokens} />
-		<input type="number" bind:value={max_tokens} min="0" max={modelMaxToken} step="1" />
+		<div>
+			<input type="range" id="max_tokens" min="0" max={modelMaxToken} step="1" bind:value={max_tokens} />
+			<input type="number" bind:value={max_tokens} min="0" max={modelMaxToken} step="1" />
+		</div>
 	</div>
 	<div>
 		<div class="flex">
@@ -115,7 +125,7 @@ function onModelQueryKeydown(e) {
 			<button on:click={createScript}>create</button>
 		</div>
 		{#each scripts as i}
-			<div class="flex">
+			<div class="flex script-row">
 				<input
 					type="checkbox"
 					title="toggle in session"
@@ -136,15 +146,35 @@ function onModelQueryKeydown(e) {
 						}}
 					/>
 				{/if}
-				<button on:click={() => {
-					windowsStore.add(ScriptEditorWindow, { id: i.id });
+				<button on:click={(event) => {
+					event.preventDefault();
+					let { clientX: left, clientY: top } = event;
+					top += 16;
+					left -= 512;
+					windowsStore.add({component: ScriptEditorWindow, data: { id: i.id }, left, top});
 				}}>edit</button>
 			</div>
 		{/each}
 	</div>
+	<div><hr/></div>
+	<div class="models-favorite">
+		{#each MODELS_FAVORITE as m}
+			<div>
+				<button
+					style={m.id === model ? 'font-weight: bold;' : ''}
+					on:click={() => { model = m.id; }}>
+					{m.name}
+				</button>
+			</div>
+		{/each}
+	</div>
 	<div>
-		<hr/>
-		<input bind:value={modelQuery} on:keydown={onModelQueryKeydown} placeholder="Search model..." />
+		<input
+			class="w100"
+			bind:value={modelQuery}
+			on:keydown={onModelQueryKeydown}
+			placeholder="Search model..."
+		/>
 		<div class="current-model">{model}</div>
 	</div>
 	<div class="model-options-container">
@@ -160,6 +190,15 @@ function onModelQueryKeydown(e) {
 </div>
 
 <style>
+.models-favorite {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 0.5em;
+}
+.models-favorite button {
+	font-size: 0.9em;
+	padding-left: 0;
+}
 .model-options-container {
 	min-height: 12em;
 	overflow: auto;
@@ -186,10 +225,11 @@ function onModelQueryKeydown(e) {
 	color: white;
 }
 .current-model {
-	font-size: 0.8;
+	font-size: 0.8em;
 	white-space: nowrap;
 	overflow: auto hidden;
 	scrollbar-width: none;
+	border: 1px solid var(--brand-color);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -207,7 +247,7 @@ input {
 	margin: 0 0 4px 0;
 }
 
-.parameters {
+.params-panel {
 	position: fixed;
 	right: 0;
 	width: 256px;
@@ -223,13 +263,30 @@ input {
 	background-color: var(--panel-bg-color);
 	color: var(--text-color);
 }
+.params-panel > div {
+	width: 100%;
+}
+.param {
+	display: flex;
+	flex-direction: column;
+}
+.param > div {
+	display: flex;
+	gap: 0.5em;
+}
+.param > div > input {
+	font-size: 0.8em;
+}
+.param > div > input:first-child {
+	width: 100%;
+}
 label {
 	display: block;
 	width: 100%;
 	font-size: 0.75em;
 }
-.parameters > div {
-	width: 100%;
+.script-row {
+	align-items: baseline;
 }
 .script-name {
 	margin-left: 0.3em;

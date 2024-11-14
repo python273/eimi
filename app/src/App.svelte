@@ -4,23 +4,7 @@ import Settings from './Settings.svelte';
 import WindowManager from './lib/WindowManager.svelte';
 import windowsStore from './lib/windowsStore';
 import { genSessionId } from './utils.js';
-
-if (!("cfg-dark-theme" in localStorage)) {
-	const val = (
-		window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-	) ? 1 : 0;
-	localStorage["cfg-dark-theme"] = val;
-}
-
-let darkTheme = localStorage["cfg-dark-theme"] === "1";
-$: {
-	localStorage["cfg-dark-theme"] = darkTheme ? 1 : 0;
-}
-
-window.addEventListener('storage', (event) => {
-	if (event.key !== "cfg-dark-theme") return;
-	darkTheme = localStorage["cfg-dark-theme"] === "1"
-});
+import { themeStore } from './themeStore.js';
 
 let hash = window.location.hash.slice(1)
 
@@ -52,7 +36,7 @@ $: {
 }
 </script>
 
-{#if !darkTheme}
+{#if !($themeStore)}
 <style>
 	:root {
 		--bg-color: #ecedee;
@@ -94,7 +78,7 @@ $: {
 		<input
 			class="c-pointer"
 			id="dark-theme-checkbox"
-			type="checkbox" bind:checked={darkTheme}
+			type="checkbox" bind:checked={$themeStore}
 			title="dark theme"
 		/>
 		<label for="dark-theme-checkbox" class="c-pointer">{" "}☾</label>

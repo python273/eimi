@@ -4,13 +4,14 @@ import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
 import { uniqueId, genSessionId, subDbScripts } from './utils.js';
 import { db } from './db.js';
-import { createJsWindow } from './jsService/jsService';
+import { hasCodeBlocks, createJsWindow } from './jsService/jsService';
+import { runLlmApi } from './llms.js';
+import MarkdownRenderer from './MarkdownRenderer.svelte';
+import { CONFIG } from './config';
 
 export let sessionId
 export let autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
-
-const CONFIG = JSON.parse(localStorage['cfg-config']);
 
 const U = 'user'
 const A = 'assistant'
@@ -21,15 +22,18 @@ let sessionData
 /**
  * @type {Array<{
  *   id: string,
+ *   createdAt?: number,
  *   parentId: string|null,
  *   role: string,
  *   content: string,
+ *   markdown?: Boolean,
  *   depth?: number,
  *   ddepth?: number,
  *   linear?: boolean,
  *   lastInChain?: boolean,
  *   generating?: boolean,
- *   tokenLen?: number,
+ *   promptTokens?: number,
+ *   completionTokens?: number,
  *   cropped?: number,
  *   aborter?: AbortController,
  * }>}
@@ -40,7 +44,9 @@ let stopSaving = false
 async function saveSession(sessionId) {
 	if (stopSaving) return;
 	const savedMessages = data.map(
-		({id, parentId, role, content}) => ({id, parentId, role, content})
+		({id, createdAt, parentId, role, content, markdown}) => ({
+			id, createdAt, parentId, role, content, markdown
+		})
 	)
 	if (savedMessages.length === 1 && savedMessages[0].content === '') return;
 	const obj = {...sessionData, messages: savedMessages};
@@ -67,12 +73,19 @@ async function loadSession() {
 	if (obj === undefined) {
 		sessionData = {
 			title: (new Date()).toLocaleString(),
+			createdAt: new Date().valueOf(),
 			parameters: {
 				scriptsEnabled: (await (await db).getAll('scripts'))
 										.filter(script => script.enabled)
 										.map(script => script.id)
 			},
-			messages: [{id: uniqueId(), parentId: null, role: U, content: ''}]
+			messages: [{
+				id: uniqueId(),
+				createdAt: new Date().valueOf(),
+				parentId: null,
+				role: U,
+				content: ''
+			}]
 		}
 		data = sessionData.messages
 		sessionLoaded = true
@@ -81,7 +94,7 @@ async function loadSession() {
 			sessionData.messages[0].content = autoReply
 			sessionData.parameters = {
 				...sessionData.parameters,
-				_api: "oai",
+				_api: "openai",
 				temperature: 0,
 				frequency_penalty: 0,
 				presence_penalty: 0
@@ -216,6 +229,12 @@ async function genResponse(event, regenerate=false) {
 }
 async function _genResponse(message, regenerate=false) {
 	console.log('genResponse', message, regenerate)
+	const apiData = CONFIG.apis[sessionData.parameters._api];
+	if (!apiData.token) {
+		alert(`Add token in settings for "${sessionData.parameters._api}"`);
+		throw Error('no token');
+	}
+
 	let chain = getChain(message, regenerate)
 
 	const scriptsEnabled = sessionData.parameters.scriptsEnabled || [];
@@ -242,61 +261,59 @@ async function _genResponse(message, regenerate=false) {
 	if (!regenerate) {
 		newMessage = {
 			id: uniqueId(),
+			createdAt: new Date().valueOf(),
 			parentId: message.id,
 			role: A,
 			content: '',
 			generating: true,
+			markdown: true,
 		}
 		data.unshift(newMessage)
 	} else {
-		message.content = ''
-		message.generating = true
 		newMessage = message
 	}
+	newMessage.content = '';
+	newMessage.generating = true;
+	newMessage.promptTokens = undefined;
+	newMessage.completionTokens = undefined;
 	data = data
 
 	newMessage.aborter?.abort();
 	const aborter = new AbortController()
 	newMessage.aborter = aborter
 	try {
-		const url = (
-			import.meta.env.DEV ?
-				'http://127.0.0.1:8000/chat_completions' :
-				'/chat_completions'
-		)
-		const apiData = CONFIG.apis[sessionData.parameters._api]
 		const jsonBody = {
 			baseurl: apiData.baseurl,
+			proxy: apiData.proxy === false ? false : true,
 			token: apiData.token,
 			messages: chain.map(i => ({role: i.role, content: i.content}))
 		};
 		[
 			'model', 'completion',
 			'temperature', 'frequency_penalty', 'presence_penalty',
-			'max_tokens', 'target_token_len'
+			'max_tokens'
 		].forEach(i => { jsonBody[i] = sessionData.parameters[i] })
 		window._patchApiData && window._patchApiData(jsonBody);
-		const response = await fetch(
-			url, {
-				signal: aborter.signal,
-				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(jsonBody),
-			}
-		)
-		newMessage.tokenLen = parseInt(response.headers.get('x-token-len'), 10)
-		newMessage.cropped = parseInt(response.headers.get('x-cropped'), 10)
 
-		const reader = response.body.getReader()
-		const decoder = new TextDecoder()
-		while (true) {
-			const { done, value } = await reader.read()
-			if (done) break;
-			newMessage.content += decoder.decode(value, {stream: true})
-			data = data
+		jsonBody.signal = aborter.signal;
+		newMessage.content = '';
+		for await (const chunk of runLlmApi(jsonBody)) {
+			if (typeof(chunk) === "string") {
+				newMessage.content += chunk;
+			} else {
+				console.log(chunk);
+				if (chunk?.usage?.prompt_tokens) {
+					newMessage.promptTokens = chunk.usage.prompt_tokens;
+				}
+				if (chunk?.usage?.completion_tokens) {
+					newMessage.completionTokens = chunk.usage.completion_tokens;
+				}
+			}
+			data = data;
 		}
 	} catch (e) {
 		if (e.name === 'AbortError') return;
+		alert(`Request error:\n${e}`)
 		console.error(e)
 	}
 	newMessage.generating = false
@@ -309,6 +326,7 @@ async function onReply(event) {
 
 	const newMessage = {
 		id: uniqueId(),
+		createdAt: new Date().valueOf(),
 		parentId: item.id,
 		role: item.role === U ? A : U,
 		content: '',
@@ -347,6 +365,7 @@ async function deleteMessage(event) {
 }
 
 async function onMessagesUpdate() {
+	data = data;
 	scheduleSave()
 }
 
@@ -486,8 +505,12 @@ subDbScripts(loadScripts);
 							<option value={U}>{U}</option>
 							<option value={S}>{S}</option>
 						</select>
-						{#if c.tokenLen !== undefined && c.tokenLen > 0}
-							<div class="meta-gray" title="Token length (gpt-4o)">{c.tokenLen}</div>
+						<input type="checkbox" bind:checked={c.markdown} style="height: 0.85em;" title="Render Markdown"/>
+						{#if c.promptTokens !== undefined}
+							<div class="meta-gray mono pre" title="Prompt tokens">{String(c.promptTokens).padStart(5, ' ')}</div>
+						{/if}
+						{#if c.completionTokens !== undefined}
+							<div class="meta-gray mono pre" title="Completion tokens">{String(c.completionTokens).padStart(5, ' ')}</div>
 						{/if}
 						{#if c.cropped !== undefined && c.cropped > 0}
 							<div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
@@ -495,12 +518,24 @@ subDbScripts(loadScripts);
 						<div class="ml-auto"></div>
 
 						{#each loadedPlugins as plugin}
-							<button on:click="{(e) => {plugin.onClick(e, c)}}">{plugin.name}</button>
+							<button on:click="{async (e) => {
+								if (plugin.onClick?.constructor.name === 'AsyncFunction') {
+									await plugin.onClick(e, c);
+								} else {
+									plugin.onClick?.(e, c);
+								}
+								data = data;
+							}}">{plugin.name}</button>
 						{/each}
 
-						<button
-							on:click="{() => {createJsWindow(c.content)}}"
-							title="run JavaScript">JS</button>
+						{#if hasCodeBlocks(c.content)}
+							<button
+								on:click="{(e) => {
+									e.preventDefault();
+									createJsWindow(c);
+								}}"
+								title="run HTML / JavaScript">JS</button>
+						{/if}
 						{#if c.parentId !== null}
 							<button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
 						{/if}
@@ -511,12 +546,16 @@ subDbScripts(loadScripts);
 						<button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
 						<button on:click="{onReply}" title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
 					</div>
-					<CustomInput
-						generating={c.generating}
-						value={c.content}
-						obj={c}
-						onUpdate="{onMessagesUpdate}"
-					/>
+					{#if c.markdown}
+						<MarkdownRenderer generating={c.generating} content={c.content}/>
+					{:else}
+						<CustomInput
+							generating={c.generating}
+							value={c.content}
+							obj={c}
+							onUpdate="{onMessagesUpdate}"
+						/>
+					{/if}
 				</div>
 				{#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
 				{#if c.lastInChain}<div class="linear-pad1"></div>{/if}
@@ -529,7 +568,7 @@ subDbScripts(loadScripts);
 
 <style>
 .title-input {
-	width: 62ch;
+	width: 40ch;
 }
 .role {
 	background: none;

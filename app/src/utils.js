@@ -19,3 +19,23 @@ export function uniqueId() {
 const dbScriptsUpdate = writable(0);
 export const notifyDbScripts = () => { dbScriptsUpdate.update(n => n + 1); };
 export const subDbScripts = dbScriptsUpdate.subscribe;
+
+export function merge(base, user) {
+    if (!user || typeof user !== 'object') return base;
+    
+    if ('$set' in user) {
+        if (Array.isArray(user.$set)) {
+            const rest = user.$set.findIndex(item => item.$rest !== undefined);
+            if (rest === -1) return user.$set;
+            return [...user.$set.slice(0, rest), ...base, ...user.$set.slice(rest + 1)];
+        }
+        const {$rest, ...clean} = user.$set;
+        return $rest !== undefined ? {...base, ...clean} : user.$set;
+    }
+
+    const result = Array.isArray(base) ? [...base] : {...base};
+    for (const key in user) {
+        result[key] = merge(base[key], user[key]);
+    }
+    return result;
+}

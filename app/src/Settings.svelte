@@ -1,18 +1,23 @@
 <script>
 import { db } from './db.js';
+import { DEFAULT_CONFIG } from './default_config.js';
+import { refreshConfig } from './config.js';
 
-let config = localStorage["cfg-config"] || ""
+let config = localStorage["cfg-config-user"] || ""
 $: {
-	localStorage["cfg-config"] = config
+	localStorage["cfg-config-user"] = config
+	refreshConfig();
 }
+
+let importFileInput;
 
 async function exportSessionsToFile() {
 	const tx = (await db).transaction('sessions', 'readonly');
-	const data = {};
+	const data = {sessions: {}};
 	const keys = await tx.store.getAllKeys()
 	for (let i = 0; i < keys.length; i++) {
 		const key = keys[i];
-		data[key] = await tx.store.get(key);
+		data.sessions[key] = await tx.store.get(key);
 	}
 	await tx.done
 	const json = JSON.stringify(data);
@@ -30,14 +35,15 @@ async function exportSessionsToFile() {
 }
 function importSessionsFromFile(e) {
 	e.preventDefault();
-	const file = document.getElementById("import-sessions-file").files[0];
+	const file = importFileInput.files[0];
 	if (!file) {
 		alert("No file selected");
 		return;
 	}
 	const reader = new FileReader();
 	reader.onload = async function(e) {
-		const data = JSON.parse(e.target.result);
+		let data = JSON.parse(e.target.result);
+		data = 'sessions' in data ? data.sessions : data;
 		const tx = (await db).transaction('sessions', 'readwrite');
 		await tx.store.clear();
 		const keys = Object.keys(data);
@@ -46,6 +52,7 @@ function importSessionsFromFile(e) {
 			await tx.store.put(data[key], key)
 		}
 		await tx.done
+		importFileInput.value = '';
 		alert("Sessions imported");
 	};
 	reader.readAsText(file);
@@ -54,7 +61,13 @@ function importSessionsFromFile(e) {
 
 <main>
 	<div>
-		<label for="config">Config</label><br/>
+		<label for="config">Config Base</label><br/>
+		<details>
+			<textarea id="config" value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)} style="width: 60ch; height: 300px;" disabled/>
+		</details>
+	</div>
+	<div>
+		<label for="config">Config User</label><br/>
 		<textarea id="config" bind:value={config} style="width: 60ch; height: 300px;"/>
 	</div>
 	<hr/>
@@ -69,8 +82,12 @@ function importSessionsFromFile(e) {
 	<hr/>
 	<div>
 		<label for="import-sessions-file">Import sessions from a file (deletes existing data)</label><br/>
-		<input id="import-sessions-file" type="file" accept=".json"/>
+		<input bind:this={importFileInput} id="import-sessions-file" type="file" accept=".json"/>
 		<button on:click={importSessionsFromFile}>Import</button>
+	</div>
+	<hr/>
+	<div>
+		<a href="https://github.com/python273/eimi">https://github.com/python273/eimi</a>
 	</div>
 </main>
 
@@ -80,5 +97,11 @@ main {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+}
+#config {
+	font-family: monospace;
+}
+hr {
+	width: 100%;
 }
 </style>
