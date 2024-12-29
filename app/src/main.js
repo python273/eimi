@@ -10,14 +10,15 @@ if (localStorage.getItem('cfg-config-user') === null) {
   const userConfig = {
     "apis": {
       "openai": {"$set": {"token": "", "proxy": true, "$rest": 1}},
-      "openrouter": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "anthropic": {"$set": {"token": "", "proxy": true, "$rest": 1}},
+      "openrouter": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "google": {"$set": {"token": "", "proxy": true, "$rest": 1}},
+      "hyperbolic": {"$set": {"token": "", "proxy": true, "$rest": 1}},
+      "xai": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "together": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "fireworks": {"$set": {"token": "", "proxy": true, "$rest": 1}},
-      "hyperbolic": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "groq": {"$set": {"token": "", "proxy": true, "$rest": 1}},
-      "xai": {"$set": {"token": "", "proxy": true, "$rest": 1}}
+      "deepseek": {"$set": {"token": "", "proxy": true, "$rest": 1}},
     },
     "models_favorite": {"$set": [
       {

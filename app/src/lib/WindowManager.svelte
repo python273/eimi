@@ -133,6 +133,7 @@ onMount(() => {
 	height: 512px;
 	border: 1px solid var(--text-color);
 	border-radius: 5px;
+	box-shadow: 0px 1px 6px #00000047;
 }
 
 .header {

@@ -118,6 +118,7 @@ function onModelQueryKeydown(e) {
 			<input type="number" bind:value={max_tokens} min="0" max={modelMaxToken} step="1" />
 		</div>
 	</div>
+	<div><hr/></div>
 	<div>
 		<div class="flex">
 			<div>Scripts:</div>
@@ -204,6 +205,7 @@ function onModelQueryKeydown(e) {
 	overflow: auto;
 	border: 1px solid var(--bg-color);
 	border-radius: 3px;
+	border: 1px solid var(--text-color);
 }
 .model-options {
 	display: flex;
@@ -216,6 +218,7 @@ function onModelQueryKeydown(e) {
 .model-options label {
 	display: block;
 	white-space: nowrap;
+	padding: 0 0.3em;
 }
 .model-options label:nth-child(even) {
 	background-color: var(--bg-color);
@@ -229,7 +232,7 @@ function onModelQueryKeydown(e) {
 	white-space: nowrap;
 	overflow: auto hidden;
 	scrollbar-width: none;
-	border: 1px solid var(--brand-color);
+	font-weight: bold;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -262,6 +265,7 @@ input {
 
 	background-color: var(--panel-bg-color);
 	color: var(--text-color);
+	box-shadow: 0px 1px 6px #00000047;
 }
 .params-panel > div {
 	width: 100%;

@@ -5,6 +5,7 @@ import WindowManager from './lib/WindowManager.svelte';
 import windowsStore from './lib/windowsStore';
 import { genSessionId } from './utils.js';
 import { themeStore } from './themeStore.js';
+import Welcome from './Welcome.svelte';
 
 let hash = window.location.hash.slice(1)
 
@@ -94,6 +95,7 @@ $: {
 {/if}
 </div>
 
+<Welcome/>
 <WindowManager store={windowsStore}/>
 
 <style>

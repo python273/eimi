@@ -64,6 +64,7 @@ function onInput(event) {
 	id={`ta-${inputId}`}
 	spellcheck={!generating}
 	autocomplete="off"
+	placeholder="..."
 	rows="1"
 	on:input={onInput}
 ></textarea>

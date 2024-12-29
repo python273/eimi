@@ -23,11 +23,11 @@ loadSessionsList()
 </script>
 
 <main>
-<div class="sessions">
+<div class="sessions-panel">
 	{#each sessions as s (s.key)}
-		<a href={`#${s.key}`}>{s.title}</a>
+		<a href={`#${s.key}`} class:session-active={s.key === sessionId}>{s.title}</a>
 	{:else}
-		<span style="filter: opacity(30%);">Sessions will be here.</span>
+		<span style="filter: opacity(30%); margin: 10px;">Sessions will be here.</span>
 	{/each}
 </div>
 
@@ -39,10 +39,10 @@ loadSessionsList()
 </main>
 
 <style>
-.sessions {
+.sessions-panel {
 	position: fixed;
 	left: 0;
-	padding: 5px 10px;
+	padding: 5px 0;
 	height: calc(100% - 32px);
 	width: 22ch;
 	overflow-y: auto;
@@ -50,13 +50,24 @@ loadSessionsList()
 	border-radius: 5px;
 	margin: 0 0 0 8px;
 	font-size: 0.94em;
+	box-shadow: 0px 1px 6px #00000047;
 }
-.sessions a {
+.sessions-panel a {
+	padding: 0 5px;
+	margin: 0 5px;
 	color: var(--color-text);
 	display: block;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	border-radius: 2px;
+}
+.sessions-panel a:hover {
+	background: #0000000f;
+}
+.sessions-panel .session-active {
+	color: #fff;
+	background: var(--brand-color) !important;
 }
 main {
 	width: 100%;

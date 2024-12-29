@@ -1,12 +1,7 @@
-export const DEFAULT_CONFIG = {
+{
   "apis": {
     "openai": {
       "baseurl": "https://api.openai.com/v1/",
-      "token": "",
-      "proxy": true
-    },
-    "openrouter": {
-      "baseurl": "https://openrouter.ai/api/v1/",
       "token": "",
       "proxy": true
     },
@@ -15,13 +10,23 @@ export const DEFAULT_CONFIG = {
       "token": "",
       "proxy": true
     },
+    "openrouter": {
+      "baseurl": "https://openrouter.ai/api/v1/",
+      "token": "",
+      "proxy": true
+    },
     "google": {
       "baseurl": "google://",
       "token": "",
       "proxy": true
     },
-    "google_": {
-      "baseurl": "https://generativelanguage.googleapis.com/v1beta/",
+    "hyperbolic": {
+      "baseurl": "https://api.hyperbolic.xyz/v1/",
+      "token": "",
+      "proxy": true
+    },
+    "xai": {
+      "baseurl": "https://api.x.ai/v1/",
       "token": "",
       "proxy": true
     },
@@ -35,23 +40,18 @@ export const DEFAULT_CONFIG = {
       "token": "",
       "proxy": true
     },
-    "hyperbolic": {
-      "baseurl": "https://api.hyperbolic.xyz/v1/",
-      "token": "",
-      "proxy": true
-    },
     "groq": {
       "baseurl": "https://api.groq.com/openai/v1/",
       "token": "",
       "proxy": true
     },
-    "xai": {
-      "baseurl": "https://api.x.ai/v1/",
+    "deepseek": {
+      "baseurl": "https://api.deepseek.com/v1/",
       "token": "",
       "proxy": true
     },
-    "dummy": {
-      "baseurl": "https://api.openai.com/v1/",
+    "google_": {
+      "baseurl": "https://generativelanguage.googleapis.com/v1beta/",
       "token": "",
       "proxy": true
     }
@@ -59,8 +59,8 @@ export const DEFAULT_CONFIG = {
   "models_favorite": [
     {
       "api": "openai",
-      "id": "gpt-4o-2024-08-06",
-      "name": "gpt-4o-2024-08-06"
+      "id": "gpt-4o-2024-11-20",
+      "name": "gpt-4o-2024-11-20"
     },
     {
       "api": "openrouter",
@@ -121,6 +121,12 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "google",
+      "id": "gemini-2.0-flash-exp",
+      "name": "gemini-2.0-flash-exp",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
       "id": "gemini-1.5-flash-latest",
       "name": "gemini-1.5-flash-latest",
       "max_tokens": 8192
@@ -144,9 +150,27 @@ export const DEFAULT_CONFIG = {
       "max_tokens": 8192
     },
     {
+      "api": "google",
+      "id": "gemini-exp-1206",
+      "name": "gemini-exp-1206",
+      "max_tokens": 8192
+    },
+    {
+      "api": "deepseek",
+      "id": "deepseek-chat",
+      "name": "deepseek-chat",
+      "max_tokens": 4096
+    },
+    {
       "api": "anthropic",
       "id": "claude-3-5-sonnet-20241022",
       "name": "claude-3-5-sonnet-20241022",
+      "max_tokens": 4096
+    },
+    {
+      "api": "anthropic",
+      "id": "claude-3-5-haiku-20241022",
+      "name": "claude-3-5-haiku-20241022",
       "max_tokens": 4096
     },
     {
@@ -213,6 +237,12 @@ export const DEFAULT_CONFIG = {
       "api": "openai",
       "id": "gpt-4o-2024-08-06",
       "name": "gpt-4o-2024-08-06",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4o-2024-11-20",
+      "name": "gpt-4o-2024-11-20",
       "max_tokens": 128000
     },
     {
@@ -291,6 +321,16 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "01-ai/yi-large",
+      "name": "01-ai/yi-large 01.AI: Yi Large"
+    },
+    {
+      "api": "openrouter",
+      "id": "aetherwiing/mn-starcannon-12b",
+      "name": "aetherwiing/mn-starcannon-12b Aetherwiing: Starcannon 12B"
+    },
+    {
+      "api": "openrouter",
       "id": "ai21/jamba-1-5-large",
       "name": "ai21/jamba-1-5-large AI21: Jamba 1.5 Large"
     },
@@ -313,6 +353,26 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "alpindale/magnum-72b",
       "name": "alpindale/magnum-72b Magnum 72B"
+    },
+    {
+      "api": "openrouter",
+      "id": "amazon/nova-lite-v1",
+      "name": "amazon/nova-lite-v1 Amazon: Nova Lite 1.0"
+    },
+    {
+      "api": "openrouter",
+      "id": "amazon/nova-micro-v1",
+      "name": "amazon/nova-micro-v1 Amazon: Nova Micro 1.0"
+    },
+    {
+      "api": "openrouter",
+      "id": "amazon/nova-pro-v1",
+      "name": "amazon/nova-pro-v1 Amazon: Nova Pro 1.0"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthracite-org/magnum-v2-72b",
+      "name": "anthracite-org/magnum-v2-72b Magnum v2 72B"
     },
     {
       "api": "openrouter",
@@ -351,26 +411,6 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
-      "id": "anthropic/claude-3-5-haiku",
-      "name": "anthropic/claude-3-5-haiku Anthropic: Claude 3.5 Haiku"
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-5-haiku-20241022",
-      "name": "anthropic/claude-3-5-haiku-20241022 Anthropic: Claude 3.5 Haiku (2024-10-22)"
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-5-haiku-20241022:beta",
-      "name": "anthropic/claude-3-5-haiku-20241022:beta Anthropic: Claude 3.5 Haiku (2024-10-22) (self-moderated)"
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-5-haiku:beta",
-      "name": "anthropic/claude-3-5-haiku:beta Anthropic: Claude 3.5 Haiku (self-moderated)"
-    },
-    {
-      "api": "openrouter",
       "id": "anthropic/claude-3-haiku",
       "name": "anthropic/claude-3-haiku Anthropic: Claude 3 Haiku"
     },
@@ -398,6 +438,26 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "anthropic/claude-3-sonnet:beta",
       "name": "anthropic/claude-3-sonnet:beta Anthropic: Claude 3 Sonnet (self-moderated)"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthropic/claude-3.5-haiku",
+      "name": "anthropic/claude-3.5-haiku Anthropic: Claude 3.5 Haiku"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthropic/claude-3.5-haiku-20241022",
+      "name": "anthropic/claude-3.5-haiku-20241022 Anthropic: Claude 3.5 Haiku (2024-10-22)"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthropic/claude-3.5-haiku-20241022:beta",
+      "name": "anthropic/claude-3.5-haiku-20241022:beta Anthropic: Claude 3.5 Haiku (2024-10-22) (self-moderated)"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthropic/claude-3.5-haiku:beta",
+      "name": "anthropic/claude-3.5-haiku:beta Anthropic: Claude 3.5 Haiku (self-moderated)"
     },
     {
       "api": "openrouter",
@@ -466,18 +526,28 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "cohere/command-r7b-12-2024",
+      "name": "cohere/command-r7b-12-2024 Cohere: Command R7B (12-2024)"
+    },
+    {
+      "api": "openrouter",
       "id": "databricks/dbrx-instruct",
       "name": "databricks/dbrx-instruct Databricks: DBRX 132B Instruct"
     },
     {
       "api": "openrouter",
       "id": "deepseek/deepseek-chat",
-      "name": "deepseek/deepseek-chat DeepSeek V2.5"
+      "name": "deepseek/deepseek-chat DeepSeek V3"
     },
     {
       "api": "openrouter",
-      "id": "eva-unit-01/eva-qwen-2.5-14b",
-      "name": "eva-unit-01/eva-qwen-2.5-14b EVA Qwen2.5 14B"
+      "id": "deepseek/deepseek-chat-v2.5",
+      "name": "deepseek/deepseek-chat-v2.5 DeepSeek V2.5"
+    },
+    {
+      "api": "openrouter",
+      "id": "eva-unit-01/eva-llama-3.33-70b",
+      "name": "eva-unit-01/eva-llama-3.33-70b EVA Llama 3.33 70b"
     },
     {
       "api": "openrouter",
@@ -486,8 +556,33 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-exp-1114",
-      "name": "google/gemini-exp-1114 Google: Gemini Experimental 1114"
+      "id": "eva-unit-01/eva-qwen-2.5-72b",
+      "name": "eva-unit-01/eva-qwen-2.5-72b EVA Qwen2.5 72B"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.0-flash-exp:free",
+      "name": "google/gemini-2.0-flash-exp:free Google: Gemini Flash 2.0 Experimental (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.0-flash-thinking-exp:free",
+      "name": "google/gemini-2.0-flash-thinking-exp:free Google: Gemini 2.0 Flash Thinking Experimental (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-exp-1114:free",
+      "name": "google/gemini-exp-1114:free Google: Gemini Experimental 1114 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-exp-1121:free",
+      "name": "google/gemini-exp-1121:free Google: Gemini Experimental 1121 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-exp-1206:free",
+      "name": "google/gemini-exp-1206:free Google: Gemini Experimental 1206 (free)"
     },
     {
       "api": "openrouter",
@@ -497,12 +592,12 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "google/gemini-flash-1.5-8b",
-      "name": "google/gemini-flash-1.5-8b Google: Gemini 1.5 Flash-8B"
+      "name": "google/gemini-flash-1.5-8b Google: Gemini Flash 1.5 8B"
     },
     {
       "api": "openrouter",
       "id": "google/gemini-flash-1.5-8b-exp",
-      "name": "google/gemini-flash-1.5-8b-exp Google: Gemini Flash 8B 1.5 Experimental"
+      "name": "google/gemini-flash-1.5-8b-exp Google: Gemini Flash 1.5 8B Experimental"
     },
     {
       "api": "openrouter",
@@ -543,6 +638,11 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "google/gemma-2-9b-it:free",
       "name": "google/gemma-2-9b-it:free Google: Gemma 2 9B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/learnlm-1.5-pro-experimental:free",
+      "name": "google/learnlm-1.5-pro-experimental:free Google: LearnLM 1.5 Pro Experimental (free)"
     },
     {
       "api": "openrouter",
@@ -592,7 +692,12 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "infermatic/mn-inferor-12b",
-      "name": "infermatic/mn-inferor-12b Mistral Nemo Inferor 12B"
+      "name": "infermatic/mn-inferor-12b Infermatic: Mistral Nemo Inferor 12B"
+    },
+    {
+      "api": "openrouter",
+      "id": "inflatebot/mn-mag-mell-r1",
+      "name": "inflatebot/mn-mag-mell-r1 Inflatebot: Mag Mell R1 12B"
     },
     {
       "api": "openrouter",
@@ -616,11 +721,6 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
-      "id": "liquid/lfm-40b:free",
-      "name": "liquid/lfm-40b:free Liquid: LFM 40B MoE (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "lizpreciatior/lzlv-70b-fp16-hf",
       "name": "lizpreciatior/lzlv-70b-fp16-hf lzlv 70B"
     },
@@ -632,7 +732,7 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "meta-llama/llama-2-13b-chat",
-      "name": "meta-llama/llama-2-13b-chat Meta: Llama v2 13B Chat"
+      "name": "meta-llama/llama-2-13b-chat Meta: Llama 2 13B Chat"
     },
     {
       "api": "openrouter",
@@ -751,33 +851,38 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "meta-llama/llama-3.3-70b-instruct",
+      "name": "meta-llama/llama-3.3-70b-instruct Meta: Llama 3.3 70B Instruct"
+    },
+    {
+      "api": "openrouter",
       "id": "meta-llama/llama-guard-2-8b",
       "name": "meta-llama/llama-guard-2-8b Meta: LlamaGuard 2 8B"
     },
     {
       "api": "openrouter",
       "id": "microsoft/phi-3-medium-128k-instruct",
-      "name": "microsoft/phi-3-medium-128k-instruct Phi-3 Medium 128K Instruct"
+      "name": "microsoft/phi-3-medium-128k-instruct Microsoft: Phi-3 Medium 128K Instruct"
     },
     {
       "api": "openrouter",
       "id": "microsoft/phi-3-medium-128k-instruct:free",
-      "name": "microsoft/phi-3-medium-128k-instruct:free Phi-3 Medium 128K Instruct (free)"
+      "name": "microsoft/phi-3-medium-128k-instruct:free Microsoft: Phi-3 Medium 128K Instruct (free)"
     },
     {
       "api": "openrouter",
       "id": "microsoft/phi-3-mini-128k-instruct",
-      "name": "microsoft/phi-3-mini-128k-instruct Phi-3 Mini 128K Instruct"
+      "name": "microsoft/phi-3-mini-128k-instruct Microsoft: Phi-3 Mini 128K Instruct"
     },
     {
       "api": "openrouter",
       "id": "microsoft/phi-3-mini-128k-instruct:free",
-      "name": "microsoft/phi-3-mini-128k-instruct:free Phi-3 Mini 128K Instruct (free)"
+      "name": "microsoft/phi-3-mini-128k-instruct:free Microsoft: Phi-3 Mini 128K Instruct (free)"
     },
     {
       "api": "openrouter",
       "id": "microsoft/phi-3.5-mini-128k-instruct",
-      "name": "microsoft/phi-3.5-mini-128k-instruct Phi-3.5 Mini 128K Instruct"
+      "name": "microsoft/phi-3.5-mini-128k-instruct Microsoft: Phi-3.5 Mini 128K Instruct"
     },
     {
       "api": "openrouter",
@@ -797,12 +902,12 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "mistralai/ministral-3b",
-      "name": "mistralai/ministral-3b Ministral 3B"
+      "name": "mistralai/ministral-3b Mistral: Ministral 3B"
     },
     {
       "api": "openrouter",
       "id": "mistralai/ministral-8b",
-      "name": "mistralai/ministral-8b Ministral 8B"
+      "name": "mistralai/ministral-8b Mistral: Ministral 8B"
     },
     {
       "api": "openrouter",
@@ -877,17 +982,17 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "mistralai/mixtral-8x7b",
-      "name": "mistralai/mixtral-8x7b Mixtral 8x7B (base)"
+      "name": "mistralai/mixtral-8x7b Mistral: Mixtral 8x7B (base)"
     },
     {
       "api": "openrouter",
       "id": "mistralai/mixtral-8x7b-instruct",
-      "name": "mistralai/mixtral-8x7b-instruct Mixtral 8x7B Instruct"
+      "name": "mistralai/mixtral-8x7b-instruct Mistral: Mixtral 8x7B Instruct"
     },
     {
       "api": "openrouter",
       "id": "mistralai/mixtral-8x7b-instruct:nitro",
-      "name": "mistralai/mixtral-8x7b-instruct:nitro Mixtral 8x7B Instruct (nitro)"
+      "name": "mistralai/mixtral-8x7b-instruct:nitro Mistral: Mixtral 8x7B Instruct (nitro)"
     },
     {
       "api": "openrouter",
@@ -902,32 +1007,37 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "neversleep/llama-3-lumimaid-70b",
-      "name": "neversleep/llama-3-lumimaid-70b Llama 3 Lumimaid 70B"
+      "name": "neversleep/llama-3-lumimaid-70b NeverSleep: Llama 3 Lumimaid 70B"
     },
     {
       "api": "openrouter",
       "id": "neversleep/llama-3-lumimaid-8b",
-      "name": "neversleep/llama-3-lumimaid-8b Llama 3 Lumimaid 8B"
+      "name": "neversleep/llama-3-lumimaid-8b NeverSleep: Llama 3 Lumimaid 8B"
     },
     {
       "api": "openrouter",
       "id": "neversleep/llama-3-lumimaid-8b:extended",
-      "name": "neversleep/llama-3-lumimaid-8b:extended Llama 3 Lumimaid 8B (extended)"
+      "name": "neversleep/llama-3-lumimaid-8b:extended NeverSleep: Llama 3 Lumimaid 8B (extended)"
     },
     {
       "api": "openrouter",
       "id": "neversleep/llama-3.1-lumimaid-70b",
-      "name": "neversleep/llama-3.1-lumimaid-70b Lumimaid v0.2 70B"
+      "name": "neversleep/llama-3.1-lumimaid-70b NeverSleep: Lumimaid v0.2 70B"
     },
     {
       "api": "openrouter",
       "id": "neversleep/llama-3.1-lumimaid-8b",
-      "name": "neversleep/llama-3.1-lumimaid-8b Lumimaid v0.2 8B"
+      "name": "neversleep/llama-3.1-lumimaid-8b NeverSleep: Lumimaid v0.2 8B"
     },
     {
       "api": "openrouter",
       "id": "neversleep/noromaid-20b",
       "name": "neversleep/noromaid-20b Noromaid 20B"
+    },
+    {
+      "api": "openrouter",
+      "id": "nothingiisreal/mn-celeste-12b",
+      "name": "nothingiisreal/mn-celeste-12b Mistral Nemo 12B Celeste"
     },
     {
       "api": "openrouter",
@@ -938,11 +1048,6 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-405b",
       "name": "nousresearch/hermes-3-llama-3.1-405b Nous: Hermes 3 405B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "nousresearch/hermes-3-llama-3.1-405b:free",
-      "name": "nousresearch/hermes-3-llama-3.1-405b:free Nous: Hermes 3 405B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1036,11 +1141,6 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
-      "id": "openai/gpt-4-vision-preview",
-      "name": "openai/gpt-4-vision-preview OpenAI: GPT-4 Vision"
-    },
-    {
-      "api": "openrouter",
       "id": "openai/gpt-4o",
       "name": "openai/gpt-4o OpenAI: GPT-4o"
     },
@@ -1056,6 +1156,11 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "openai/gpt-4o-2024-11-20",
+      "name": "openai/gpt-4o-2024-11-20 OpenAI: GPT-4o (2024-11-20)"
+    },
+    {
+      "api": "openrouter",
       "id": "openai/gpt-4o-mini",
       "name": "openai/gpt-4o-mini OpenAI: GPT-4o-mini"
     },
@@ -1068,6 +1173,11 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "openai/gpt-4o:extended",
       "name": "openai/gpt-4o:extended OpenAI: GPT-4o (extended)"
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/o1",
+      "name": "openai/o1 OpenAI: o1"
     },
     {
       "api": "openrouter",
@@ -1102,7 +1212,7 @@ export const DEFAULT_CONFIG = {
     {
       "api": "openrouter",
       "id": "openrouter/auto",
-      "name": "openrouter/auto Auto (best for prompt)"
+      "name": "openrouter/auto Auto Router (best for prompt)"
     },
     {
       "api": "openrouter",
@@ -1191,23 +1301,33 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwq-32b-preview",
+      "name": "qwen/qwq-32b-preview Qwen: QwQ 32B Preview"
+    },
+    {
+      "api": "openrouter",
       "id": "raifle/sorcererlm-8x22b",
       "name": "raifle/sorcererlm-8x22b SorcererLM 8x22B"
     },
     {
       "api": "openrouter",
       "id": "sao10k/l3-euryale-70b",
-      "name": "sao10k/l3-euryale-70b Llama 3 Euryale 70B v2.1"
+      "name": "sao10k/l3-euryale-70b Sao10k: Llama 3 Euryale 70B v2.1"
     },
     {
       "api": "openrouter",
       "id": "sao10k/l3-lunaris-8b",
-      "name": "sao10k/l3-lunaris-8b Llama 3 8B Lunaris"
+      "name": "sao10k/l3-lunaris-8b Sao10K: Llama 3 8B Lunaris"
     },
     {
       "api": "openrouter",
       "id": "sao10k/l3.1-euryale-70b",
-      "name": "sao10k/l3.1-euryale-70b Llama 3.1 Euryale 70B v2.2"
+      "name": "sao10k/l3.1-euryale-70b Sao10K: Llama 3.1 Euryale 70B v2.2"
+    },
+    {
+      "api": "openrouter",
+      "id": "sao10k/l3.3-euryale-70b",
+      "name": "sao10k/l3.3-euryale-70b Sao10K: Llama 3.3 Euryale 70B"
     },
     {
       "api": "openrouter",
@@ -1256,6 +1376,16 @@ export const DEFAULT_CONFIG = {
     },
     {
       "api": "openrouter",
+      "id": "x-ai/grok-2-1212",
+      "name": "x-ai/grok-2-1212 xAI: Grok 2 1212"
+    },
+    {
+      "api": "openrouter",
+      "id": "x-ai/grok-2-vision-1212",
+      "name": "x-ai/grok-2-vision-1212 xAI: Grok 2 Vision 1212"
+    },
+    {
+      "api": "openrouter",
       "id": "x-ai/grok-beta",
       "name": "x-ai/grok-beta xAI: Grok Beta"
     },
@@ -1268,11 +1398,6 @@ export const DEFAULT_CONFIG = {
       "api": "openrouter",
       "id": "xwin-lm/xwin-lm-70b",
       "name": "xwin-lm/xwin-lm-70b Xwin 70B"
-    },
-    {
-      "api": "dummy",
-      "id": "dummy",
-      "name": "dummy"
     }
   ]
-};
+}

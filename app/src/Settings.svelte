@@ -1,12 +1,21 @@
 <script>
 import { db } from './db.js';
-import { DEFAULT_CONFIG } from './default_config.js';
+import DEFAULT_CONFIG from "./default_config.json";
 import { refreshConfig } from './config.js';
 
 let config = localStorage["cfg-config-user"] || ""
+let valid = false;
 $: {
-	localStorage["cfg-config-user"] = config
-	refreshConfig();
+	try {
+		JSON.parse(config);
+		valid = true
+	} catch {
+		valid = false;
+	}
+	if (valid) {
+		localStorage["cfg-config-user"] = config
+		refreshConfig();
+	}
 }
 
 let importFileInput;
@@ -68,7 +77,12 @@ function importSessionsFromFile(e) {
 	</div>
 	<div>
 		<label for="config">Config User</label><br/>
-		<textarea id="config" bind:value={config} style="width: 60ch; height: 300px;"/>
+		<textarea
+			id="config"
+			bind:value={config}
+			style="width: 60ch; height: 300px;"
+			class:invalid={!valid}
+		/>
 	</div>
 	<hr/>
 	<div>
@@ -103,5 +117,8 @@ main {
 }
 hr {
 	width: 100%;
+}
+.invalid {
+	outline: 4px solid red;
 }
 </style>

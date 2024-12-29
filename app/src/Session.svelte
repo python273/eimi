@@ -575,6 +575,9 @@ subDbScripts(loadScripts);
 	border: none;
 	color: var(--brand-color);
 }
+.role:hover {
+	color: var(--brand-hover-color);
+}
 
 .pad {
 	margin-right: 6px;
@@ -598,7 +601,7 @@ subDbScripts(loadScripts);
 }
 
 .linear-pad1 {
-	margin-top: 30px;
+	margin-top: 1.5em;
 	content: '';
 }
 
@@ -608,6 +611,7 @@ subDbScripts(loadScripts);
 	border-radius: 5px;
 	background-color: var(--comment-bg-color);
 	border: 1px solid var(--comment-bg-color);
+	box-shadow: 0px 1px 6px #00000047;
 }
 
 .generating {
