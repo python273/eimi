@@ -28,10 +28,12 @@ export function getCode({content}) {
 }
 
 export function createJsWindow(comment) {
+    const buttons = [{methodName: 'refresh', label: 'refresh'}];
+    if (window._pasteHtml) buttons.push({methodName: 'pasteHtml', label: 'publish'});
     windowsStore.add({
         component: JsWindow,
         data: {comment},
         title: 'HTML/JS exec',
-        buttons: [{methodName: 'refresh', label: 'refresh'}]
+        buttons,
     });
 }

@@ -103,7 +103,7 @@ onMount(() => {
 			>
 				<button on:click={() => closeWindow(w.id)}>x</button>
 				{#each w.buttons as button}
-					<button on:click={() => instances[w.id][button.methodName]()}>
+					<button on:click={instances[w.id][button.methodName]}>
 						{button.label}
 					</button>
 				{/each}

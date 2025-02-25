@@ -2,7 +2,7 @@
 import { tick, onDestroy, onMount } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
-import { uniqueId, genSessionId, subDbScripts } from './utils.js';
+import { uniqueId, genSessionId, subDbScripts, AsyncFunction } from './utils.js';
 import { db } from './db.js';
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService';
 import { runLlmApi } from './llms.js';
@@ -77,7 +77,11 @@ async function loadSession() {
 			parameters: {
 				scriptsEnabled: (await (await db).getAll('scripts'))
 										.filter(script => script.enabled)
-										.map(script => script.id)
+										.map(script => script.id),
+				temperature: 0,
+				top_p: 1.0,
+				frequency_penalty: 0,
+				presence_penalty: 0
 			},
 			messages: [{
 				id: uniqueId(),
@@ -91,13 +95,17 @@ async function loadSession() {
 		sessionLoaded = true
 
 		if (autoReply) {
+			const modelsFav = CONFIG.models_favorite[0] || CONFIG.models[0];
+			const modelDefault = CONFIG.models.filter(
+				i => (i.api === modelsFav.api && i.id === modelsFav.id)
+			)[0];
+
 			sessionData.messages[0].content = autoReply
 			sessionData.parameters = {
 				...sessionData.parameters,
-				_api: "openai",
-				temperature: 0,
-				frequency_penalty: 0,
-				presence_penalty: 0
+				_api: modelDefault.api,
+				model: modelDefault.id,
+				max_tokens: modelDefault.max_tokens,
 			}
 			autoReply = undefined
 			_genResponse(data[0])
@@ -209,52 +217,17 @@ function getChain(message, regenerate=false) {
 	return chain
 }
 
-function copyToClipboard(text) {
-	if (!navigator.clipboard) { return }
-	return navigator.clipboard.writeText(text)
-}
-
-async function onExportChain(event) {
-	event.preventDefault()
-	const message = getMessageFromEvent(event)
-	const chain = getChain(message)
-	const text = chain.map(i => i.content).join('\n-\n')
-	copyToClipboard(text)
-}
-
 async function genResponse(event, regenerate=false) {
 	event.preventDefault()
 	const message = getMessageFromEvent(event)
 	_genResponse(message, regenerate)
 }
 async function _genResponse(message, regenerate=false) {
-	console.log('genResponse', message, regenerate)
+	console.log('genResponse', message, regenerate, sessionData.parameters)
 	const apiData = CONFIG.apis[sessionData.parameters._api];
 	if (!apiData.token) {
 		alert(`Add token in settings for "${sessionData.parameters._api}"`);
 		throw Error('no token');
-	}
-
-	let chain = getChain(message, regenerate)
-
-	const scriptsEnabled = sessionData.parameters.scriptsEnabled || [];
-	const allScriptsEnabled = new Set([...scriptsEnabled]);
-
-	const orderedScriptsEnabled = scripts
-		.filter(script => allScriptsEnabled.has(script.id));
-
-	console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name));
-	for (let script of orderedScriptsEnabled) {
-		const fn = new Function('chain', script.scriptChainProcess);
-		let updatedChain;
-		try {
-			updatedChain = fn(chain)
-		} catch (e) {
-			console.error(e);
-			alert(`Script '${script.name}' error:\n${e}`);
-			return
-		}
-		if (updatedChain != undefined) chain = updatedChain;
 	}
 
 	let newMessage
@@ -277,27 +250,49 @@ async function _genResponse(message, regenerate=false) {
 	newMessage.promptTokens = undefined;
 	newMessage.completionTokens = undefined;
 	data = data
+	await tick();
+
+	let chain = getChain(message, regenerate)
+
+	const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || []);
+	const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id));
+
+	console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name));
+	for (let script of orderedScriptsEnabled) {
+		const fn = new AsyncFunction('chain', script.scriptChainProcess);
+		let updatedChain;
+		try {
+			updatedChain = await fn(chain)
+		} catch (e) {
+			console.error(e);
+			alert(`Script '${script.name}' error:\n${e}`);
+			return
+		}
+		if (updatedChain != undefined) chain = updatedChain;
+	}
+	console.log('Chain after scripts:', chain);
 
 	newMessage.aborter?.abort();
 	const aborter = new AbortController()
 	newMessage.aborter = aborter
 	try {
-		const jsonBody = {
+		const request = {
 			baseurl: apiData.baseurl,
-			proxy: apiData.proxy === false ? false : true,
 			token: apiData.token,
+			proxy: apiData.proxy === false ? false : true,
+			signal: aborter.signal,
 			messages: chain.map(i => ({role: i.role, content: i.content}))
 		};
 		[
 			'model', 'completion',
 			'temperature', 'frequency_penalty', 'presence_penalty',
 			'max_tokens'
-		].forEach(i => { jsonBody[i] = sessionData.parameters[i] })
-		window._patchApiData && window._patchApiData(jsonBody);
+		].forEach(i => { request[i] = sessionData.parameters[i] })
+		window._patchApiData && window._patchApiData(request);
+		console.log('runLlmApi', request);
 
-		jsonBody.signal = aborter.signal;
 		newMessage.content = '';
-		for await (const chunk of runLlmApi(jsonBody)) {
+		for await (const chunk of runLlmApi(request)) {
 			if (typeof(chunk) === "string") {
 				newMessage.content += chunk;
 			} else {
@@ -379,6 +374,7 @@ function onMessageKeyDown(event) {
 	// j - down
 	// k - up
 	// A - focus on textarea
+	// p - jump to parent
 	if (event.target.tagName === 'TEXTAREA' && event.key === 'Escape') {
 		event.preventDefault();
         event.target.closest('.message_content')?.focus({focusVisible: true});
@@ -405,9 +401,14 @@ function onMessageKeyDown(event) {
 		document.getElementById(`m_${data[i].id}`)
 			?.querySelector('.message_content')
 			?.focus({focusVisible: true});
-	} else if (event.key === 'j' || event.key === 'k') {
+	} else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
 		event.preventDefault();
-		let i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1);
+		let i;
+		if (event.key === 'p') {
+			i = data.findIndex(i => i.id == item.parentId);
+		} else {
+			i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1);
+		}
 		if (i < 0 || i >= data.length) return;
 		const el = document.getElementById(`m_${data[i].id}`)
 						?.querySelector('.message_content');
@@ -436,7 +437,7 @@ function onTitleUpdate(event) {
 	scheduleSave()
 }
 
-async function onFork(event) {
+async function onDup(event) {
 	event.preventDefault()
 	const newId = genSessionId()
 	await saveSession(newId)
@@ -484,17 +485,15 @@ subDbScripts(loadScripts);
 
 <div>
 	<input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
-	<button on:click="{onFork}" title="make a copy of this session">fork</button>
-	<button on:click="{onDelete}" title="delete session (hold shift)">x</button>
+	<button on:click="{onDup}" title="make a copy of this session">dup</button>
+	<button on:click="{onDelete}" title="delete session (hold shift)">delete</button>
 </div>
 
 <div class="messages">
 {#each data as c, i (c.id)}
 	<div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
 		<div class="flex">
-			{#each {length: c.ddepth} as _}
-				<div class='pad' class:pad-colored="{!c.linear}"></div>
-			{/each}
+			{#each {length: c.ddepth} as _}<div class='pad'></div>{/each}
 			<div>
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 				<!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -539,7 +538,6 @@ subDbScripts(loadScripts);
 						{#if c.parentId !== null}
 							<button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
 						{/if}
-						<button on:click="{onExportChain}" title="copy chain to clipboard">export</button>
 						{#if c.role === A}
 							<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
 						{/if}
@@ -585,10 +583,6 @@ subDbScripts(loadScripts);
 	max-width: 4px;
 	min-width: 4px;
 	content: '';
-	background-color: var(--text-color);
-}
-
-.pad-colored {
 	background-color: var(--text-color);
 }
 

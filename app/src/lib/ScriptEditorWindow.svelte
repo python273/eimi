@@ -81,7 +81,7 @@ async function deleteScript(event) {
 		{#if script.sessionId}
 			<button on:click="{convertToGlobal}" title="convert to global">global</button>
 		{/if}
-		<button on:click="{deleteScript}" title="delete script (hold shift)">x</button>
+		<button on:click="{deleteScript}" title="delete script (hold shift)">delete</button>
 	</div>
 	<textarea
 		bind:value={script.scriptChainProcess}

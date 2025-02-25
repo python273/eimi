@@ -55,6 +55,7 @@ div {
 :global(.markdown :not(pre) > code) {
 	border-radius: 3px;
 	background-color: rgba(128, 135, 142, 0.09);
+	word-break: break-word;
 }
 :global(.markdown pre) {
 	border-radius: 3px;

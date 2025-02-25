@@ -68,6 +68,7 @@ $: {
 {/if}
 
 <div class="header">
+	<!-- svelte-ignore a11y-invalid-attribute -->
 	<div class="home"><a href="#" class="no-vs">Eimi</a></div>
 	<div class='ml-auto'></div>
 	<div class="settings">

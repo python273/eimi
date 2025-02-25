@@ -63,9 +63,9 @@
       "name": "gpt-4o-2024-11-20"
     },
     {
-      "api": "openrouter",
-      "id": "nousresearch/hermes-3-llama-3.1-405b",
-      "name": "Hermes 3"
+      "api": "anthropic",
+      "id": "claude-3-7-sonnet-20250219",
+      "name": "Claude 3.7 Sonnet"
     }
   ],
   "models": [
@@ -121,8 +121,32 @@
     },
     {
       "api": "google",
-      "id": "gemini-2.0-flash-exp",
-      "name": "gemini-2.0-flash-exp",
+      "id": "gemini-2.0-flash",
+      "name": "gemini-2.0-flash",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.0-flash-lite-preview-02-05",
+      "name": "gemini-2.0-flash-lite-preview-02-05",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.0-pro-exp-02-05",
+      "name": "gemini-2.0-pro-exp-02-05",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.0-flash-thinking-exp-1219",
+      "name": "gemini-2.0-flash-thinking-exp-1219",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-exp-1206",
+      "name": "gemini-exp-1206",
       "max_tokens": 8192
     },
     {
@@ -150,15 +174,15 @@
       "max_tokens": 8192
     },
     {
-      "api": "google",
-      "id": "gemini-exp-1206",
-      "name": "gemini-exp-1206",
-      "max_tokens": 8192
-    },
-    {
       "api": "deepseek",
       "id": "deepseek-chat",
       "name": "deepseek-chat",
+      "max_tokens": 4096
+    },
+    {
+      "api": "anthropic",
+      "id": "claude-3-7-sonnet-20250219",
+      "name": "claude-3-7-sonnet-20250219",
       "max_tokens": 4096
     },
     {
@@ -320,6 +344,54 @@
       "max_tokens": 16385
     },
     {
+      "api": "openai",
+      "id": "o1",
+      "name": "o1",
+      "max_tokens": 200000
+    },
+    {
+      "api": "openai",
+      "id": "o1-mini",
+      "name": "o1-mini",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "o3-mini",
+      "name": "o3-mini",
+      "max_tokens": 200000
+    },
+    {
+      "api": "openai",
+      "id": "o1-preview",
+      "name": "o1-preview",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "o1-2024-12-17",
+      "name": "o1-2024-12-17",
+      "max_tokens": 200000
+    },
+    {
+      "api": "openai",
+      "id": "o1-preview-2024-09-12",
+      "name": "o1-preview-2024-09-12",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "o1-mini-2024-09-12",
+      "name": "o1-mini-2024-09-12",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "o3-mini-2025-01-31",
+      "name": "o3-mini-2025-01-31",
+      "max_tokens": 200000
+    },
+    {
       "api": "openrouter",
       "id": "01-ai/yi-large",
       "name": "01-ai/yi-large 01.AI: Yi Large"
@@ -343,6 +415,26 @@
       "api": "openrouter",
       "id": "ai21/jamba-instruct",
       "name": "ai21/jamba-instruct AI21: Jamba Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "aion-labs/aion-1.0",
+      "name": "aion-labs/aion-1.0 AionLabs: Aion-1.0"
+    },
+    {
+      "api": "openrouter",
+      "id": "aion-labs/aion-1.0-mini",
+      "name": "aion-labs/aion-1.0-mini AionLabs: Aion-1.0-Mini"
+    },
+    {
+      "api": "openrouter",
+      "id": "aion-labs/aion-rp-llama-3.1-8b",
+      "name": "aion-labs/aion-rp-llama-3.1-8b AionLabs: Aion-RP 1.0 (8B)"
+    },
+    {
+      "api": "openrouter",
+      "id": "allenai/llama-3.1-tulu-3-405b",
+      "name": "allenai/llama-3.1-tulu-3-405b Llama 3.1 Tulu 3 405B"
     },
     {
       "api": "openrouter",
@@ -481,6 +573,16 @@
     },
     {
       "api": "openrouter",
+      "id": "anthropic/claude-3.7-sonnet",
+      "name": "anthropic/claude-3.7-sonnet Anthropic: Claude 3.7 Sonnet"
+    },
+    {
+      "api": "openrouter",
+      "id": "anthropic/claude-3.7-sonnet:beta",
+      "name": "anthropic/claude-3.7-sonnet:beta Anthropic: Claude 3.7 Sonnet (self-moderated)"
+    },
+    {
+      "api": "openrouter",
       "id": "cognitivecomputations/dolphin-mixtral-8x22b",
       "name": "cognitivecomputations/dolphin-mixtral-8x22b Dolphin 2.9.2 Mixtral 8x22B \ud83d\udc2c"
     },
@@ -488,6 +590,16 @@
       "api": "openrouter",
       "id": "cognitivecomputations/dolphin-mixtral-8x7b",
       "name": "cognitivecomputations/dolphin-mixtral-8x7b Dolphin 2.6 Mixtral 8x7B \ud83d\udc2c"
+    },
+    {
+      "api": "openrouter",
+      "id": "cognitivecomputations/dolphin3.0-mistral-24b:free",
+      "name": "cognitivecomputations/dolphin3.0-mistral-24b:free Dolphin3.0 Mistral 24B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
+      "name": "cognitivecomputations/dolphin3.0-r1-mistral-24b:free Dolphin3.0 R1 Mistral 24B (free)"
     },
     {
       "api": "openrouter",
@@ -537,7 +649,7 @@
     {
       "api": "openrouter",
       "id": "deepseek/deepseek-chat",
-      "name": "deepseek/deepseek-chat DeepSeek V3"
+      "name": "deepseek/deepseek-chat DeepSeek: DeepSeek V3"
     },
     {
       "api": "openrouter",
@@ -546,8 +658,53 @@
     },
     {
       "api": "openrouter",
+      "id": "deepseek/deepseek-chat:free",
+      "name": "deepseek/deepseek-chat:free DeepSeek: DeepSeek V3 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1",
+      "name": "deepseek/deepseek-r1 DeepSeek: R1"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-llama-70b",
+      "name": "deepseek/deepseek-r1-distill-llama-70b DeepSeek: R1 Distill Llama 70B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-llama-70b:free",
+      "name": "deepseek/deepseek-r1-distill-llama-70b:free DeepSeek: R1 Distill Llama 70B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-llama-8b",
+      "name": "deepseek/deepseek-r1-distill-llama-8b DeepSeek: R1 Distill Llama 8B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-qwen-1.5b",
+      "name": "deepseek/deepseek-r1-distill-qwen-1.5b DeepSeek: R1 Distill Qwen 1.5B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-qwen-14b",
+      "name": "deepseek/deepseek-r1-distill-qwen-14b DeepSeek: R1 Distill Qwen 14B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-qwen-32b",
+      "name": "deepseek/deepseek-r1-distill-qwen-32b DeepSeek: R1 Distill Qwen 32B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1:free",
+      "name": "deepseek/deepseek-r1:free DeepSeek: R1 (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "eva-unit-01/eva-llama-3.33-70b",
-      "name": "eva-unit-01/eva-llama-3.33-70b EVA Llama 3.33 70b"
+      "name": "eva-unit-01/eva-llama-3.33-70b EVA Llama 3.33 70B"
     },
     {
       "api": "openrouter",
@@ -561,23 +718,33 @@
     },
     {
       "api": "openrouter",
+      "id": "google/gemini-2.0-flash-001",
+      "name": "google/gemini-2.0-flash-001 Google: Gemini Flash 2.0"
+    },
+    {
+      "api": "openrouter",
       "id": "google/gemini-2.0-flash-exp:free",
       "name": "google/gemini-2.0-flash-exp:free Google: Gemini Flash 2.0 Experimental (free)"
     },
     {
       "api": "openrouter",
+      "id": "google/gemini-2.0-flash-lite-preview-02-05:free",
+      "name": "google/gemini-2.0-flash-lite-preview-02-05:free Google: Gemini Flash Lite 2.0 Preview (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.0-flash-thinking-exp-1219:free",
+      "name": "google/gemini-2.0-flash-thinking-exp-1219:free Google: Gemini 2.0 Flash Thinking Experimental (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "google/gemini-2.0-flash-thinking-exp:free",
-      "name": "google/gemini-2.0-flash-thinking-exp:free Google: Gemini 2.0 Flash Thinking Experimental (free)"
+      "name": "google/gemini-2.0-flash-thinking-exp:free Google: Gemini 2.0 Flash Thinking Experimental 01-21 (free)"
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-exp-1114:free",
-      "name": "google/gemini-exp-1114:free Google: Gemini Experimental 1114 (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "google/gemini-exp-1121:free",
-      "name": "google/gemini-exp-1121:free Google: Gemini Experimental 1121 (free)"
+      "id": "google/gemini-2.0-pro-exp-02-05:free",
+      "name": "google/gemini-2.0-pro-exp-02-05:free Google: Gemini Pro 2.0 Experimental (free)"
     },
     {
       "api": "openrouter",
@@ -601,11 +768,6 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-flash-1.5-exp",
-      "name": "google/gemini-flash-1.5-exp Google: Gemini Flash 1.5 Experimental"
-    },
-    {
-      "api": "openrouter",
       "id": "google/gemini-pro",
       "name": "google/gemini-pro Google: Gemini Pro 1.0"
     },
@@ -613,11 +775,6 @@
       "api": "openrouter",
       "id": "google/gemini-pro-1.5",
       "name": "google/gemini-pro-1.5 Google: Gemini Pro 1.5"
-    },
-    {
-      "api": "openrouter",
-      "id": "google/gemini-pro-1.5-exp",
-      "name": "google/gemini-pro-1.5-exp Google: Gemini Pro 1.5 Experimental"
     },
     {
       "api": "openrouter",
@@ -638,6 +795,11 @@
       "api": "openrouter",
       "id": "google/gemma-2-9b-it:free",
       "name": "google/gemma-2-9b-it:free Google: Gemma 2 9B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-7b-it",
+      "name": "google/gemma-7b-it Google: Gemma 7B"
     },
     {
       "api": "openrouter",
@@ -671,18 +833,8 @@
     },
     {
       "api": "openrouter",
-      "id": "gryphe/mythomax-l2-13b:extended",
-      "name": "gryphe/mythomax-l2-13b:extended MythoMax 13B (extended)"
-    },
-    {
-      "api": "openrouter",
       "id": "gryphe/mythomax-l2-13b:free",
       "name": "gryphe/mythomax-l2-13b:free MythoMax 13B (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "gryphe/mythomax-l2-13b:nitro",
-      "name": "gryphe/mythomax-l2-13b:nitro MythoMax 13B (nitro)"
     },
     {
       "api": "openrouter",
@@ -693,11 +845,6 @@
       "api": "openrouter",
       "id": "infermatic/mn-inferor-12b",
       "name": "infermatic/mn-inferor-12b Infermatic: Mistral Nemo Inferor 12B"
-    },
-    {
-      "api": "openrouter",
-      "id": "inflatebot/mn-mag-mell-r1",
-      "name": "inflatebot/mn-mag-mell-r1 Inflatebot: Mag Mell R1 12B"
     },
     {
       "api": "openrouter",
@@ -716,13 +863,18 @@
     },
     {
       "api": "openrouter",
+      "id": "liquid/lfm-3b",
+      "name": "liquid/lfm-3b Liquid: LFM 3B"
+    },
+    {
+      "api": "openrouter",
       "id": "liquid/lfm-40b",
       "name": "liquid/lfm-40b Liquid: LFM 40B MoE"
     },
     {
       "api": "openrouter",
-      "id": "lizpreciatior/lzlv-70b-fp16-hf",
-      "name": "lizpreciatior/lzlv-70b-fp16-hf lzlv 70B"
+      "id": "liquid/lfm-7b",
+      "name": "liquid/lfm-7b Liquid: LFM 7B"
     },
     {
       "api": "openrouter",
@@ -736,13 +888,13 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3-70b-instruct",
-      "name": "meta-llama/llama-3-70b-instruct Meta: Llama 3 70B Instruct"
+      "id": "meta-llama/llama-2-70b-chat",
+      "name": "meta-llama/llama-2-70b-chat Meta: Llama 2 70B Chat"
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3-70b-instruct:nitro",
-      "name": "meta-llama/llama-3-70b-instruct:nitro Meta: Llama 3 70B Instruct (nitro)"
+      "id": "meta-llama/llama-3-70b-instruct",
+      "name": "meta-llama/llama-3-70b-instruct Meta: Llama 3 70B Instruct"
     },
     {
       "api": "openrouter",
@@ -751,18 +903,8 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3-8b-instruct:extended",
-      "name": "meta-llama/llama-3-8b-instruct:extended Meta: Llama 3 8B Instruct (extended)"
-    },
-    {
-      "api": "openrouter",
       "id": "meta-llama/llama-3-8b-instruct:free",
       "name": "meta-llama/llama-3-8b-instruct:free Meta: Llama 3 8B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3-8b-instruct:nitro",
-      "name": "meta-llama/llama-3-8b-instruct:nitro Meta: Llama 3 8B Instruct (nitro)"
     },
     {
       "api": "openrouter",
@@ -776,28 +918,8 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3.1-405b-instruct:free",
-      "name": "meta-llama/llama-3.1-405b-instruct:free Meta: Llama 3.1 405B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3.1-405b-instruct:nitro",
-      "name": "meta-llama/llama-3.1-405b-instruct:nitro Meta: Llama 3.1 405B Instruct (nitro)"
-    },
-    {
-      "api": "openrouter",
       "id": "meta-llama/llama-3.1-70b-instruct",
       "name": "meta-llama/llama-3.1-70b-instruct Meta: Llama 3.1 70B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3.1-70b-instruct:free",
-      "name": "meta-llama/llama-3.1-70b-instruct:free Meta: Llama 3.1 70B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3.1-70b-instruct:nitro",
-      "name": "meta-llama/llama-3.1-70b-instruct:nitro Meta: Llama 3.1 70B Instruct (nitro)"
     },
     {
       "api": "openrouter",
@@ -836,18 +958,8 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3.2-3b-instruct:free",
-      "name": "meta-llama/llama-3.2-3b-instruct:free Meta: Llama 3.2 3B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "meta-llama/llama-3.2-90b-vision-instruct",
       "name": "meta-llama/llama-3.2-90b-vision-instruct Meta: Llama 3.2 90B Vision Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3.2-90b-vision-instruct:free",
-      "name": "meta-llama/llama-3.2-90b-vision-instruct:free Meta: Llama 3.2 90B Vision Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -856,8 +968,18 @@
     },
     {
       "api": "openrouter",
+      "id": "meta-llama/llama-3.3-70b-instruct:free",
+      "name": "meta-llama/llama-3.3-70b-instruct:free Meta: Llama 3.3 70B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "meta-llama/llama-guard-2-8b",
       "name": "meta-llama/llama-guard-2-8b Meta: LlamaGuard 2 8B"
+    },
+    {
+      "api": "openrouter",
+      "id": "meta-llama/llama-guard-3-8b",
+      "name": "meta-llama/llama-guard-3-8b Llama Guard 3 8B"
     },
     {
       "api": "openrouter",
@@ -886,6 +1008,11 @@
     },
     {
       "api": "openrouter",
+      "id": "microsoft/phi-4",
+      "name": "microsoft/phi-4 Microsoft: Phi 4"
+    },
+    {
+      "api": "openrouter",
       "id": "microsoft/wizardlm-2-7b",
       "name": "microsoft/wizardlm-2-7b WizardLM-2 7B"
     },
@@ -893,6 +1020,16 @@
       "api": "openrouter",
       "id": "microsoft/wizardlm-2-8x22b",
       "name": "microsoft/wizardlm-2-8x22b WizardLM-2 8x22B"
+    },
+    {
+      "api": "openrouter",
+      "id": "minimax/minimax-01",
+      "name": "minimax/minimax-01 MiniMax: MiniMax-01"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/codestral-2501",
+      "name": "mistralai/codestral-2501 Mistral: Codestral 2501"
     },
     {
       "api": "openrouter",
@@ -921,11 +1058,6 @@
     },
     {
       "api": "openrouter",
-      "id": "mistralai/mistral-7b-instruct-v0.2",
-      "name": "mistralai/mistral-7b-instruct-v0.2 Mistral: Mistral 7B Instruct v0.2"
-    },
-    {
-      "api": "openrouter",
       "id": "mistralai/mistral-7b-instruct-v0.3",
       "name": "mistralai/mistral-7b-instruct-v0.3 Mistral: Mistral 7B Instruct v0.3"
     },
@@ -933,11 +1065,6 @@
       "api": "openrouter",
       "id": "mistralai/mistral-7b-instruct:free",
       "name": "mistralai/mistral-7b-instruct:free Mistral: Mistral 7B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "mistralai/mistral-7b-instruct:nitro",
-      "name": "mistralai/mistral-7b-instruct:nitro Mistral: Mistral 7B Instruct (nitro)"
     },
     {
       "api": "openrouter",
@@ -966,8 +1093,28 @@
     },
     {
       "api": "openrouter",
+      "id": "mistralai/mistral-nemo:free",
+      "name": "mistralai/mistral-nemo:free Mistral: Mistral Nemo (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-saba",
+      "name": "mistralai/mistral-saba Mistral: Saba"
+    },
+    {
+      "api": "openrouter",
       "id": "mistralai/mistral-small",
       "name": "mistralai/mistral-small Mistral Small"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-small-24b-instruct-2501",
+      "name": "mistralai/mistral-small-24b-instruct-2501 Mistral: Mistral Small 3"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-small-24b-instruct-2501:free",
+      "name": "mistralai/mistral-small-24b-instruct-2501:free Mistral: Mistral Small 3 (free)"
     },
     {
       "api": "openrouter",
@@ -988,11 +1135,6 @@
       "api": "openrouter",
       "id": "mistralai/mixtral-8x7b-instruct",
       "name": "mistralai/mixtral-8x7b-instruct Mistral: Mixtral 8x7B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "mistralai/mixtral-8x7b-instruct:nitro",
-      "name": "mistralai/mixtral-8x7b-instruct:nitro Mistral: Mixtral 8x7B Instruct (nitro)"
     },
     {
       "api": "openrouter",
@@ -1068,6 +1210,11 @@
       "api": "openrouter",
       "id": "nvidia/llama-3.1-nemotron-70b-instruct",
       "name": "nvidia/llama-3.1-nemotron-70b-instruct NVIDIA: Llama 3.1 Nemotron 70B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "nvidia/llama-3.1-nemotron-70b-instruct:free",
+      "name": "nvidia/llama-3.1-nemotron-70b-instruct:free NVIDIA: Llama 3.1 Nemotron 70B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1201,6 +1348,16 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/o3-mini",
+      "name": "openai/o3-mini OpenAI: o3 Mini"
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/o3-mini-high",
+      "name": "openai/o3-mini-high OpenAI: o3 Mini High"
+    },
+    {
+      "api": "openrouter",
       "id": "openchat/openchat-7b",
       "name": "openchat/openchat-7b OpenChat 3.5 7B"
     },
@@ -1212,22 +1369,7 @@
     {
       "api": "openrouter",
       "id": "openrouter/auto",
-      "name": "openrouter/auto Auto Router (best for prompt)"
-    },
-    {
-      "api": "openrouter",
-      "id": "perplexity/llama-3-sonar-large-32k-chat",
-      "name": "perplexity/llama-3-sonar-large-32k-chat Perplexity: Llama3 Sonar 70B"
-    },
-    {
-      "api": "openrouter",
-      "id": "perplexity/llama-3-sonar-large-32k-online",
-      "name": "perplexity/llama-3-sonar-large-32k-online Perplexity: Llama3 Sonar 70B Online"
-    },
-    {
-      "api": "openrouter",
-      "id": "perplexity/llama-3-sonar-small-32k-chat",
-      "name": "perplexity/llama-3-sonar-small-32k-chat Perplexity: Llama3 Sonar 8B"
+      "name": "openrouter/auto Auto Router"
     },
     {
       "api": "openrouter",
@@ -1256,23 +1398,33 @@
     },
     {
       "api": "openrouter",
+      "id": "perplexity/r1-1776",
+      "name": "perplexity/r1-1776 Perplexity: R1 1776"
+    },
+    {
+      "api": "openrouter",
+      "id": "perplexity/sonar",
+      "name": "perplexity/sonar Perplexity: Sonar"
+    },
+    {
+      "api": "openrouter",
+      "id": "perplexity/sonar-reasoning",
+      "name": "perplexity/sonar-reasoning Perplexity: Sonar Reasoning"
+    },
+    {
+      "api": "openrouter",
       "id": "pygmalionai/mythalion-13b",
       "name": "pygmalionai/mythalion-13b Pygmalion: Mythalion 13B"
     },
     {
       "api": "openrouter",
+      "id": "qwen/qvq-72b-preview",
+      "name": "qwen/qvq-72b-preview Qwen: QvQ 72B Preview"
+    },
+    {
+      "api": "openrouter",
       "id": "qwen/qwen-2-72b-instruct",
       "name": "qwen/qwen-2-72b-instruct Qwen 2 72B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "qwen/qwen-2-7b-instruct",
-      "name": "qwen/qwen-2-7b-instruct Qwen 2 7B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "qwen/qwen-2-7b-instruct:free",
-      "name": "qwen/qwen-2-7b-instruct:free Qwen 2 7B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1301,6 +1453,31 @@
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwen-max",
+      "name": "qwen/qwen-max Qwen: Qwen-Max "
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-plus",
+      "name": "qwen/qwen-plus Qwen: Qwen-Plus"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-turbo",
+      "name": "qwen/qwen-turbo Qwen: Qwen-Turbo"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-vl-plus:free",
+      "name": "qwen/qwen-vl-plus:free Qwen: Qwen VL Plus (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen2.5-vl-72b-instruct:free",
+      "name": "qwen/qwen2.5-vl-72b-instruct:free Qwen: Qwen2.5 VL 72B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "qwen/qwq-32b-preview",
       "name": "qwen/qwq-32b-preview Qwen: QwQ 32B Preview"
     },
@@ -1311,6 +1488,11 @@
     },
     {
       "api": "openrouter",
+      "id": "sao10k/fimbulvetr-11b-v2",
+      "name": "sao10k/fimbulvetr-11b-v2 Fimbulvetr 11B v2"
+    },
+    {
+      "api": "openrouter",
       "id": "sao10k/l3-euryale-70b",
       "name": "sao10k/l3-euryale-70b Sao10k: Llama 3 Euryale 70B v2.1"
     },
@@ -1318,6 +1500,11 @@
       "api": "openrouter",
       "id": "sao10k/l3-lunaris-8b",
       "name": "sao10k/l3-lunaris-8b Sao10K: Llama 3 8B Lunaris"
+    },
+    {
+      "api": "openrouter",
+      "id": "sao10k/l3.1-70b-hanami-x1",
+      "name": "sao10k/l3.1-70b-hanami-x1 Sao10K: Llama 3.1 70B Hanami x1"
     },
     {
       "api": "openrouter",
@@ -1336,6 +1523,11 @@
     },
     {
       "api": "openrouter",
+      "id": "sophosympatheia/rogue-rose-103b-v0.2:free",
+      "name": "sophosympatheia/rogue-rose-103b-v0.2:free Rogue Rose 103B v0.2 (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "teknium/openhermes-2.5-mistral-7b",
       "name": "teknium/openhermes-2.5-mistral-7b OpenHermes 2.5 Mistral 7B"
     },
@@ -1347,17 +1539,12 @@
     {
       "api": "openrouter",
       "id": "thedrummer/unslopnemo-12b",
-      "name": "thedrummer/unslopnemo-12b Unslopnemo 12b"
+      "name": "thedrummer/unslopnemo-12b Unslopnemo 12B"
     },
     {
       "api": "openrouter",
       "id": "undi95/remm-slerp-l2-13b",
       "name": "undi95/remm-slerp-l2-13b ReMM SLERP 13B"
-    },
-    {
-      "api": "openrouter",
-      "id": "undi95/remm-slerp-l2-13b:extended",
-      "name": "undi95/remm-slerp-l2-13b:extended ReMM SLERP 13B (extended)"
     },
     {
       "api": "openrouter",
@@ -1368,11 +1555,6 @@
       "api": "openrouter",
       "id": "undi95/toppy-m-7b:free",
       "name": "undi95/toppy-m-7b:free Toppy M 7B (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "undi95/toppy-m-7b:nitro",
-      "name": "undi95/toppy-m-7b:nitro Toppy M 7B (nitro)"
     },
     {
       "api": "openrouter",

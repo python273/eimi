@@ -44,6 +44,15 @@ async function* streamOpenai(apiConfig, modelParams) {
 		jsonData['stream_options'] = {include_usage: true};
 	}
 
+	// TODO: remove hacks
+	if (url.startsWith('https://api.openai.com/v1/chat/completions')) {
+		if (jsonData.model.startsWith('o1') || jsonData.model.startsWith('o3')) {
+			delete jsonData['temperature'];
+		}
+		jsonData['max_completion_tokens'] = jsonData['max_tokens'];
+		delete jsonData['max_tokens'];
+	}
+
 	const response = await fetch(proxy(apiConfig, url), {
 		signal: apiConfig.signal,
 		method: 'POST',
@@ -279,33 +288,21 @@ async function* googleStreamResponse(apiConfig, modelParams) {
 	}
 }
 
-function streamResponse(apiConfig, modelParams) {
-	if (apiConfig.baseurl === 'google://') {
-		return googleStreamResponse(apiConfig, modelParams);
-	}
-
-	if (apiConfig.baseurl === 'anthropic://' || apiConfig.baseurl === 'https://api.anthropic.com/v1/messages') {
-		return anthropicStreamResponse(apiConfig, modelParams);
-	}
-
-	return openaiStreamResponse(apiConfig, modelParams);
-}
-
 export function runLlmApi(data) {  // TODO: separate data into separate args
 	const apiConfig = new ApiConfig({
-		token: data.token,
 		baseurl: data.baseurl,
+		token: data.token,
 		model: data.model,
-		completion: Boolean(data.completion),
+		completion: data.completion,
 		signal: data.signal,
 		proxy: data.proxy,
 	});
 
 	const modelParams = {
-		temperature: parseFloat(data.temperature),
-		top_p: parseFloat(data.top_p || 1.0),
-		frequency_penalty: parseFloat(data.frequency_penalty),
-		presence_penalty: parseFloat(data.presence_penalty)
+		temperature: data.temperature,
+		top_p: data.top_p,
+		frequency_penalty: data.frequency_penalty,
+		presence_penalty: data.presence_penalty,
 	};
 
 	if (apiConfig.completion) {
@@ -322,5 +319,13 @@ export function runLlmApi(data) {  // TODO: separate data into separate args
 		modelParams.stop = data.stop;
 	}
 
-	return streamResponse(apiConfig, modelParams);
+	if (apiConfig.baseurl === 'google://') {
+		return googleStreamResponse(apiConfig, modelParams);
+	}
+
+	if (apiConfig.baseurl === 'anthropic://' || apiConfig.baseurl === 'https://api.anthropic.com/v1/messages') {
+		return anthropicStreamResponse(apiConfig, modelParams);
+	}
+
+	return openaiStreamResponse(apiConfig, modelParams);
 }

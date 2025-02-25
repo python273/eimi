@@ -39,3 +39,11 @@ export function merge(base, user) {
     }
     return result;
 }
+
+export function escapeRegExp(string) {
+    return typeof RegExp.escape === 'function'
+        ? RegExp.escape(string)
+        : string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;

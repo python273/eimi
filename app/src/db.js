@@ -7,7 +7,7 @@ like here
 */
 return chain.map(m => {
     if (!m.content.includes('~~~~\\n')) return m;
-    const newContent = m.content.split('~~~~\\n')
+    const newContent = m.content.split(/^~~~~$/gm)
         .filter((_, index) => index % 2 === 0)
         .join('');
     return { ...m, content: newContent };

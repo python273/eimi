@@ -18,11 +18,11 @@ const DEFAULT_MODEL = MODELS_FAVORITE[0].id || MODELS[0].id;
 let model = MODELS.some(i => (i.api === parameters._api && i.id === parameters.model)) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL;
 let modelMaxToken = 4096;
 
-let temperature = parameters.hasOwnProperty('temperature') ? parameters.temperature : 0.0;
-let top_p = parameters.hasOwnProperty('top_p') ? parameters.top_p : 1.0;
-let frequency_penalty = parameters.hasOwnProperty('frequency_penalty') ? parameters.frequency_penalty : 0.0;
-let presence_penalty = parameters.hasOwnProperty('presence_penalty') ? parameters.presence_penalty : 0.0;
-let max_tokens = parameters.hasOwnProperty('max_tokens') ? parameters.max_tokens : 0;
+let temperature = parameters.temperature ?? 0.0;
+let top_p = parameters.top_p ?? 1.0;
+let frequency_penalty = parameters.frequency_penalty ?? 0.0;
+let presence_penalty = parameters.presence_penalty ?? 0.0;
+let max_tokens = parameters.max_tokens ?? 0;
 
 let scriptsEnabled = parameters.scriptsEnabled || [];
 

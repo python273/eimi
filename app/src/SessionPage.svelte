@@ -1,5 +1,6 @@
 <script>
 import { db } from './db.js';
+import { escapeRegExp } from './utils.js';
 import Session from './Session.svelte';
 
 export let sessionId
@@ -7,6 +8,16 @@ export let autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
 
 let sessions = []
+let searchQuery = ''
+let filteredSessions = []
+$: {
+	if (searchQuery === '') {
+		filteredSessions = sessions
+	} else {
+		let searchRe = new RegExp(escapeRegExp(searchQuery), 'i')
+		filteredSessions = sessions.filter(s => searchRe.test(s.title))
+	}
+}
 async function loadSessionsList() {
 	const tx = (await db).transaction('sessions', 'readonly');
 	const keys = await tx.store.getAllKeys()
@@ -24,15 +35,22 @@ loadSessionsList()
 
 <main>
 <div class="sessions-panel">
-	{#each sessions as s (s.key)}
-		<a href={`#${s.key}`} class:session-active={s.key === sessionId}>{s.title}</a>
-	{:else}
-		<span style="filter: opacity(30%); margin: 10px;">Sessions will be here.</span>
-	{/each}
+	<input
+		type="search"
+		placeholder="Search..."
+		bind:value={searchQuery}
+	/>
+	<div class="sessions-list">
+		{#each filteredSessions as s (s.key)}
+			<a href={`#${s.key}`} class:session-active={s.key === sessionId}>{s.title}</a>
+		{:else}
+			<span style="filter: opacity(30%); margin: 10px;">Sessions will be here.</span>
+		{/each}
+	</div>
 </div>
 
 {#key sessionId}
-	<Session sessionId={sessionId} autoReply={autoReply} />
+	<Session {sessionId} {autoReply} />
 {/key}
 
 <div style="height: max(60vh);"></div>
@@ -51,8 +69,14 @@ loadSessionsList()
 	margin: 0 0 0 8px;
 	font-size: 0.94em;
 	box-shadow: 0px 1px 6px #00000047;
+	display: flex;
+	flex-direction: column;
 }
-.sessions-panel a {
+.sessions-list {
+	max-width: 100%;
+	overflow-y: auto;
+}
+.sessions-list a {
 	padding: 0 5px;
 	margin: 0 5px;
 	color: var(--color-text);
@@ -62,10 +86,10 @@ loadSessionsList()
 	white-space: nowrap;
 	border-radius: 2px;
 }
-.sessions-panel a:hover {
+.sessions-list a:hover {
 	background: #0000000f;
 }
-.sessions-panel .session-active {
+.sessions-list .session-active {
 	color: #fff;
 	background: var(--brand-color) !important;
 }

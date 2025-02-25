@@ -94,6 +94,10 @@ export async function refresh() {
 	await tick();
 	show = true;
 }
+
+export async function pasteHtml(event) {  // userscript
+	window._pasteHtml && window._pasteHtml({event, comment, mode, code});
+}
 </script>
 
 {#if show}
