@@ -135,18 +135,6 @@ function onModelQueryKeydown(e) {
 				/>
 				<div class="script-name">{i.name}</div>
 				<div class="ml-auto"></div>
-				{#if !i.sessionId}
-					<input
-						type="checkbox"
-						title="auto-enable for new sessions"
-						checked={i.enabled}
-						on:change={async () => {
-							i.enabled = !i.enabled;
-							await (await db).put('scripts', i);
-							notifyDbScripts();
-						}}
-					/>
-				{/if}
 				<button on:click={(event) => {
 					event.preventDefault();
 					let { clientX: left, clientY: top } = event;

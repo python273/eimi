@@ -33,7 +33,12 @@ onMount(async () => {
 
 function convertToGlobal() {
 	script.sessionId = '';
-	scheduleSave();
+	scheduleSave(0);
+}
+
+function toggleGlobalEnabled() {
+	script.enabled = !script.enabled;
+	scheduleSave(0);
 }
 
 async function _saveScript() {
@@ -45,6 +50,7 @@ async function _saveScript() {
 	loadedScript.name = script.name;
 	loadedScript.scriptChainProcess = script.scriptChainProcess;
 	loadedScript.sessionId = script.sessionId;
+	loadedScript.enabled = script.enabled;
 	await store.put(loadedScript);
 	await tx.done;
 	notifyDbScripts();
@@ -79,10 +85,22 @@ async function deleteScript(event) {
 			placeholder="Script Name"
 		/>
 		{#if script.sessionId}
-			<button on:click="{convertToGlobal}" title="convert to global">global</button>
+			<button on:click="{convertToGlobal}" title="convert to global">make global</button>
 		{/if}
 		<button on:click="{deleteScript}" title="delete script (hold shift)">delete</button>
 	</div>
+	{#if !script.sessionId}
+		<div>
+			<input
+				id={`${windowId}-${script.id}-enabled`}
+				type="checkbox"
+				checked={script.enabled}
+				style="margin-left: 5px;"
+				on:change={toggleGlobalEnabled}
+			/>
+			<label for={`${windowId}-${script.id}-enabled`}>auto-enable for new sessions</label>
+		</div>
+	{/if}
 	<textarea
 		bind:value={script.scriptChainProcess}
 		placeholder="Script content"
@@ -103,6 +121,9 @@ async function deleteScript(event) {
 
 	display: flex;
 	flex-direction: column;
+}
+button {
+	white-space: nowrap;
 }
 input, textarea {
 	resize: none;
