@@ -47,6 +47,7 @@ function saveTokens() {
 				<button class="skip-btn" on:click={skip} title="skip">x</button>
 				<h2>Welcome</h2>
 				<p><strong>Eimi</strong> is an open-source UI for LLMs.</p>
+				<br/>
 				<ul>
 					<li>Threaded tree-style UI</li>
 					<li>Full context control</li>
@@ -54,6 +55,7 @@ function saveTokens() {
 					<li>Multi-API: OpenAI, Anthropic, OpenRouter, Google, etc.</li>
 					<li>Scripts for context modification</li>
 				</ul>
+				<br/>
 				<p>
 					<a href="https://github.com/python273/eimi"
 						>https://github.com/python273/eimi</a
@@ -149,5 +151,8 @@ h2 {
 }
 .token-input input {
 	margin: 2px;
+}
+li {
+	margin-left: 1em;
 }
 </style>

@@ -6,12 +6,13 @@ import windowsStore from './lib/windowsStore';
 import { genSessionId } from './utils.js';
 import { themeStore } from './themeStore.js';
 import Welcome from './Welcome.svelte';
+import { writable, get } from 'svelte/store';
 
 let hash = window.location.hash.slice(1)
 
 window.addEventListener('popstate', () => {
-    window.scrollTo(0, 0);
-    hash = window.location.hash.slice(1);
+	window.scrollTo(0, 0);
+	hash = window.location.hash.slice(1);
 });
 
 let page;
@@ -35,9 +36,34 @@ $: {
 	}
 	console.log('page', hash, page, props, params);
 }
+
+const themeOptions = ['light', 'dark', 'system'];
+const storedTheme = localStorage.getItem('theme') || 'system';
+export const currentTheme = writable(storedTheme);
+
+const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+prefersDarkQuery.addEventListener('change', updateTheme);
+
+function updateTheme() {
+	const theme = get(currentTheme);
+	let isDark = false;
+	if (theme === 'dark') {
+		isDark = true
+	} else if (theme === 'system') {
+		isDark = prefersDarkQuery.matches;
+	}
+	themeStore.set(isDark);
+}
+
+currentTheme.subscribe((value) => {
+	localStorage.setItem('theme', value);
+	updateTheme();
+});
+
+updateTheme();
 </script>
 
-{#if !($themeStore)}
+{#if !$themeStore}
 <style>
 	:root {
 		--bg-color: #ecedee;
@@ -77,13 +103,12 @@ $: {
 			href="#settings"
 			title="settings"
 		>settings</a>
-		<input
-			class="c-pointer"
-			id="dark-theme-checkbox"
-			type="checkbox" bind:checked={$themeStore}
-			title="dark theme"
-		/>
-		<label for="dark-theme-checkbox" class="c-pointer">{" "}☾</label>
+		<!-- TODO: maybe switch from select input -->
+		<select bind:value={$currentTheme} class='c-pointer' title="theme">
+			{#each themeOptions as option}
+				<option value={option}>{option}</option>
+			{/each}
+		</select>
 	</div>
 </div>
 

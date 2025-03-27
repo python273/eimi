@@ -1,5 +1,53 @@
+/* RESET */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+	box-sizing: border-box;
+}
+
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1.2;
+}
+/*
+ol, ul {
+	list-style: none;
+}
+*/
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+/* END RESET */
+
 *, :after, :before { box-sizing: border-box; }
-* { padding: 0; }
 
 :root {
 	--brand-color: #1ec14a;
@@ -12,8 +60,28 @@ body, input, button, select, optgroup, textarea {
 	margin: 0;
 }
 
-body, textarea {
-	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+html, body, input, button, select, textarea, optgroup, option {
+	font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+}
+
+b, strong {
+	font-weight: 600;
+}
+
+i, em {
+	font-style: italic;
+}
+
+code {
+	font-family: monospace;
+}
+
+table, th, td {
+	border: 2px solid var(--text-color);
+}
+
+th, td {
+	padding: 0.2em;
 }
 
 button { font-size: 1em; }
@@ -61,17 +129,17 @@ button {
 	background: inherit;
 }
 
-input, textarea {
+input, textarea, select {
 	font-size: 1em;
 	border: 1px solid var(--text-color);
 	border-radius: 4px;
-	padding: 2px;
+	padding: 1px 3px;
 	margin: 5px;
 	background-color: var(--comment-bg-color);
 	color: var(--text-color);
 	accent-color: var(--brand-color);
 }
-input:focus-visible, textarea:focus-visible {
+input:focus-visible, textarea:focus-visible, select:focus-visible {
 	outline: 2px solid var(--brand-color);
 }
 
@@ -80,3 +148,10 @@ input[type=checkbox] {
 }
 
 hr { border: 1px solid var(--text-color); }
+
+h1 { font-size: 1.5em; }
+h2 { font-size: 1.3em; }
+h3 { font-size: 1.17em; }
+h4 { font-size: 1.05em; }
+h5 { font-size: 0.95em; }
+h6 { font-size: 0.85em; }

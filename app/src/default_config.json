@@ -121,14 +121,26 @@
     },
     {
       "api": "google",
+      "id": "gemini-2.5-pro-exp-03-25",
+      "name": "gemini-2.5-pro-exp-03-25",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
       "id": "gemini-2.0-flash",
       "name": "gemini-2.0-flash",
       "max_tokens": 8192
     },
     {
       "api": "google",
-      "id": "gemini-2.0-flash-lite-preview-02-05",
-      "name": "gemini-2.0-flash-lite-preview-02-05",
+      "id": "gemini-2.0-flash-lite",
+      "name": "gemini-2.0-flash-lite",
+      "max_tokens": 8192
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.0-flash-thinking-exp-01-21",
+      "name": "gemini-2.0-flash-thinking-exp-01-21",
       "max_tokens": 8192
     },
     {
@@ -283,6 +295,12 @@
     },
     {
       "api": "openai",
+      "id": "gpt-4.5-preview",
+      "name": "gpt-4.5-preview",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
       "id": "gpt-4",
       "name": "gpt-4",
       "max_tokens": 8192
@@ -413,6 +431,16 @@
     },
     {
       "api": "openrouter",
+      "id": "ai21/jamba-1.6-large",
+      "name": "ai21/jamba-1.6-large AI21: Jamba 1.6 Large"
+    },
+    {
+      "api": "openrouter",
+      "id": "ai21/jamba-1.6-mini",
+      "name": "ai21/jamba-1.6-mini AI21: Jamba Mini 1.6"
+    },
+    {
+      "api": "openrouter",
       "id": "ai21/jamba-instruct",
       "name": "ai21/jamba-instruct AI21: Jamba Instruct"
     },
@@ -435,6 +463,16 @@
       "api": "openrouter",
       "id": "allenai/llama-3.1-tulu-3-405b",
       "name": "allenai/llama-3.1-tulu-3-405b Llama 3.1 Tulu 3 405B"
+    },
+    {
+      "api": "openrouter",
+      "id": "allenai/molmo-7b-d:free",
+      "name": "allenai/molmo-7b-d:free AllenAI: Molmo 7B D (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "allenai/olmo-2-0325-32b-instruct",
+      "name": "allenai/olmo-2-0325-32b-instruct AllenAI: Olmo 2 32B Instruct"
     },
     {
       "api": "openrouter",
@@ -583,6 +621,16 @@
     },
     {
       "api": "openrouter",
+      "id": "anthropic/claude-3.7-sonnet:thinking",
+      "name": "anthropic/claude-3.7-sonnet:thinking Anthropic: Claude 3.7 Sonnet (thinking)"
+    },
+    {
+      "api": "openrouter",
+      "id": "bytedance-research/ui-tars-72b:free",
+      "name": "bytedance-research/ui-tars-72b:free Bytedance: UI-TARS 72B  (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "cognitivecomputations/dolphin-mixtral-8x22b",
       "name": "cognitivecomputations/dolphin-mixtral-8x22b Dolphin 2.9.2 Mixtral 8x22B \ud83d\udc2c"
     },
@@ -605,6 +653,11 @@
       "api": "openrouter",
       "id": "cohere/command",
       "name": "cohere/command Cohere: Command"
+    },
+    {
+      "api": "openrouter",
+      "id": "cohere/command-a",
+      "name": "cohere/command-a Cohere: Command A"
     },
     {
       "api": "openrouter",
@@ -643,18 +696,18 @@
     },
     {
       "api": "openrouter",
-      "id": "databricks/dbrx-instruct",
-      "name": "databricks/dbrx-instruct Databricks: DBRX 132B Instruct"
-    },
-    {
-      "api": "openrouter",
       "id": "deepseek/deepseek-chat",
       "name": "deepseek/deepseek-chat DeepSeek: DeepSeek V3"
     },
     {
       "api": "openrouter",
-      "id": "deepseek/deepseek-chat-v2.5",
-      "name": "deepseek/deepseek-chat-v2.5 DeepSeek V2.5"
+      "id": "deepseek/deepseek-chat-v3-0324",
+      "name": "deepseek/deepseek-chat-v3-0324 DeepSeek: DeepSeek V3 0324"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-chat-v3-0324:free",
+      "name": "deepseek/deepseek-chat-v3-0324:free DeepSeek: DeepSeek V3 0324 (free)"
     },
     {
       "api": "openrouter",
@@ -693,8 +746,23 @@
     },
     {
       "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-qwen-14b:free",
+      "name": "deepseek/deepseek-r1-distill-qwen-14b:free DeepSeek: R1 Distill Qwen 14B (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "deepseek/deepseek-r1-distill-qwen-32b",
       "name": "deepseek/deepseek-r1-distill-qwen-32b DeepSeek: R1 Distill Qwen 32B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-distill-qwen-32b:free",
+      "name": "deepseek/deepseek-r1-distill-qwen-32b:free DeepSeek: R1 Distill Qwen 32B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-r1-zero:free",
+      "name": "deepseek/deepseek-r1-zero:free DeepSeek: DeepSeek R1 Zero (free)"
     },
     {
       "api": "openrouter",
@@ -718,6 +786,11 @@
     },
     {
       "api": "openrouter",
+      "id": "featherless/qwerky-72b:free",
+      "name": "featherless/qwerky-72b:free Qwerky 72b (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "google/gemini-2.0-flash-001",
       "name": "google/gemini-2.0-flash-001 Google: Gemini Flash 2.0"
     },
@@ -725,6 +798,11 @@
       "api": "openrouter",
       "id": "google/gemini-2.0-flash-exp:free",
       "name": "google/gemini-2.0-flash-exp:free Google: Gemini Flash 2.0 Experimental (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.0-flash-lite-001",
+      "name": "google/gemini-2.0-flash-lite-001 Google: Gemini 2.0 Flash Lite"
     },
     {
       "api": "openrouter",
@@ -748,8 +826,8 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-exp-1206:free",
-      "name": "google/gemini-exp-1206:free Google: Gemini Experimental 1206 (free)"
+      "id": "google/gemini-2.5-pro-exp-03-25:free",
+      "name": "google/gemini-2.5-pro-exp-03-25:free Google: Gemini Pro 2.5 Experimental (free)"
     },
     {
       "api": "openrouter",
@@ -795,6 +873,31 @@
       "api": "openrouter",
       "id": "google/gemma-2-9b-it:free",
       "name": "google/gemma-2-9b-it:free Google: Gemma 2 9B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3-12b-it:free",
+      "name": "google/gemma-3-12b-it:free Google: Gemma 3 12B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3-1b-it:free",
+      "name": "google/gemma-3-1b-it:free Google: Gemma 3 1B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3-27b-it",
+      "name": "google/gemma-3-27b-it Google: Gemma 3 27B"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3-27b-it:free",
+      "name": "google/gemma-3-27b-it:free Google: Gemma 3 27B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3-4b-it:free",
+      "name": "google/gemma-3-4b-it:free Google: Gemma 3 4B (free)"
     },
     {
       "api": "openrouter",
@@ -860,6 +963,11 @@
       "api": "openrouter",
       "id": "jondurbin/airoboros-l2-70b",
       "name": "jondurbin/airoboros-l2-70b Airoboros 70B"
+    },
+    {
+      "api": "openrouter",
+      "id": "latitudegames/wayfarer-large-70b-llama-3.3",
+      "name": "latitudegames/wayfarer-large-70b-llama-3.3 LatitudeGames: Wayfarer Large 70B Llama 3.3"
     },
     {
       "api": "openrouter",
@@ -958,6 +1066,11 @@
     },
     {
       "api": "openrouter",
+      "id": "meta-llama/llama-3.2-3b-instruct:free",
+      "name": "meta-llama/llama-3.2-3b-instruct:free Meta: Llama 3.2 3B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "meta-llama/llama-3.2-90b-vision-instruct",
       "name": "meta-llama/llama-3.2-90b-vision-instruct Meta: Llama 3.2 90B Vision Instruct"
     },
@@ -1013,6 +1126,11 @@
     },
     {
       "api": "openrouter",
+      "id": "microsoft/phi-4-multimodal-instruct",
+      "name": "microsoft/phi-4-multimodal-instruct Microsoft: Phi 4 Multimodal Instruct"
+    },
+    {
+      "api": "openrouter",
       "id": "microsoft/wizardlm-2-7b",
       "name": "microsoft/wizardlm-2-7b WizardLM-2 7B"
     },
@@ -1055,6 +1173,11 @@
       "api": "openrouter",
       "id": "mistralai/mistral-7b-instruct-v0.1",
       "name": "mistralai/mistral-7b-instruct-v0.1 Mistral: Mistral 7B Instruct v0.1"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-7b-instruct-v0.2",
+      "name": "mistralai/mistral-7b-instruct-v0.2 Mistral: Mistral 7B Instruct v0.2"
     },
     {
       "api": "openrouter",
@@ -1118,6 +1241,16 @@
     },
     {
       "api": "openrouter",
+      "id": "mistralai/mistral-small-3.1-24b-instruct",
+      "name": "mistralai/mistral-small-3.1-24b-instruct Mistral: Mistral Small 3.1 24B"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-small-3.1-24b-instruct:free",
+      "name": "mistralai/mistral-small-3.1-24b-instruct:free Mistral: Mistral Small 3.1 24B (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "mistralai/mistral-tiny",
       "name": "mistralai/mistral-tiny Mistral Tiny"
     },
@@ -1145,6 +1278,11 @@
       "api": "openrouter",
       "id": "mistralai/pixtral-large-2411",
       "name": "mistralai/pixtral-large-2411 Mistral: Pixtral Large 2411"
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/moonlight-16b-a3b-instruct:free",
+      "name": "moonshotai/moonlight-16b-a3b-instruct:free Moonshot AI: Moonlight 16B A3B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1183,6 +1321,11 @@
     },
     {
       "api": "openrouter",
+      "id": "nousresearch/deephermes-3-llama-3-8b-preview:free",
+      "name": "nousresearch/deephermes-3-llama-3-8b-preview:free Nous: DeepHermes 3 Llama 3 8B Preview (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "nousresearch/hermes-2-pro-llama-3-8b",
       "name": "nousresearch/hermes-2-pro-llama-3-8b NousResearch: Hermes 2 Pro - Llama-3 8B"
     },
@@ -1215,6 +1358,16 @@
       "api": "openrouter",
       "id": "nvidia/llama-3.1-nemotron-70b-instruct:free",
       "name": "nvidia/llama-3.1-nemotron-70b-instruct:free NVIDIA: Llama 3.1 Nemotron 70B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "open-r1/olympiccoder-32b:free",
+      "name": "open-r1/olympiccoder-32b:free OlympicCoder 32B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "open-r1/olympiccoder-7b:free",
+      "name": "open-r1/olympiccoder-7b:free OlympicCoder 7B (free)"
     },
     {
       "api": "openrouter",
@@ -1288,6 +1441,11 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/gpt-4.5-preview",
+      "name": "openai/gpt-4.5-preview OpenAI: GPT-4.5 (Preview)"
+    },
+    {
+      "api": "openrouter",
       "id": "openai/gpt-4o",
       "name": "openai/gpt-4o OpenAI: GPT-4o"
     },
@@ -1315,6 +1473,16 @@
       "api": "openrouter",
       "id": "openai/gpt-4o-mini-2024-07-18",
       "name": "openai/gpt-4o-mini-2024-07-18 OpenAI: GPT-4o-mini (2024-07-18)"
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-4o-mini-search-preview",
+      "name": "openai/gpt-4o-mini-search-preview OpenAI: GPT-4o-mini Search Preview"
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-4o-search-preview",
+      "name": "openai/gpt-4o-search-preview OpenAI: GPT-4o Search Preview"
     },
     {
       "api": "openrouter",
@@ -1348,6 +1516,11 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/o1-pro",
+      "name": "openai/o1-pro OpenAI: o1-pro"
+    },
+    {
+      "api": "openrouter",
       "id": "openai/o3-mini",
       "name": "openai/o3-mini OpenAI: o3 Mini"
     },
@@ -1373,23 +1546,8 @@
     },
     {
       "api": "openrouter",
-      "id": "perplexity/llama-3.1-sonar-huge-128k-online",
-      "name": "perplexity/llama-3.1-sonar-huge-128k-online Perplexity: Llama 3.1 Sonar 405B Online"
-    },
-    {
-      "api": "openrouter",
-      "id": "perplexity/llama-3.1-sonar-large-128k-chat",
-      "name": "perplexity/llama-3.1-sonar-large-128k-chat Perplexity: Llama 3.1 Sonar 70B"
-    },
-    {
-      "api": "openrouter",
       "id": "perplexity/llama-3.1-sonar-large-128k-online",
       "name": "perplexity/llama-3.1-sonar-large-128k-online Perplexity: Llama 3.1 Sonar 70B Online"
-    },
-    {
-      "api": "openrouter",
-      "id": "perplexity/llama-3.1-sonar-small-128k-chat",
-      "name": "perplexity/llama-3.1-sonar-small-128k-chat Perplexity: Llama 3.1 Sonar 8B"
     },
     {
       "api": "openrouter",
@@ -1408,8 +1566,23 @@
     },
     {
       "api": "openrouter",
+      "id": "perplexity/sonar-deep-research",
+      "name": "perplexity/sonar-deep-research Perplexity: Sonar Deep Research"
+    },
+    {
+      "api": "openrouter",
+      "id": "perplexity/sonar-pro",
+      "name": "perplexity/sonar-pro Perplexity: Sonar Pro"
+    },
+    {
+      "api": "openrouter",
       "id": "perplexity/sonar-reasoning",
       "name": "perplexity/sonar-reasoning Perplexity: Sonar Reasoning"
+    },
+    {
+      "api": "openrouter",
+      "id": "perplexity/sonar-reasoning-pro",
+      "name": "perplexity/sonar-reasoning-pro Perplexity: Sonar Reasoning Pro"
     },
     {
       "api": "openrouter",
@@ -1418,28 +1591,28 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qvq-72b-preview",
-      "name": "qwen/qvq-72b-preview Qwen: QvQ 72B Preview"
-    },
-    {
-      "api": "openrouter",
       "id": "qwen/qwen-2-72b-instruct",
       "name": "qwen/qwen-2-72b-instruct Qwen 2 72B Instruct"
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen-2-vl-72b-instruct",
-      "name": "qwen/qwen-2-vl-72b-instruct Qwen2-VL 72B Instruct"
+      "id": "qwen/qwen-2-7b-instruct",
+      "name": "qwen/qwen-2-7b-instruct Qwen 2 7B Instruct"
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen-2-vl-7b-instruct",
-      "name": "qwen/qwen-2-vl-7b-instruct Qwen2-VL 7B Instruct"
+      "id": "qwen/qwen-2-7b-instruct:free",
+      "name": "qwen/qwen-2-7b-instruct:free Qwen 2 7B Instruct (free)"
     },
     {
       "api": "openrouter",
       "id": "qwen/qwen-2.5-72b-instruct",
       "name": "qwen/qwen-2.5-72b-instruct Qwen2.5 72B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-2.5-72b-instruct:free",
+      "name": "qwen/qwen-2.5-72b-instruct:free Qwen2.5 72B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1450,6 +1623,26 @@
       "api": "openrouter",
       "id": "qwen/qwen-2.5-coder-32b-instruct",
       "name": "qwen/qwen-2.5-coder-32b-instruct Qwen2.5 Coder 32B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-2.5-coder-32b-instruct:free",
+      "name": "qwen/qwen-2.5-coder-32b-instruct:free Qwen2.5 Coder 32B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-2.5-vl-72b-instruct",
+      "name": "qwen/qwen-2.5-vl-72b-instruct Qwen: Qwen2.5-VL 72B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-2.5-vl-7b-instruct",
+      "name": "qwen/qwen-2.5-vl-7b-instruct Qwen: Qwen2.5-VL 7B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-2.5-vl-7b-instruct:free",
+      "name": "qwen/qwen-2.5-vl-7b-instruct:free Qwen: Qwen2.5-VL 7B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1468,8 +1661,33 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen-vl-plus:free",
-      "name": "qwen/qwen-vl-plus:free Qwen: Qwen VL Plus (free)"
+      "id": "qwen/qwen-vl-max",
+      "name": "qwen/qwen-vl-max Qwen: Qwen VL Max"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-vl-plus",
+      "name": "qwen/qwen-vl-plus Qwen: Qwen VL Plus"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen2.5-32b-instruct",
+      "name": "qwen/qwen2.5-32b-instruct Qwen: Qwen2.5 32B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen2.5-vl-32b-instruct:free",
+      "name": "qwen/qwen2.5-vl-32b-instruct:free Qwen: Qwen2.5 VL 32B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen2.5-vl-3b-instruct:free",
+      "name": "qwen/qwen2.5-vl-3b-instruct:free Qwen: Qwen2.5 VL 3B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen2.5-vl-72b-instruct",
+      "name": "qwen/qwen2.5-vl-72b-instruct Qwen: Qwen2.5 VL 72B Instruct"
     },
     {
       "api": "openrouter",
@@ -1478,13 +1696,33 @@
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwq-32b",
+      "name": "qwen/qwq-32b Qwen: QwQ 32B"
+    },
+    {
+      "api": "openrouter",
       "id": "qwen/qwq-32b-preview",
       "name": "qwen/qwq-32b-preview Qwen: QwQ 32B Preview"
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwq-32b-preview:free",
+      "name": "qwen/qwq-32b-preview:free Qwen: QwQ 32B Preview (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwq-32b:free",
+      "name": "qwen/qwq-32b:free Qwen: QwQ 32B (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "raifle/sorcererlm-8x22b",
       "name": "raifle/sorcererlm-8x22b SorcererLM 8x22B"
+    },
+    {
+      "api": "openrouter",
+      "id": "rekaai/reka-flash-3:free",
+      "name": "rekaai/reka-flash-3:free Reka: Flash 3 (free)"
     },
     {
       "api": "openrouter",
@@ -1528,8 +1766,18 @@
     },
     {
       "api": "openrouter",
+      "id": "steelskull/l3.3-electra-r1-70b",
+      "name": "steelskull/l3.3-electra-r1-70b SteelSkull: L3.3 Electra R1 70B"
+    },
+    {
+      "api": "openrouter",
       "id": "teknium/openhermes-2.5-mistral-7b",
       "name": "teknium/openhermes-2.5-mistral-7b OpenHermes 2.5 Mistral 7B"
+    },
+    {
+      "api": "openrouter",
+      "id": "thedrummer/anubis-pro-105b-v1",
+      "name": "thedrummer/anubis-pro-105b-v1 TheDrummer: Anubis Pro 105B V1"
     },
     {
       "api": "openrouter",
@@ -1538,8 +1786,18 @@
     },
     {
       "api": "openrouter",
+      "id": "thedrummer/skyfall-36b-v2",
+      "name": "thedrummer/skyfall-36b-v2 TheDrummer: Skyfall 36B V2"
+    },
+    {
+      "api": "openrouter",
       "id": "thedrummer/unslopnemo-12b",
       "name": "thedrummer/unslopnemo-12b Unslopnemo 12B"
+    },
+    {
+      "api": "openrouter",
+      "id": "tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.3",
+      "name": "tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.3 Swallow: Llama 3.1 Swallow 70B Instruct V0.3"
     },
     {
       "api": "openrouter",

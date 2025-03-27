@@ -625,4 +625,9 @@ subDbScripts(loadScripts);
 	font-size: 0.9em;
 	margin: 0 0.6em;
 }
+
+.role {
+	margin: 0;
+	padding: 0;
+}
 </style>
