@@ -79,8 +79,16 @@ onDestroy(async () => {
 })
 async function deleteSession() {
   stopSaving = true
-  await (await db).delete('sessions', sessionId)
-  await (await db).delete('sessionMeta', sessionId)
+  const tx = (await db).transaction(['sessions', 'sessionMeta', 'scripts'], 'readwrite')
+  await tx.objectStore('sessions').delete(sessionId)
+  await tx.objectStore('sessionMeta').delete(sessionId)
+  const allScripts = await tx.objectStore('scripts').getAll()
+  for (const script of allScripts) {
+    if (script.sessionId === sessionId) {
+      await tx.objectStore('scripts').delete(script.id)
+    }
+  }
+  await tx.done
   notifySessionList()
   console.log('deleted', sessionId)
 }
