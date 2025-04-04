@@ -1,23 +1,23 @@
 <script>
-import { onMount, onDestroy } from 'svelte';
+import { onMount, onDestroy } from 'svelte'
 
-export let data;
-export let genResponse;
-export let onCreateMessage;
-export let getMessageFromEvent;
-export let deleteMessage;
+export let data
+export let genResponse
+export let onCreateMessage
+export let getMessageFromEvent
+export let deleteMessage
 
-let show = false;
+let show = false
 
 function toggleHelpDialog() {
-  show = !show;
+  show = !show
 }
 
 function onKeyDown(event) {
   if (event.key === '?' && !event.target.matches('input, textarea')) {
-    event.preventDefault();
-    toggleHelpDialog();
-    return;
+    event.preventDefault()
+    toggleHelpDialog()
+    return
   }
 
   // Hotkeys:
@@ -31,83 +31,83 @@ function onKeyDown(event) {
   // R - regen
   // x / X - delete
 
-  if (!event.target.closest('.message-content')) return;
+  if (!event.target.closest('.message-content')) return
 
   if (event.target.tagName === 'TEXTAREA' && event.key === 'Escape') {
-    event.preventDefault();
-    event.target.closest('.message-content')?.focus({focusVisible: true});
-    return;
+    event.preventDefault()
+    event.target.closest('.message-content')?.focus({focusVisible: true})
+    return
   } else if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
-    event.preventDefault();
-    return genResponse(event);
+    event.preventDefault()
+    return genResponse(event)
   } else if (event.shiftKey && event.code === "Enter") {
-    event.preventDefault();
-    return onCreateMessage(event);
+    event.preventDefault()
+    return onCreateMessage(event)
   }
 
-  if (!event.target.classList.contains('message-content')) return;
-  const item = getMessageFromEvent(event);
-  if (!item) return;
+  if (!event.target.classList.contains('message-content')) return
+  const item = getMessageFromEvent(event)
+  if (!item) return
 
   if (event.key === 'R') {
-    event.preventDefault();
-    return genResponse(event, true);
+    event.preventDefault()
+    return genResponse(event, true)
   } else if (event.key === 'x' || event.key === 'X') {
-    event.preventDefault();
-    let i = data.findIndex(i => i.id == item.id) - 1;
-    deleteMessage(event);
-    if (i < 0) return;
+    event.preventDefault()
+    let i = data.findIndex(i => i.id == item.id) - 1
+    deleteMessage(event)
+    if (i < 0) return
     document.getElementById(`m_${data[i].id}`)
       ?.querySelector('.message-content')
-      ?.focus({focusVisible: true});
+      ?.focus({focusVisible: true})
   } else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
-    event.preventDefault();
-    let i;
+    event.preventDefault()
+    let i
     if (event.key === 'p') {
-      i = data.findIndex(i => i.id == item.parentId);
+      i = data.findIndex(i => i.id == item.parentId)
     } else {
-      i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1);
+      i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1)
     }
-    if (i < 0 || i >= data.length) return;
+    if (i < 0 || i >= data.length) return
     const el = document.getElementById(`m_${data[i].id}`)
-            ?.querySelector('.message-content');
-    if (!el) return;
+            ?.querySelector('.message-content')
+    if (!el) return
 
-    const rect = el.getBoundingClientRect();
-    const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight;
-    if (isPartiallyOffscreen) el.scrollIntoView(true);
-    el.focus({preventScroll: true, focusVisible: true});
+    const rect = el.getBoundingClientRect()
+    const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight
+    if (isPartiallyOffscreen) el.scrollIntoView(true)
+    el.focus({preventScroll: true, focusVisible: true})
   } else if (event.key === 'A') {
-    event.preventDefault();
-    const textarea = event.target.querySelector('textarea');
+    event.preventDefault()
+    const textarea = event.target.querySelector('textarea')
     if (textarea) {
-      textarea.focus();
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      textarea.focus()
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length)
       setTimeout(() => {
-        const rect = textarea.getBoundingClientRect();
+        const rect = textarea.getBoundingClientRect()
         const isBottomInView = (
           rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
-        );
+        )
         if (!isBottomInView) {
-          textarea.scrollIntoView({ behavior: 'instant', block: 'end' });
+          textarea.scrollIntoView({ behavior: 'instant', block: 'end' })
         }
-      }, 0);
+      }, 0)
     }
   }
 }
 
 onMount(() => {
-  document.addEventListener('keydown', onKeyDown);
-});
+  document.addEventListener('keydown', onKeyDown)
+})
 onDestroy(() => {
-  document.removeEventListener('keydown', onKeyDown);
-});
+  document.removeEventListener('keydown', onKeyDown)
+})
 
-let dialogElement;
+let dialogElement
 $: if (show && dialogElement) {
-	dialogElement.showModal();
+	dialogElement.showModal()
 } else if (dialogElement) {
-	dialogElement.close();
+	dialogElement.close()
 }
 </script>
 

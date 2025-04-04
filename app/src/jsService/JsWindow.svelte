@@ -1,40 +1,40 @@
 <script>
-import { tick, onDestroy } from 'svelte';
-import windowsStore from "../lib/windowsStore";
-import { getCode } from './jsService';
-import { themeStore } from '../themeStore';
-import { get } from 'svelte/store';
+import { tick, onDestroy } from 'svelte'
+import windowsStore from "../lib/windowsStore"
+import { getCode } from './jsService'
+import { themeStore } from '../themeStore'
+import { get } from 'svelte/store'
 
-export let windowId;
-export let comment;
-let contentWindow;
+export let windowId
+export let comment
+let contentWindow
 
-let {mode, code} = getCode(comment);
+let {mode, code} = getCode(comment)
 
-const cleanupWindowHandlers = [];
+const cleanupWindowHandlers = []
 
 function handleIframeLoad(event) {
-	contentWindow = event.target.contentWindow;
+	contentWindow = event.target.contentWindow
 	const messageHandler = (event) => {
-		if (event.source !== contentWindow) return;
+		if (event.source !== contentWindow) return
 		if (event.data === "close") {
-			windowsStore.close(windowId);
+			windowsStore.close(windowId)
 		}
-	};
-	window.addEventListener("message", messageHandler);
-	cleanupWindowHandlers.push(messageHandler);
-	contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*");
+	}
+	window.addEventListener("message", messageHandler)
+	cleanupWindowHandlers.push(messageHandler)
+	contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*")
 }
 
 $: {
-	contentWindow && contentWindow.postMessage({dark: $themeStore}, "*");
+	contentWindow && contentWindow.postMessage({dark: $themeStore}, "*")
 }
 
 onDestroy(() => {
 	for (const handler of cleanupWindowHandlers) {
-		window.removeEventListener("message", handler);
+		window.removeEventListener("message", handler)
 	}
-});
+})
 
 /*
 const iFrameSrc = `
@@ -81,22 +81,22 @@ window.addEventListener('message', function(event) {
 const blob = new Blob([iFrameSrc], { type: 'text/html' });
 const url = URL.createObjectURL(blob);
 */
-const url = "https://empty-iframe.p273.workers.dev/";  // for origin isolation
+const url = "https://empty-iframe.p273.workers.dev/"  // for origin isolation
 
-let show = true;
+let show = true
 
 export async function refresh() {
-	console.log(comment);
-	let d = getCode(comment);
-	mode = d.mode;
-	code = d.code;
-	show = false;
-	await tick();
-	show = true;
+	console.log(comment)
+	let d = getCode(comment)
+	mode = d.mode
+	code = d.code
+	show = false
+	await tick()
+	show = true
 }
 
 export async function pasteHtml(event) {  // userscript
-	window._pasteHtml && window._pasteHtml({event, comment, mode, code});
+	window._pasteHtml && window._pasteHtml({event, comment, mode, code})
 }
 </script>
 

@@ -4,7 +4,7 @@
 - Updating value preserves cursor and selection position
     (e.g. to copy while generating)
 */
-import { onMount, tick } from 'svelte';
+import { onMount, tick } from 'svelte'
 const inputId = Math.random().toString(36)
 
 export let value = ''
@@ -22,20 +22,20 @@ onMount(() => {
 })
 
 async function valueChanged(value) {
-	if (!el) await tick();
-	if (!el) return;
-	if (el.value === value) return;
+	if (!el) await tick()
+	if (!el) return
+	if (el.value === value) return
 
-	const start = el.selectionStart;
-	const end = el.selectionEnd;
-	const direction = el.selectionDirection;
-	el.value = value;
-	el.setSelectionRange(start, end, direction);
+	const start = el.selectionStart
+	const end = el.selectionEnd
+	const direction = el.selectionDirection
+	el.value = value
+	el.setSelectionRange(start, end, direction)
 }
 
 async function autoresize(value) {
 	await tick()
-	if (!el) return;
+	if (!el) return
 
 	// lock parent height, to not trigger scroll
 	// because of textarea shrinking temporarily

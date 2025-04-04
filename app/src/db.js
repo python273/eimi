@@ -1,4 +1,4 @@
-import { openDB } from 'idb';
+import { openDB } from 'idb'
 
 const scriptTrimMessages = `/* Hides text from a message
 ~~~~
@@ -12,7 +12,7 @@ return chain.map(m => {
         .join('');
     return { ...m, content: newContent };
 });
-`;
+`
 
 const scriptPrompts = `/* Prompts. Start a message with:
 - %%R for short answers
@@ -25,12 +25,12 @@ return chain.map(m => {
     let newContent = m.content.replace(/%%(\\w+)/g, (match, p1) => PROMPTS[p1] || match);
     return { ...m, content: newContent };
 });
-`;
+`
 
 
 async function initDb() {
 	if (navigator.storage && navigator.storage.persist) {
-		navigator.storage.persist().then((persistent) => {});
+		navigator.storage.persist().then((persistent) => {})
 	}
 
 	try {
@@ -41,7 +41,7 @@ async function initDb() {
 					db.createObjectStore('sessions')
 				}
 				if (oldVersion < 2) {
-					db.createObjectStore('scripts', { keyPath: 'id' });
+					db.createObjectStore('scripts', { keyPath: 'id' })
 					await transaction.objectStore('scripts').put({
 						id: "lzflks6m",
 						enabled: true,
@@ -50,7 +50,7 @@ async function initDb() {
 						scriptChainProcess: scriptTrimMessages,
 					})
 					await transaction.objectStore('scripts').put({
-						id:"lziy5kpb",
+						id: "lziy5kpb",
 						enabled: true,
 						name: "02 Prompts",
 						sessionId: "",
@@ -58,17 +58,17 @@ async function initDb() {
 					})
 				}
 				if (oldVersion < 3) {
-					const sessionMetaStore = db.createObjectStore('sessionMeta', { keyPath: 'id' });
-					const sessionStore = transaction.objectStore('sessions');
-					const sessionKeys = await sessionStore.getAllKeys();
-					sessionKeys.sort((a, b) => b.localeCompare(a));
+					const sessionMetaStore = db.createObjectStore('sessionMeta', { keyPath: 'id' })
+					const sessionStore = transaction.objectStore('sessions')
+					const sessionKeys = await sessionStore.getAllKeys()
+					sessionKeys.sort((a, b) => b.localeCompare(a))
 					for (const key of sessionKeys) {
-						const session = await sessionStore.get(key);
+						const session = await sessionStore.get(key)
 						await sessionMetaStore.put({
 							id: key,
 							title: session.title,
 							createdAt: session.createdAt,
-						});
+						})
 					}
 				}
 				await transaction.done
@@ -81,13 +81,13 @@ async function initDb() {
 			terminated() {
 				alert('idb terminated')
 			},
-		});
+		})
 	} catch (e) {
-		alert('Could not create IndexedDB, try in non-private tab');
+		alert('Could not create IndexedDB, try in non-private tab')
 	}
 
-	return null;
+	return null
 }
 
-export let db = initDb();
-window._db = db;
+export const db = initDb()
+window._db = db

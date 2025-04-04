@@ -1,63 +1,63 @@
 <script>
-import { db } from "../db";
-import { notifyDbScripts, uniqueId } from "../utils";
-import ScriptEditorWindow from "./ScriptEditorWindow.svelte";
-import windowsStore from "./windowsStore";
-import { CONFIG } from '../config';
+import { db } from "../db"
+import { notifyDbScripts, uniqueId } from "../utils"
+import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
+import windowsStore from "./windowsStore"
+import { CONFIG } from '../config'
 
-export let sessionId;
-export let parameters;
-export let scripts;
-export let onUpdate;
+export let sessionId
+export let parameters
+export let scripts
+export let onUpdate
 
 // TODO: proper ids instead of api + id
-const MODELS = CONFIG.models || [];
-const MODELS_FAVORITE = CONFIG.models_favorite || [];
-const DEFAULT_MODEL = MODELS_FAVORITE[0].id || MODELS[0].id;
+const MODELS = CONFIG.models || []
+const MODELS_FAVORITE = CONFIG.models_favorite || []
+const DEFAULT_MODEL = MODELS_FAVORITE[0].id || MODELS[0].id
 
-let model = MODELS.some(i => (i.api === parameters._api && i.id === parameters.model)) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL;
-let modelMaxToken = 4096;
+let model = MODELS.some(i => (i.api === parameters._api && i.id === parameters.model)) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL
+let modelMaxToken = 4096
 
-let temperature = parameters.temperature ?? 0.0;
-let top_p = parameters.top_p ?? 1.0;
-let frequency_penalty = parameters.frequency_penalty ?? 0.0;
-let presence_penalty = parameters.presence_penalty ?? 0.0;
-let max_tokens = parameters.max_tokens ?? 0;
+let temperature = parameters.temperature ?? 0.0
+let top_p = parameters.top_p ?? 1.0
+let frequency_penalty = parameters.frequency_penalty ?? 0.0
+let presence_penalty = parameters.presence_penalty ?? 0.0
+let max_tokens = parameters.max_tokens ?? 0
 
-let scriptsEnabled = parameters.scriptsEnabled || [];
+let scriptsEnabled = parameters.scriptsEnabled || []
 
 function toggleScript(id) {
 	if (scriptsEnabled.includes(id)) {
-		scriptsEnabled =  scriptsEnabled.filter(i => i != id);
+		scriptsEnabled =  scriptsEnabled.filter(i => i != id)
 	} else {
 		scriptsEnabled = [...scriptsEnabled, id]
 	}
 }
 
 async function createScript(event) {
-	event.preventDefault();
+	event.preventDefault()
 	const newScript = {
 		id: uniqueId(),
 		enabled: false,  // global new sessions
 		name: 'New Script',
 		sessionId: sessionId,
 		scriptChainProcess: 'return chain;',
-	};
-	await (await db).put('scripts', newScript);
+	}
+	await (await db).put('scripts', newScript)
 	scriptsEnabled = [...scriptsEnabled, newScript.id]
-	notifyDbScripts();
-	let { clientX: left, clientY: top } = event;
-	top += 16;
-	left -= 512;
-	windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top});
+	notifyDbScripts()
+	let { clientX: left, clientY: top } = event
+	top += 16
+	left -= 512
+	windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
 }
 
 $: {
-	if (model.indexOf('claude-') === 0 && max_tokens === 0) { max_tokens = modelMaxToken; }
-	let modelInfo = MODELS.filter(m => m.id == model)[0];
-	modelMaxToken = modelInfo['max_tokens'] || 32768;
+	if (model.indexOf('claude-') === 0 && max_tokens === 0) { max_tokens = modelMaxToken }
+	let modelInfo = MODELS.filter(m => m.id == model)[0]
+	modelMaxToken = modelInfo['max_tokens'] || 32768
 	if (max_tokens > modelMaxToken) {
-		max_tokens = modelMaxToken;
+		max_tokens = modelMaxToken
 	}
 	onUpdate({
 		_api: modelInfo.api,
@@ -69,15 +69,15 @@ $: {
 	})
 }
 
-let modelQuery = "";
-let visibleModels = MODELS;
+let modelQuery = ""
+let visibleModels = MODELS
 $: {
-	let re = new RegExp(modelQuery, "i");
-	visibleModels = MODELS.filter(i => re.test(i.name));
+	let re = new RegExp(modelQuery, "i")
+	visibleModels = MODELS.filter(i => re.test(i.name))
 }
 function onModelQueryKeydown(e) {
 	if (e.key === 'Enter' && visibleModels.length) {
-		model = visibleModels[0].id;
+		model = visibleModels[0].id
 	}
 }
 </script>
@@ -136,11 +136,11 @@ function onModelQueryKeydown(e) {
 				<div class="script-name">{i.name}</div>
 				<div class="ml-auto"></div>
 				<button on:click={(event) => {
-					event.preventDefault();
-					let { clientX: left, clientY: top } = event;
-					top += 16;
-					left -= 512;
-					windowsStore.add({component: ScriptEditorWindow, data: { id: i.id }, left, top});
+					event.preventDefault()
+					let { clientX: left, clientY: top } = event
+					top += 16
+					left -= 512
+					windowsStore.add({component: ScriptEditorWindow, data: { id: i.id }, left, top})
 				}}>edit</button>
 			</div>
 		{/each}
@@ -151,7 +151,7 @@ function onModelQueryKeydown(e) {
 			<div>
 				<button
 					style={m.id === model ? 'font-weight: bold;' : ''}
-					on:click={() => { model = m.id; }}>
+					on:click={() => { model = m.id }}>
 					{m.name}
 				</button>
 			</div>

@@ -1,22 +1,22 @@
 <script>
-import SessionPage from './SessionPage.svelte';
-import Settings from './Settings.svelte';
-import WindowManager from './lib/WindowManager.svelte';
-import windowsStore from './lib/windowsStore';
-import { genSessionId } from './utils.js';
-import { themeStore } from './themeStore.js';
-import Welcome from './Welcome.svelte';
-import { writable, get } from 'svelte/store';
+import SessionPage from './SessionPage.svelte'
+import Settings from './Settings.svelte'
+import WindowManager from './lib/WindowManager.svelte'
+import windowsStore from './lib/windowsStore'
+import { genSessionId } from './utils.js'
+import { themeStore } from './themeStore.js'
+import Welcome from './Welcome.svelte'
+import { writable, get } from 'svelte/store'
 
 let hash = window.location.hash.slice(1)
 
 window.addEventListener('popstate', () => {
-	window.scrollTo(0, 0);
-	hash = window.location.hash.slice(1);
-});
+	window.scrollTo(0, 0)
+	hash = window.location.hash.slice(1)
+})
 
-let page;
-let props = {};
+let page
+let props = {}
 
 $: {
 	let params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
@@ -25,42 +25,42 @@ $: {
 	} else {
 		page = 'session'
 		if (!hash) {
-			hash = genSessionId();
-			history.replaceState(null, '', '#' + hash);
+			hash = genSessionId()
+			history.replaceState(null, '', '#' + hash)
 		} else if (hash.indexOf('?answer=') === 0) {
-			hash = `${genSessionId()}${hash}`;
+			hash = `${genSessionId()}${hash}`
 			params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
-			history.replaceState(null, '', '#' + hash);
+			history.replaceState(null, '', '#' + hash)
 		}
 		props = {sessionId: hash.split('?')[0], autoReply: params.answer}
 	}
-	console.log('page', hash, page, props, params);
+	console.log('page', hash, page, props, params)
 }
 
-const themeOptions = ['light', 'dark', 'system'];
-const storedTheme = localStorage.getItem('theme') || 'system';
-export const currentTheme = writable(storedTheme);
+const themeOptions = ['light', 'dark', 'system']
+const storedTheme = localStorage.getItem('theme') || 'system'
+export const currentTheme = writable(storedTheme)
 
-const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-prefersDarkQuery.addEventListener('change', updateTheme);
+const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+prefersDarkQuery.addEventListener('change', updateTheme)
 
 function updateTheme() {
-	const theme = get(currentTheme);
-	let isDark = false;
+	const theme = get(currentTheme)
+	let isDark = false
 	if (theme === 'dark') {
 		isDark = true
 	} else if (theme === 'system') {
-		isDark = prefersDarkQuery.matches;
+		isDark = prefersDarkQuery.matches
 	}
-	themeStore.set(isDark);
+	themeStore.set(isDark)
 }
 
 currentTheme.subscribe((value) => {
-	localStorage.setItem('theme', value);
-	updateTheme();
-});
+	localStorage.setItem('theme', value)
+	updateTheme()
+})
 
-updateTheme();
+updateTheme()
 </script>
 
 {#if !$themeStore}

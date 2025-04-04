@@ -1,9 +1,9 @@
 import './global.css'
 import App from './App.svelte'
-import { refreshConfig } from './config';
+import { refreshConfig } from './config'
 
-window.addEventListener('unload', function(){});
-window.addEventListener('beforeunload', function(){});
+window.addEventListener('unload', function() {})
+window.addEventListener('beforeunload', function() {})
 
 
 if (localStorage.getItem('cfg-config-user') === null) {
@@ -31,20 +31,20 @@ if (localStorage.getItem('cfg-config-user') === null) {
     "models": {"$set": [
       {"$rest": 1}
     ]}
-  };
-  const oldApiNameMap = {oai: 'openai', or: 'openrouter', ant: 'anthropic'};
-  const prevConfig = JSON.parse(localStorage.getItem('cfg-config') || '{}');
+  }
+  const oldApiNameMap = {oai: 'openai', or: 'openrouter', ant: 'anthropic'}
+  const prevConfig = JSON.parse(localStorage.getItem('cfg-config') || '{}')
   if (prevConfig?.apis) {
     Object.keys(prevConfig.apis).forEach(oldApi => {
-      const newApi = oldApiNameMap[oldApi] || oldApi;
+      const newApi = oldApiNameMap[oldApi] || oldApi
       if (userConfig.apis[newApi] && prevConfig.apis[oldApi]?.token) {
-        userConfig.apis[newApi].$set.token = prevConfig.apis[oldApi].token;
+        userConfig.apis[newApi].$set.token = prevConfig.apis[oldApi].token
       }
-    });
+    })
   }
 
-	localStorage['cfg-config-user'] = JSON.stringify(userConfig, undefined, 2);
-  refreshConfig();
+	localStorage['cfg-config-user'] = JSON.stringify(userConfig, undefined, 2)
+  refreshConfig()
 }
 
 const app = new App({target: document.getElementById('app')})

@@ -1,7 +1,7 @@
 <script>
-import { db } from './db.js';
-import { escapeRegExp, subSessionList } from './utils.js';
-import Session from './Session.svelte';
+import { db } from './db.js'
+import { escapeRegExp, subSessionList } from './utils.js'
+import Session from './Session.svelte'
 
 export let sessionId
 export let autoReply
@@ -19,13 +19,13 @@ $: {
 	}
 }
 async function loadSessionsList() {
-	const tx = (await db).transaction('sessionMeta', 'readonly');
-	const allMeta = await tx.store.getAll();
-	allMeta.sort((a, b) => b.id.localeCompare(a.id));
+	const tx = (await db).transaction('sessionMeta', 'readonly')
+	const allMeta = await tx.store.getAll()
+	allMeta.sort((a, b) => b.id.localeCompare(a.id))
 	sessions = allMeta
 }
 loadSessionsList()
-subSessionList(loadSessionsList);
+subSessionList(loadSessionsList)
 </script>
 
 <main>

@@ -1,70 +1,70 @@
 <script>
-import { db } from './db.js';
-import DEFAULT_CONFIG from "./default_config.json";
-import { refreshConfig } from './config.js';
+import { db } from './db.js'
+import DEFAULT_CONFIG from "./default_config.json"
+import { refreshConfig } from './config.js'
 
 let config = localStorage["cfg-config-user"] || ""
-let valid = false;
+let valid = false
 $: {
 	try {
-		JSON.parse(config);
+		JSON.parse(config)
 		valid = true
 	} catch {
-		valid = false;
+		valid = false
 	}
 	if (valid) {
 		localStorage["cfg-config-user"] = config
-		refreshConfig();
+		refreshConfig()
 	}
 }
 
-let importFileInput;
+let importFileInput
 
 async function exportSessionsToFile() {
-	const tx = (await db).transaction('sessions', 'readonly');
-	const data = {sessions: {}};
+	const tx = (await db).transaction('sessions', 'readonly')
+	const data = {sessions: {}}
 	const keys = await tx.store.getAllKeys()
 	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i];
-		data.sessions[key] = await tx.store.get(key);
+		const key = keys[i]
+		data.sessions[key] = await tx.store.get(key)
 	}
 	await tx.done
-	const json = JSON.stringify(data);
-	const blob = new Blob([json], {type: "application/json"});
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
-	a.href = url;
-	a.download = 'eimi-llm-ui-sessions.json';
-	document.body.appendChild(a);
-	a.click();
+	const json = JSON.stringify(data)
+	const blob = new Blob([json], {type: "application/json"})
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement('a')
+	a.href = url
+	a.download = 'eimi-llm-ui-sessions.json'
+	document.body.appendChild(a)
+	a.click()
 	setTimeout(function() {
-		document.body.removeChild(a);
-		window.URL.revokeObjectURL(url);
-	}, 0);
+		document.body.removeChild(a)
+		window.URL.revokeObjectURL(url)
+	}, 0)
 }
 function importSessionsFromFile(e) {
-	e.preventDefault();
-	const file = importFileInput.files[0];
+	e.preventDefault()
+	const file = importFileInput.files[0]
 	if (!file) {
-		alert("No file selected");
-		return;
+		alert("No file selected")
+		return
 	}
-	const reader = new FileReader();
+	const reader = new FileReader()
 	reader.onload = async function(e) {
-		let data = JSON.parse(e.target.result);
-		data = 'sessions' in data ? data.sessions : data;
-		const tx = (await db).transaction('sessions', 'readwrite');
-		await tx.store.clear();
-		const keys = Object.keys(data);
+		let data = JSON.parse(e.target.result)
+		data = 'sessions' in data ? data.sessions : data
+		const tx = (await db).transaction('sessions', 'readwrite')
+		await tx.store.clear()
+		const keys = Object.keys(data)
 		for (let i = 0; i < keys.length; i++) {
-			const key = keys[i];
+			const key = keys[i]
 			await tx.store.put(data[key], key)
 		}
 		await tx.done
-		importFileInput.value = '';
-		alert("Sessions imported");
-	};
-	reader.readAsText(file);
+		importFileInput.value = ''
+		alert("Sessions imported")
+	}
+	reader.readAsText(file)
 }
 </script>
 
@@ -88,8 +88,8 @@ function importSessionsFromFile(e) {
 	<div>
 		<button
 			on:click={(e) => {
-				e.preventDefault();
-				exportSessionsToFile();
+				e.preventDefault()
+				exportSessionsToFile()
 			}}
 		>Export sessions to a file</button>
 	</div>

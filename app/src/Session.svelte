@@ -1,16 +1,16 @@
 <script>
-import { tick, onDestroy, onMount } from 'svelte';
-import CustomInput from './lib/CustomInput.svelte';
-import Parameters from './lib/Parameters.svelte';
+import { tick, onDestroy, onMount } from 'svelte'
+import CustomInput from './lib/CustomInput.svelte'
+import Parameters from './lib/Parameters.svelte'
 import {
 	uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction
-} from './utils.js';
-import { db } from './db.js';
-import { hasCodeBlocks, createJsWindow } from './jsService/jsService';
-import { runLlmApi } from './llms.js';
-import MarkdownRenderer from './MarkdownRenderer.svelte';
-import { CONFIG } from './config';
-import SessionHotkeys from './SessionHotkeys.svelte';
+} from './utils.js'
+import { db } from './db.js'
+import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
+import { runLlmApi } from './llms.js'
+import MarkdownRenderer from './MarkdownRenderer.svelte'
+import { CONFIG } from './config'
+import SessionHotkeys from './SessionHotkeys.svelte'
 
 export let sessionId
 export let autoReply
@@ -41,35 +41,35 @@ let sessionData
  *   aborter?: AbortController,
  * }>}
  */
-let data; // TODO: probably should be a store to share it nicely
+let data // TODO: probably should be a store to share it nicely
 
-let stopSaving = false;
-let isNewSession = false;
+let stopSaving = false
+let isNewSession = false
 async function saveSession(sessionId) {
-	if (stopSaving) return;
+	if (stopSaving) return
 	const savedMessages = data.map(
 		({id, createdAt, parentId, role, content, markdown}) => ({
 			id, createdAt, parentId, role, content, markdown
 		})
 	)
 	if (isNewSession && savedMessages.length === 1 && savedMessages[0].content === '') {
-		return;
+		return
 	}
-	const obj = {...sessionData, messages: savedMessages};
+	const obj = {...sessionData, messages: savedMessages}
 	await (await db).put('sessionMeta', {
 		id: sessionId,
 		title: sessionData.title,
 		createdAt: sessionData.createdAt,
-	});
-	await (await db).put('sessions', obj, sessionId);
+	})
+	await (await db).put('sessions', obj, sessionId)
 	if (isNewSession) {
-		notifySessionList();
+		notifySessionList()
 	}
-	isNewSession = false;
+	isNewSession = false
 	console.log('saved', sessionId)
 }
 onDestroy(async () => {
-	if (!data) return;
+	if (!data) return
 	for (const item of data) {
 		if (item.aborter !== undefined) {
 			item.aborter.abort()
@@ -78,17 +78,17 @@ onDestroy(async () => {
 	await saveSession(sessionId)
 })
 async function deleteSession() {
-	stopSaving = true;
-	await (await db).delete('sessions', sessionId);
-	await (await db).delete('sessionMeta', sessionId);
-	notifySessionList();
+	stopSaving = true
+	await (await db).delete('sessions', sessionId)
+	await (await db).delete('sessionMeta', sessionId)
+	notifySessionList()
 	console.log('deleted', sessionId)
 }
 
 async function loadSession() {
-	let obj = await (await db).get('sessions', sessionId);
+	let obj = await (await db).get('sessions', sessionId)
 	if (obj === undefined) {
-		isNewSession = true;
+		isNewSession = true
 		sessionData = {
 			title: (new Date()).toLocaleString(),
 			createdAt: new Date().valueOf(),
@@ -113,10 +113,10 @@ async function loadSession() {
 		sessionLoaded = true
 
 		if (autoReply) {
-			const modelsFav = CONFIG.models_favorite[0] || CONFIG.models[0];
+			const modelsFav = CONFIG.models_favorite[0] || CONFIG.models[0]
 			const modelDefault = CONFIG.models.filter(
 				i => (i.api === modelsFav.api && i.id === modelsFav.id)
-			)[0];
+			)[0]
 
 			sessionData.messages[0].content = autoReply
 			sessionData.parameters = {
@@ -130,9 +130,9 @@ async function loadSession() {
 		}
 		return
 	}
-	const meta = await (await db).get('sessionMeta', sessionId);
-	obj.title = meta.title;
-	obj.createdAt = meta.createdAt;
+	const meta = await (await db).get('sessionMeta', sessionId)
+	obj.title = meta.title
+	obj.createdAt = meta.createdAt
 	if (!obj.parameters) { obj.parameters = {} }
 	sessionData = obj
 	data = obj.messages
@@ -149,9 +149,9 @@ async function _saveSession() {
 	lastSaveTime = Date.now()
 }
 function scheduleSave(t = 500) {
-	if (saveTimeoutId !== null) clearTimeout(saveTimeoutId);
+	if (saveTimeoutId !== null) clearTimeout(saveTimeoutId)
 	if ((Date.now() - lastSaveTime) >= 2000) {
-		_saveSession();
+		_saveSession()
 	} else {
 		saveTimeoutId = setTimeout(_saveSession, t)
 	}
@@ -221,10 +221,10 @@ function relationalToLinear(data) {
 }
 
 function getMessageFromEvent(event) {
-	const el = event.target.closest('.message');
-	if (!el) { return; }
-	const id = el.dataset.id;
-	return data.find(i => i.id === id);
+	const el = event.target.closest('.message')
+	if (!el) { return }
+	const id = el.dataset.id
+	return data.find(i => i.id === id)
 }
 
 function getChain(message, regenerate=false) {
@@ -247,14 +247,14 @@ async function genResponse(event, regenerate=false) {
 }
 async function _genResponse(message, regenerate=false) {
 	console.log('genResponse', message, regenerate, sessionData.parameters)
-	const apiData = CONFIG.apis[sessionData.parameters._api];
+	const apiData = CONFIG.apis[sessionData.parameters._api]
 	if (!apiData.token) {
-		alert(`Add token in settings for "${sessionData.parameters._api}"`);
-		throw Error('no token');
+		alert(`Add token in settings for "${sessionData.parameters._api}"`)
+		throw Error('no token')
 	}
 
 	if (location.hostname === 'eimi.cns.wtf') {
-        fetch('https://ut.cns.wtf/api/record/eimi_gen');
+        fetch('https://ut.cns.wtf/api/record/eimi_gen')
     }
 
 	let newMessage
@@ -272,34 +272,34 @@ async function _genResponse(message, regenerate=false) {
 	} else {
 		newMessage = message
 	}
-	newMessage.content = '';
-	newMessage.generating = true;
-	newMessage.promptTokens = undefined;
-	newMessage.completionTokens = undefined;
+	newMessage.content = ''
+	newMessage.generating = true
+	newMessage.promptTokens = undefined
+	newMessage.completionTokens = undefined
 	data = data
-	await tick();
+	await tick()
 
 	let chain = getChain(message, regenerate)
 
-	const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || []);
-	const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id));
+	const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
+	const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id))
 
-	console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name));
+	console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
 	for (let script of orderedScriptsEnabled) {
-		const fn = new AsyncFunction('chain', script.scriptChainProcess);
-		let updatedChain;
+		const fn = new AsyncFunction('chain', script.scriptChainProcess)
+		let updatedChain
 		try {
 			updatedChain = await fn(chain)
 		} catch (e) {
-			console.error(e);
-			alert(`Script '${script.name}' error:\n${e}`);
+			console.error(e)
+			alert(`Script '${script.name}' error:\n${e}`)
 			return
 		}
-		if (updatedChain != undefined) chain = updatedChain;
+		if (updatedChain != undefined) chain = updatedChain
 	}
-	console.log('Chain after scripts:', chain);
+	console.log('Chain after scripts:', chain)
 
-	newMessage.aborter?.abort();
+	newMessage.aborter?.abort()
 	const aborter = new AbortController()
 	newMessage.aborter = aborter
 	try {
@@ -309,32 +309,32 @@ async function _genResponse(message, regenerate=false) {
 			proxy: apiData.proxy === false ? false : true,
 			signal: aborter.signal,
 			messages: chain.map(i => ({role: i.role, content: i.content}))
-		};
-		[
+		}
+		;[
 			'model', 'completion',
 			'temperature', 'frequency_penalty', 'presence_penalty',
 			'max_tokens'
 		].forEach(i => { request[i] = sessionData.parameters[i] })
-		window._patchApiData && window._patchApiData(request);
-		console.log('runLlmApi', request);
+		window._patchApiData && window._patchApiData(request)
+		console.log('runLlmApi', request)
 
-		newMessage.content = '';
+		newMessage.content = ''
 		for await (const chunk of runLlmApi(request)) {
 			if (typeof(chunk) === "string") {
-				newMessage.content += chunk;
+				newMessage.content += chunk
 			} else {
-				console.log(chunk);
+				console.log(chunk)
 				if (chunk?.usage?.prompt_tokens) {
-					newMessage.promptTokens = chunk.usage.prompt_tokens;
+					newMessage.promptTokens = chunk.usage.prompt_tokens
 				}
 				if (chunk?.usage?.completion_tokens) {
-					newMessage.completionTokens = chunk.usage.completion_tokens;
+					newMessage.completionTokens = chunk.usage.completion_tokens
 				}
 			}
-			data = data;
+			data = data
 		}
 	} catch (e) {
-		if (e.name === 'AbortError') return;
+		if (e.name === 'AbortError') return
 		alert(`Request error:\n${e}`)
 		console.error(e)
 	}
@@ -354,9 +354,9 @@ async function onCreateMessage(event) {
 		content: '',
 	}
 	if (parentMsg) {
-		data.unshift(newMessage);
+		data.unshift(newMessage)
 	} else {
-		data.push(newMessage);
+		data.push(newMessage)
 	}
 	data = data
 	await tick()
@@ -373,7 +373,7 @@ async function onRoleChange(event) {
 async function deleteMessage(event) {
 	event.preventDefault()
 	const item = getMessageFromEvent(event)
-	if (!event.shiftKey && !confirm('Delete message?')) return;
+	if (!event.shiftKey && !confirm('Delete message?')) return
 
 	const idsToDelete = [item.id]
 	function _addChildren(item) {
@@ -390,12 +390,12 @@ async function deleteMessage(event) {
 }
 
 async function onMessagesUpdate() {
-	data = data;
+	data = data
 	scheduleSave()
 }
 
 function onParametersUpdate(data) {
-	console.log('Params:', data);
+	console.log('Params:', data)
 	sessionData.parameters = data
 	scheduleSave()
 }
@@ -406,8 +406,8 @@ async function onTitleUpdate(event) {
 		id: sessionId,
 		title: sessionData.title,
 		createdAt: sessionData.createdAt,
-	});
-	notifySessionList();
+	})
+	notifySessionList()
 	scheduleSave(200)
 }
 
@@ -424,23 +424,23 @@ async function onDelete(event) {
 	window.location.hash = ''
 }
 
-let loadedPlugins = window.eimiPlugins || [];
+let loadedPlugins = window.eimiPlugins || []
 function updateLoadedPlugins() {
-	loadedPlugins = window.eimiPlugins || [];
+	loadedPlugins = window.eimiPlugins || []
 }
-onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins; });
-onDestroy(() => { window.updateLoadedPlugins = null; });
+onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
+onDestroy(() => { window.updateLoadedPlugins = null })
 
-let scripts = [];
+let scripts = []
 async function loadScripts() {
-	const all = await (await db).getAll('scripts');
+	const all = await (await db).getAll('scripts')
 	let newScripts = all
 		.filter(i => (!i.sessionId || i.sessionId === sessionId))
-		.sort((a, b) => (a.name.localeCompare(b.name)));
-	scripts = newScripts;
+		.sort((a, b) => (a.name.localeCompare(b.name)))
+	scripts = newScripts
 }
-loadScripts();
-subDbScripts(loadScripts);
+loadScripts()
+subDbScripts(loadScripts)
 </script>
 
 {#if !sessionLoaded}<div style="height: 20000px;"></div> <!-- scroll restoration -->{/if}
@@ -489,19 +489,19 @@ subDbScripts(loadScripts);
 						{#each loadedPlugins as plugin}
 							<button on:click="{async (e) => {
 								if (plugin.onClick?.constructor.name === 'AsyncFunction') {
-									await plugin.onClick(e, c);
+									await plugin.onClick(e, c)
 								} else {
-									plugin.onClick?.(e, c);
+									plugin.onClick?.(e, c)
 								}
-								data = data;
+								data = data
 							}}">{plugin.name}</button>
 						{/each}
 
 						{#if hasCodeBlocks(c.content)}
 							<button
 								on:click="{(e) => {
-									e.preventDefault();
-									createJsWindow(c);
+									e.preventDefault()
+									createJsWindow(c)
 								}}"
 								title="run HTML / JavaScript">JS</button>
 						{/if}

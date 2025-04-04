@@ -1,48 +1,48 @@
 <script>
-import { refreshConfig } from "./config";
+import { refreshConfig } from "./config"
 
-let show = false;
-let config;
+let show = false
+let config
 
-let step = 1;
-let tokens = {};
-let proxies = {};
+let step = 1
+let tokens = {}
+let proxies = {}
 
 try {
-	config = JSON.parse(localStorage["cfg-config-user"]);
+	config = JSON.parse(localStorage["cfg-config-user"])
 	show = localStorage.getItem("cfg-welcome") === null && 
 		Object.keys(config.apis).every(api => 
-			config.apis[api].$set.token === "");
+			config.apis[api].$set.token === "")
 	Object.keys(config.apis).forEach((api) => {
-		tokens[api] = "";
-		proxies[api] = false;
-	});
+		tokens[api] = ""
+		proxies[api] = false
+	})
 } catch {
-	show = false;
+	show = false
 }
 
 function skip() {
-	localStorage.setItem("cfg-welcome", "1");
-	show = false;
+	localStorage.setItem("cfg-welcome", "1")
+	show = false
 }
 
 function saveTokens() {
-	const config = JSON.parse(localStorage["cfg-config-user"]);
+	const config = JSON.parse(localStorage["cfg-config-user"])
 	Object.keys(tokens).forEach((api) => {
-		config.apis[api].$set.token = tokens[api];
-		config.apis[api].$set.proxy = proxies[api];
-	});
-	localStorage["cfg-config-user"] = JSON.stringify(config, null, 2);
-	localStorage.setItem("cfg-welcome", "1");
-	refreshConfig();
-	show = false;
+		config.apis[api].$set.token = tokens[api]
+		config.apis[api].$set.proxy = proxies[api]
+	})
+	localStorage["cfg-config-user"] = JSON.stringify(config, null, 2)
+	localStorage.setItem("cfg-welcome", "1")
+	refreshConfig()
+	show = false
 }
 
-let dialogElement;
+let dialogElement
 $: if (show && dialogElement) {
-	dialogElement.showModal();
+	dialogElement.showModal()
 } else if (dialogElement) {
-	dialogElement.close();
+	dialogElement.close()
 }
 </script>
 

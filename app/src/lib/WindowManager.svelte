@@ -1,38 +1,38 @@
 <script>
-import { onMount } from "svelte";
-import Portal from "./Portal.svelte";
+import { onMount } from "svelte"
+import Portal from "./Portal.svelte"
 
-export let store;
-const instances = {};
+export let store
+const instances = {}
 
-let isDragging = false;
-let previousX = 0;
-let previousY = 0;
-let draggingWindowId = null;
-let overlay;
-let windowLastZIndex = 9999;
+let isDragging = false
+let previousX = 0
+let previousY = 0
+let draggingWindowId = null
+let overlay
+let windowLastZIndex = 9999
 
-const getElById = (i) => `window-${i}`;
+const getElById = (i) => `window-${i}`
 
 function closeWindow(id) {
-	store.update((windows) => windows.filter((w) => w.id !== id));
+	store.update((windows) => windows.filter((w) => w.id !== id))
 }
 
 function updateZIndex(id) {
-    const container = document.getElementById(getElById(id));
+    const container = document.getElementById(getElById(id))
     if (container) {
-        container.style.zIndex = `${windowLastZIndex++}`;
+        container.style.zIndex = `${windowLastZIndex++}`
     }
 }
 
 function handleMouseDown(event, id) {
-	if (event.target !== event.currentTarget) return;
-	isDragging = true;
-	previousX = event.clientX;
-	previousY = event.clientY;
-	draggingWindowId = id;
+	if (event.target !== event.currentTarget) return
+	isDragging = true
+	previousX = event.clientX
+	previousY = event.clientY
+	draggingWindowId = id
 
-	overlay = document.createElement("div");
+	overlay = document.createElement("div")
 	Object.assign(overlay.style, {
 		position: "fixed",
 		top: "0",
@@ -41,50 +41,50 @@ function handleMouseDown(event, id) {
 		height: "100%",
 		zIndex: "999999",
 		cursor: "move",
-	});
-	document.body.appendChild(overlay);
+	})
+	document.body.appendChild(overlay)
 }
 
 function handleMouseUp() {
-	if (!isDragging) return;
-	isDragging = false;
-	previousX = 0;
-	previousY = 0;
-	draggingWindowId = null;
+	if (!isDragging) return
+	isDragging = false
+	previousX = 0
+	previousY = 0
+	draggingWindowId = null
 
 	if (overlay) {
-		overlay.remove();
-		overlay = null;
+		overlay.remove()
+		overlay = null
 	}
 }
 
 function handleMouseMove(event) {
-	if (!isDragging) return;
-	event.preventDefault();
-	const container = document.getElementById(getElById(draggingWindowId));
-	if (!container) return;
+	if (!isDragging) return
+	event.preventDefault()
+	const container = document.getElementById(getElById(draggingWindowId))
+	if (!container) return
 
-	const deltaX = event.clientX - previousX;
-	const deltaY = event.clientY - previousY;
-	let newLeft = container.offsetLeft + deltaX;
-	let newTop = container.offsetTop + deltaY;
+	const deltaX = event.clientX - previousX
+	const deltaY = event.clientY - previousY
+	let newLeft = container.offsetLeft + deltaX
+	let newTop = container.offsetTop + deltaY
 
-	newTop = Math.max(newTop, 0);
+	newTop = Math.max(newTop, 0)
 
-	previousX = event.clientX;
-	previousY = event.clientY;
-	store.updateById(draggingWindowId, {left: newLeft, top: newTop});
+	previousX = event.clientX
+	previousY = event.clientY
+	store.updateById(draggingWindowId, {left: newLeft, top: newTop})
 }
 
 onMount(() => {
-	document.addEventListener("mousemove", handleMouseMove);
-	document.addEventListener("mouseup", handleMouseUp);
+	document.addEventListener("mousemove", handleMouseMove)
+	document.addEventListener("mouseup", handleMouseUp)
 
 	return () => {
-		document.removeEventListener("mousemove", handleMouseMove);
-		document.removeEventListener("mouseup", handleMouseUp);
-	};
-});
+		document.removeEventListener("mousemove", handleMouseMove)
+		document.removeEventListener("mouseup", handleMouseUp)
+	}
+})
 </script>
 
 <Portal>

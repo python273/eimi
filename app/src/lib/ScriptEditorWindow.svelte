@@ -1,59 +1,59 @@
 <script>
-import { onMount } from 'svelte';
-import { db } from '../db.js';
-import windowsStore from './windowsStore.js';
-import { notifyDbScripts } from '../utils.js';
+import { onMount } from 'svelte'
+import { db } from '../db.js'
+import windowsStore from './windowsStore.js'
+import { notifyDbScripts } from '../utils.js'
 
-export let windowId;
-export let id;
+export let windowId
+export let id
 
-let script;
-let isLoading = true;
+let script
+let isLoading = true
 
 function getWindowTitle() {
-	if (!script) return '';
-	let g = script.sessionId ? ` (session ${script.sessionId})` : ' (global)';
-	return `Script "${script.name}"${g}`;
+	if (!script) return ''
+	let g = script.sessionId ? ` (session ${script.sessionId})` : ' (global)'
+	return `Script "${script.name}"${g}`
 }
 
 async function loadScript() {
-	isLoading = true;
-	const loadedScript = await (await db).get('scripts', id);
+	isLoading = true
+	const loadedScript = await (await db).get('scripts', id)
 	if (loadedScript) {
-		script = loadedScript;
+		script = loadedScript
 	} else {
-		console.error('Script not found');
+		console.error('Script not found')
 	}
-	isLoading = false;
+	isLoading = false
 }
 
 onMount(async () => {
-	await loadScript();
-});
+	await loadScript()
+})
 
 function convertToGlobal() {
-	script.sessionId = '';
-	scheduleSave(0);
+	script.sessionId = ''
+	scheduleSave(0)
 }
 
 function toggleGlobalEnabled() {
-	script.enabled = !script.enabled;
-	scheduleSave(0);
+	script.enabled = !script.enabled
+	scheduleSave(0)
 }
 
 async function _saveScript() {
-	console.log('saving script', script.id);
-	const dbInstance = await db;
-	const tx = dbInstance.transaction('scripts', 'readwrite');
-	const store = tx.objectStore('scripts');
-	const loadedScript = await store.get(id);
-	loadedScript.name = script.name;
-	loadedScript.scriptChainProcess = script.scriptChainProcess;
-	loadedScript.sessionId = script.sessionId;
-	loadedScript.enabled = script.enabled;
-	await store.put(loadedScript);
-	await tx.done;
-	notifyDbScripts();
+	console.log('saving script', script.id)
+	const dbInstance = await db
+	const tx = dbInstance.transaction('scripts', 'readwrite')
+	const store = tx.objectStore('scripts')
+	const loadedScript = await store.get(id)
+	loadedScript.name = script.name
+	loadedScript.scriptChainProcess = script.scriptChainProcess
+	loadedScript.sessionId = script.sessionId
+	loadedScript.enabled = script.enabled
+	await store.put(loadedScript)
+	await tx.done
+	notifyDbScripts()
 }
 let saveTimeoutId = null
 function scheduleSave(t=250) {
@@ -61,17 +61,17 @@ function scheduleSave(t=250) {
 	saveTimeoutId = setTimeout(_saveScript, t)
 }
 $: {
-	script;
-	windowsStore.updateById(windowId, {title: getWindowTitle()});
-	scheduleSave();
+	script
+	windowsStore.updateById(windowId, {title: getWindowTitle()})
+	scheduleSave()
 }
 
 async function deleteScript(event) {
 	event.preventDefault()
-	if (!event.shiftKey && !confirm('Delete script?')) { return; }
-	await (await db).delete('scripts', id);
-	notifyDbScripts();
-	windowsStore.close(windowId);
+	if (!event.shiftKey && !confirm('Delete script?')) { return }
+	await (await db).delete('scripts', id)
+	notifyDbScripts()
+	windowsStore.close(windowId)
 }
 </script>
 

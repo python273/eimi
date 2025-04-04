@@ -1,44 +1,44 @@
 <script>
-import { marked } from 'marked';
-import { onMount } from "svelte";
+import { marked } from 'marked'
+import { onMount } from "svelte"
 
-export let content = "";
-export let generating = false;
-let element;
-let currentContent = "";
+export let content = ""
+export let generating = false
+let element
+let currentContent = ""
 
 marked.setOptions({
   gfm: true,
   breaks: true,
-});
+})
 
-const renderer = new marked.Renderer();
+const renderer = new marked.Renderer()
 renderer.html = (html) => {
   //console.log(html);
-  return html.text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-};
+  return html.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
 
-marked.use({ renderer });
+marked.use({ renderer })
 
 function renderContent() {
-  if (content === currentContent) return;
-  element.innerHTML = marked.parse(content);
-  currentContent = content;
+  if (content === currentContent) return
+  element.innerHTML = marked.parse(content)
+  currentContent = content
 }
 
 $: if (element && content !== currentContent) {
-  renderContent();
+  renderContent()
 }
 
 $: if (!generating && element && content) {
-  renderContent();
+  renderContent()
 }
 
 onMount(() => {
   if (content) {
-    renderContent();
+    renderContent()
   }
-});
+})
 </script>
 
 <div class="markdown" bind:this={element}></div>
