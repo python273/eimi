@@ -21,20 +21,25 @@ $: {
 let importFileInput
 
 async function exportSessionsToFile() {
-  const tx = (await db).transaction('sessions', 'readonly')
-  const data = {sessions: {}}
-  const keys = await tx.store.getAllKeys()
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    data.sessions[key] = await tx.store.get(key)
+  const tx = (await db).transaction(['sessions', 'scripts'], 'readonly')
+  
+  const data = {
+    sessions: {},
+    scripts: await tx.objectStore('scripts').getAll()
   }
+  
+  const sessionKeys = await tx.objectStore('sessions').getAllKeys()
+  for (const key of sessionKeys) {
+    data.sessions[key] = await tx.objectStore('sessions').get(key)
+  }
+  
   await tx.done
   const json = JSON.stringify(data)
   const blob = new Blob([json], {type: "application/json"})
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'eimi-llm-ui-sessions.json'
+  a.download = `eimi-llm-ui-sessions-${location.hostname}.json`
   document.body.appendChild(a)
   a.click()
   setTimeout(function() {
@@ -52,14 +57,27 @@ function importSessionsFromFile(e) {
   const reader = new FileReader()
   reader.onload = async function(e) {
     let data = JSON.parse(e.target.result)
-    data = 'sessions' in data ? data.sessions : data
-    const tx = (await db).transaction('sessions', 'readwrite')
-    await tx.store.clear()
-    const keys = Object.keys(data)
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i]
-      await tx.store.put(data[key], key)
+    data = 'sessions' in data ? data : {sessions: data}
+    const tx = (await db).transaction(['sessions', 'sessionMeta', 'scripts'], 'readwrite')
+    await tx.objectStore('sessions').clear()
+    await tx.objectStore('sessionMeta').clear()
+    await tx.objectStore('scripts').clear()
+
+    for (const [id, session] of Object.entries(data.sessions)) {
+      await tx.objectStore('sessions').put(session, id)
+      await tx.objectStore('sessionMeta').put({
+        id,
+        title: session.title,
+        createdAt: session.createdAt,
+      })
     }
+
+    if (data.scripts) {
+      for (const script of data.scripts) {
+        await tx.objectStore('scripts').put(script)
+      }
+    }
+    
     await tx.done
     importFileInput.value = ''
     alert("Sessions imported")
