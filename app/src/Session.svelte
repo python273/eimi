@@ -11,6 +11,7 @@ import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
 import { CONFIG } from './config'
 import SessionHotkeys from './SessionHotkeys.svelte'
+import { favoriteModels } from './lib/favoriteModelsStore';
 
 export let sessionId
 export let autoReply
@@ -121,7 +122,7 @@ async function loadSession() {
     sessionLoaded = true
 
     if (autoReply) {
-      const modelsFav = CONFIG.models_favorite[0] || CONFIG.models[0]
+      const modelsFav = $favoriteModels[0] || CONFIG.models[0]
       const modelDefault = CONFIG.models.filter(
         i => (i.api === modelsFav.api && i.id === modelsFav.id)
       )[0]

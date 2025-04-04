@@ -41,6 +41,7 @@ export function merge(base, user) {
     if (Array.isArray(user.$set)) {
       const rest = user.$set.findIndex(item => item.$rest !== undefined)
       if (rest === -1) return user.$set
+      if (base === undefined) base = []
       return [...user.$set.slice(0, rest), ...base, ...user.$set.slice(rest + 1)]
     }
     const {$rest, ...clean} = user.$set

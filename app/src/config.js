@@ -4,7 +4,8 @@ import { merge } from "./utils"
 export function refreshConfig() {
   try {
     CONFIG = merge(DEFAULT_CONFIG, JSON.parse(localStorage['cfg-config-user'] || "{}"))
-  } catch {
+  } catch (error) {
+    console.error('User config is not valid', error)
     alert('User config is not valid')
     CONFIG = DEFAULT_CONFIG
   }

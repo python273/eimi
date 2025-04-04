@@ -56,18 +56,6 @@
       "proxy": true
     }
   },
-  "models_favorite": [
-    {
-      "api": "openai",
-      "id": "gpt-4o-2024-11-20",
-      "name": "gpt-4o-2024-11-20"
-    },
-    {
-      "api": "anthropic",
-      "id": "claude-3-7-sonnet-20250219",
-      "name": "Claude 3.7 Sonnet"
-    }
-  ],
   "models": [
     {
       "api": "xai",

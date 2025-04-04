@@ -20,14 +20,6 @@ if (localStorage.getItem('cfg-config-user') === null) {
       "groq": {"$set": {"token": "", "proxy": true, "$rest": 1}},
       "deepseek": {"$set": {"token": "", "proxy": true, "$rest": 1}},
     },
-    "models_favorite": {"$set": [
-      {
-        "api": "anthropic",
-        "id": "claude-3-5-sonnet-20241022",
-        "name": "Claude 3.5 Sonnet"
-      },
-      {"$rest": 1}
-    ]},
     "models": {"$set": [
       {"$rest": 1}
     ]}

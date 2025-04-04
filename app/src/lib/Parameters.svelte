@@ -4,6 +4,7 @@ import { notifyDbScripts, uniqueId } from "../utils"
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
 import windowsStore from "./windowsStore"
 import { CONFIG } from '../config'
+import { favoriteModels } from './favoriteModelsStore'
 
 export let sessionId
 export let parameters
@@ -12,11 +13,8 @@ export let onUpdate
 
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
-const MODELS_FAVORITE = CONFIG.models_favorite || []
-const DEFAULT_MODEL = MODELS_FAVORITE[0].id || MODELS[0].id
-
-let model = MODELS.some(i => (i.api === parameters._api && i.id === parameters.model)) ? parameters.model : DEFAULT_MODEL || DEFAULT_MODEL
-let modelMaxToken = 4096
+let model = MODELS.find(i => (i.api === parameters._api && i.id === parameters.model)) || $favoriteModels[0] || MODELS[0]
+let modelMaxToken = model['max_tokens'] || 32768
 
 let temperature = parameters.temperature ?? 0.0
 let top_p = parameters.top_p ?? 1.0
@@ -25,6 +23,24 @@ let presence_penalty = parameters.presence_penalty ?? 0.0
 let max_tokens = parameters.max_tokens ?? 0
 
 let scriptsEnabled = parameters.scriptsEnabled || []
+
+$: {
+  modelMaxToken = model['max_tokens'] || 32768
+  if (model.id.startsWith('claude-') && max_tokens === 0) {
+    max_tokens = modelMaxToken
+  }
+  if (max_tokens > modelMaxToken) {
+    max_tokens = modelMaxToken
+  }
+  onUpdate({
+    _api: model.api,
+    model: model.id,
+    completion: model.completion,  // TODO: move out of params, get from model info
+    temperature, frequency_penalty, presence_penalty,
+    max_tokens,
+    scriptsEnabled,
+  })
+}
 
 function toggleScript(id) {
   if (scriptsEnabled.includes(id)) {
@@ -52,23 +68,6 @@ async function createScript(event) {
   windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
 }
 
-$: {
-  if (model.indexOf('claude-') === 0 && max_tokens === 0) { max_tokens = modelMaxToken }
-  let modelInfo = MODELS.filter(m => m.id == model)[0]
-  modelMaxToken = modelInfo['max_tokens'] || 32768
-  if (max_tokens > modelMaxToken) {
-    max_tokens = modelMaxToken
-  }
-  onUpdate({
-    _api: modelInfo.api,
-    model,
-    completion: modelInfo.completion,  // TODO: move out of params, get from model info
-    temperature, frequency_penalty, presence_penalty,
-    max_tokens,
-    scriptsEnabled,
-  })
-}
-
 let modelQuery = ""
 let visibleModels = MODELS
 $: {
@@ -77,7 +76,7 @@ $: {
 }
 function onModelQueryKeydown(e) {
   if (e.key === 'Enter' && visibleModels.length) {
-    model = visibleModels[0].id
+    model = visibleModels[0]
   }
 }
 </script>
@@ -147,11 +146,11 @@ function onModelQueryKeydown(e) {
   </div>
   <div><hr/></div>
   <div class="models-favorite">
-    {#each MODELS_FAVORITE as m}
+    {#each $favoriteModels as m}
       <div>
         <button
-          style={m.id === model ? 'font-weight: bold;' : ''}
-          on:click={() => { model = m.id }}>
+          style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
+          on:click={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
           {m.name}
         </button>
       </div>
@@ -164,15 +163,24 @@ function onModelQueryKeydown(e) {
       on:keydown={onModelQueryKeydown}
       placeholder="Search model..."
     />
-    <div class="current-model">{model}</div>
+    <div class="current-model">
+      <button
+        class="star-button"
+        title="Add model to favorites"
+        on:click={() => {
+          favoriteModels.toggle({api: model.api, id: model.id, name: model.name})
+        }}>
+        {$favoriteModels.some(f => f.id === model.id && f.api === model.api) ? '★' : '☆'}
+      </button>
+      {model.id}
+    </div>
   </div>
   <div class="model-options-container">
     <div class="model-options">
       {#each visibleModels as m}
-        <label class:model-selected={model == m.id}>
-          <input type="radio" bind:group={model} value={m.id}>
-          <span class="custom-radio">{m.name}</span>
-        </label>
+        <button class:model-selected={model.api === m.api && model.id == m.id} on:click={() => {model = m}}>
+          {m.name}
+        </button>
       {/each}
     </div>
   </div>
@@ -199,21 +207,29 @@ function onModelQueryKeydown(e) {
   display: flex;
   flex-direction: column;
   width: max-content;
+  font-size: 0.75em;
 }
-.model-options input[type=radio] {
-  display: none;
-}
-.model-options label {
+.model-options button {
   display: block;
   white-space: nowrap;
   padding: 0 0.3em;
+  color: var(--text-color);
+  text-align: left;
 }
-.model-options label:nth-child(even) {
+.model-options button:nth-child(even) {
   background-color: var(--bg-color);
 }
 .model-selected {
   background-color: var(--brand-color) !important;
   color: white;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--brand-color);
+  font-size: 1em;
 }
 .current-model {
   font-size: 0.8em;
@@ -221,6 +237,9 @@ function onModelQueryKeydown(e) {
   overflow: auto hidden;
   scrollbar-width: none;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
