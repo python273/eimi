@@ -43,7 +43,7 @@ if (localStorage.getItem('cfg-config-user') === null) {
     })
   }
 
-	localStorage['cfg-config-user'] = JSON.stringify(userConfig, undefined, 2)
+  localStorage['cfg-config-user'] = JSON.stringify(userConfig, undefined, 2)
   refreshConfig()
 }
 

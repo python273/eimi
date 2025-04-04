@@ -70,7 +70,7 @@ function onKeyDown(event) {
     }
     if (i < 0 || i >= data.length) return
     const el = document.getElementById(`m_${data[i].id}`)
-            ?.querySelector('.message-content')
+      ?.querySelector('.message-content')
     if (!el) return
 
     const rect = el.getBoundingClientRect()
@@ -105,9 +105,9 @@ onDestroy(() => {
 
 let dialogElement
 $: if (show && dialogElement) {
-	dialogElement.showModal()
+  dialogElement.showModal()
 } else if (dialogElement) {
-	dialogElement.close()
+  dialogElement.close()
 }
 </script>
 

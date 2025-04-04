@@ -14,26 +14,26 @@ let {mode, code} = getCode(comment)
 const cleanupWindowHandlers = []
 
 function handleIframeLoad(event) {
-	contentWindow = event.target.contentWindow
-	const messageHandler = (event) => {
-		if (event.source !== contentWindow) return
-		if (event.data === "close") {
-			windowsStore.close(windowId)
-		}
-	}
-	window.addEventListener("message", messageHandler)
-	cleanupWindowHandlers.push(messageHandler)
-	contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*")
+  contentWindow = event.target.contentWindow
+  const messageHandler = (event) => {
+    if (event.source !== contentWindow) return
+    if (event.data === "close") {
+      windowsStore.close(windowId)
+    }
+  }
+  window.addEventListener("message", messageHandler)
+  cleanupWindowHandlers.push(messageHandler)
+  contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*")
 }
 
 $: {
-	contentWindow && contentWindow.postMessage({dark: $themeStore}, "*")
+  contentWindow && contentWindow.postMessage({dark: $themeStore}, "*")
 }
 
 onDestroy(() => {
-	for (const handler of cleanupWindowHandlers) {
-		window.removeEventListener("message", handler)
-	}
+  for (const handler of cleanupWindowHandlers) {
+    window.removeEventListener("message", handler)
+  }
 })
 
 /*
@@ -86,29 +86,29 @@ const url = "https://empty-iframe.p273.workers.dev/"  // for origin isolation
 let show = true
 
 export async function refresh() {
-	console.log(comment)
-	let d = getCode(comment)
-	mode = d.mode
-	code = d.code
-	show = false
-	await tick()
-	show = true
+  console.log(comment)
+  let d = getCode(comment)
+  mode = d.mode
+  code = d.code
+  show = false
+  await tick()
+  show = true
 }
 
 export async function pasteHtml(event) {  // userscript
-	window._pasteHtml && window._pasteHtml({event, comment, mode, code})
+  window._pasteHtml && window._pasteHtml({event, comment, mode, code})
 }
 </script>
 
 {#if show}
-	<iframe title="" src={url} on:load={(e) => handleIframeLoad(e)}></iframe>
+  <iframe title="" src={url} on:load={(e) => handleIframeLoad(e)}></iframe>
 {/if}
 
 <style>
 iframe {
-	width: 100%;
-	height: 100%;
-	border: 0;
-	background: var(--comment-bg-color);
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--comment-bg-color);
 }
 </style>
