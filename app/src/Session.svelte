@@ -2,12 +2,15 @@
 import { tick, onDestroy, onMount } from 'svelte';
 import CustomInput from './lib/CustomInput.svelte';
 import Parameters from './lib/Parameters.svelte';
-import { uniqueId, genSessionId, subDbScripts, AsyncFunction } from './utils.js';
+import {
+	uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction
+} from './utils.js';
 import { db } from './db.js';
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService';
 import { runLlmApi } from './llms.js';
 import MarkdownRenderer from './MarkdownRenderer.svelte';
 import { CONFIG } from './config';
+import SessionHotkeys from './SessionHotkeys.svelte';
 
 export let sessionId
 export let autoReply
@@ -38,9 +41,10 @@ let sessionData
  *   aborter?: AbortController,
  * }>}
  */
-let data
+let data; // TODO: probably should be a store to share it nicely
 
-let stopSaving = false
+let stopSaving = false;
+let isNewSession = false;
 async function saveSession(sessionId) {
 	if (stopSaving) return;
 	const savedMessages = data.map(
@@ -48,9 +52,20 @@ async function saveSession(sessionId) {
 			id, createdAt, parentId, role, content, markdown
 		})
 	)
-	if (savedMessages.length === 1 && savedMessages[0].content === '') return;
+	if (isNewSession && savedMessages.length === 1 && savedMessages[0].content === '') {
+		return;
+	}
 	const obj = {...sessionData, messages: savedMessages};
-	(await db).put('sessions', obj, sessionId);
+	await (await db).put('sessionMeta', {
+		id: sessionId,
+		title: sessionData.title,
+		createdAt: sessionData.createdAt,
+	});
+	await (await db).put('sessions', obj, sessionId);
+	if (isNewSession) {
+		notifySessionList();
+	}
+	isNewSession = false;
 	console.log('saved', sessionId)
 }
 onDestroy(async () => {
@@ -64,13 +79,16 @@ onDestroy(async () => {
 })
 async function deleteSession() {
 	stopSaving = true;
-	(await db).delete('sessions', sessionId);
+	await (await db).delete('sessions', sessionId);
+	await (await db).delete('sessionMeta', sessionId);
+	notifySessionList();
 	console.log('deleted', sessionId)
 }
 
 async function loadSession() {
 	let obj = await (await db).get('sessions', sessionId);
 	if (obj === undefined) {
+		isNewSession = true;
 		sessionData = {
 			title: (new Date()).toLocaleString(),
 			createdAt: new Date().valueOf(),
@@ -112,6 +130,9 @@ async function loadSession() {
 		}
 		return
 	}
+	const meta = await (await db).get('sessionMeta', sessionId);
+	obj.title = meta.title;
+	obj.createdAt = meta.createdAt;
 	if (!obj.parameters) { obj.parameters = {} }
 	sessionData = obj
 	data = obj.messages
@@ -200,15 +221,17 @@ function relationalToLinear(data) {
 }
 
 function getMessageFromEvent(event) {
-	const id = event.target.closest('.message').dataset.id
-	return data.find(i => i.id === id)
+	const el = event.target.closest('.message');
+	if (!el) { return; }
+	const id = el.dataset.id;
+	return data.find(i => i.id === id);
 }
 
 function getChain(message, regenerate=false) {
 	const chain = []
 	if (!regenerate) { chain.push(message) }
 	let it = message
-	while (1) {
+	while (true) {
 		const parent = data.find(i => i.id === it.parentId)
 		if (parent === undefined) { break }
 		chain.unshift(parent)
@@ -229,6 +252,10 @@ async function _genResponse(message, regenerate=false) {
 		alert(`Add token in settings for "${sessionData.parameters._api}"`);
 		throw Error('no token');
 	}
+
+	if (location.hostname === 'eimi.cns.wtf') {
+        fetch('https://ut.cns.wtf/api/record/eimi_gen');
+    }
 
 	let newMessage
 	if (!regenerate) {
@@ -315,18 +342,22 @@ async function _genResponse(message, regenerate=false) {
 	data = data
 }
 
-async function onReply(event) {
+async function onCreateMessage(event) {
 	event.preventDefault()
-	const item = getMessageFromEvent(event)
+	const parentMsg = getMessageFromEvent(event)
 
 	const newMessage = {
 		id: uniqueId(),
 		createdAt: new Date().valueOf(),
-		parentId: item.id,
-		role: item.role === U ? A : U,
+		parentId: parentMsg ? parentMsg.id : null,
+		role: parentMsg ? (parentMsg.role === U ? A : U) : U,
 		content: '',
 	}
-	data.unshift(newMessage)
+	if (parentMsg) {
+		data.unshift(newMessage);
+	} else {
+		data.push(newMessage);
+	}
 	data = data
 	await tick()
 	const newEl = document.getElementById(`m_${newMessage.id}`)
@@ -342,7 +373,6 @@ async function onRoleChange(event) {
 async function deleteMessage(event) {
 	event.preventDefault()
 	const item = getMessageFromEvent(event)
-	if (!item.parentId) return;
 	if (!event.shiftKey && !confirm('Delete message?')) return;
 
 	const idsToDelete = [item.id]
@@ -364,77 +394,21 @@ async function onMessagesUpdate() {
 	scheduleSave()
 }
 
-function onMessageKeyDown(event) {
-	// Hotkeys:
-	// Ctrl+Enter - gen response
-	// Shift+Enter - reply
-	// (textarea)+Esc - focus on message
-	// R - regen
-	// x / X - delete
-	// j - down
-	// k - up
-	// A - focus on textarea
-	// p - jump to parent
-	if (event.target.tagName === 'TEXTAREA' && event.key === 'Escape') {
-		event.preventDefault();
-        event.target.closest('.message_content')?.focus({focusVisible: true});
-		return;
-	} else if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
-		event.preventDefault();
-		return genResponse(event);
-	} else if (event.shiftKey && event.code === "Enter") {
-		event.preventDefault();
-		return onReply(event);
-	}
-
-	if (!event.target.classList.contains('message_content')) return;
-	const item = getMessageFromEvent(event)
-
-	if (event.key === 'R') {
-		event.preventDefault();
-		return genResponse(event, true);
-	} else if (event.key === 'x' || event.key === 'X') {
-		event.preventDefault();
-		let i = data.findIndex(i => i.id == item.id) - 1;
-		deleteMessage(event);
-		if (i < 0) return;
-		document.getElementById(`m_${data[i].id}`)
-			?.querySelector('.message_content')
-			?.focus({focusVisible: true});
-	} else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
-		event.preventDefault();
-		let i;
-		if (event.key === 'p') {
-			i = data.findIndex(i => i.id == item.parentId);
-		} else {
-			i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1);
-		}
-		if (i < 0 || i >= data.length) return;
-		const el = document.getElementById(`m_${data[i].id}`)
-						?.querySelector('.message_content');
-		if (!el) return;
-
-		const rect = el.getBoundingClientRect();
-		const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight;
-		if (isPartiallyOffscreen) el.scrollIntoView(true);
-		el.focus({preventScroll: true, focusVisible: true});
-	} else if (event.key === 'A') {
-		event.preventDefault();
-		const textarea = event.target.querySelector('textarea');
-		textarea?.focus();
-		textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
-	}
-}
-
 function onParametersUpdate(data) {
 	console.log('Params:', data);
 	sessionData.parameters = data
 	scheduleSave()
 }
 
-function onTitleUpdate(event) {
+async function onTitleUpdate(event) {
 	sessionData.title = event.target.value
-	scheduleSave()
+	await (await db).put('sessionMeta', {
+		id: sessionId,
+		title: sessionData.title,
+		createdAt: sessionData.createdAt,
+	});
+	notifySessionList();
+	scheduleSave(200)
 }
 
 async function onDup(event) {
@@ -462,11 +436,7 @@ async function loadScripts() {
 	const all = await (await db).getAll('scripts');
 	let newScripts = all
 		.filter(i => (!i.sessionId || i.sessionId === sessionId))
-		.sort((a, b) => {
-			if (!a.sessionId && b.sessionId) return -1;
-			if (a.sessionId && !b.sessionId) return 1;
-			return a.name.localeCompare(b.name);
-		});
+		.sort((a, b) => (a.name.localeCompare(b.name)));
 	scripts = newScripts;
 }
 loadScripts();
@@ -488,6 +458,7 @@ subDbScripts(loadScripts);
 	<button on:click="{onDup}" title="make a copy of this session">dup</button>
 	<button on:click="{onDelete}" title="delete session (hold shift)">delete</button>
 </div>
+<SessionHotkeys {data} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage}/>
 
 <div class="messages">
 {#each data as c, i (c.id)}
@@ -496,9 +467,8 @@ subDbScripts(loadScripts);
 			{#each {length: c.ddepth} as _}<div class='pad'></div>{/each}
 			<div>
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<!-- svelte-ignore a11y-no-static-element-interactions -->
-				<div class="message_content" class:generating="{c.generating}" tabindex="0" on:keydown={onMessageKeyDown}>
-					<div class="message_header">
+				<div class="message-content" class:generating="{c.generating}" tabindex="0">
+					<div class="message-header">
 						<select class="role" value={c.role} on:change="{onRoleChange}">
 							<option value={A}>{A}</option>
 							<option value={U}>{U}</option>
@@ -535,14 +505,12 @@ subDbScripts(loadScripts);
 								}}"
 								title="run HTML / JavaScript">JS</button>
 						{/if}
-						{#if c.parentId !== null}
-							<button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
-						{/if}
+						<button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
 						{#if c.role === A}
 							<button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
 						{/if}
 						<button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
-						<button on:click="{onReply}" title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
+						<button on:click="{onCreateMessage}" title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
 					</div>
 					{#if c.markdown}
 						<MarkdownRenderer generating={c.generating} content={c.content}/>
@@ -562,6 +530,7 @@ subDbScripts(loadScripts);
 	</div>
 {/each}
 </div>
+<button class="create-top-msg-btn" on:click={onCreateMessage} title="create top level message">＋&#xFE0E;</button>
 {/if}
 
 <style>
@@ -599,7 +568,7 @@ subDbScripts(loadScripts);
 	content: '';
 }
 
-.message_content {
+.message-content {
 	width: 62ch;
 	margin: 1px 0;
 	border-radius: 5px;
@@ -612,12 +581,12 @@ subDbScripts(loadScripts);
 	border: 1px solid var(--brand-color);
 }
 
-.message_header * {
+.message-header * {
 	text-decoration: none;
 	white-space: nowrap;
 }
 
-.message_header {
+.message-header {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -629,5 +598,14 @@ subDbScripts(loadScripts);
 .role {
 	margin: 0;
 	padding: 0;
+}
+
+.create-top-msg-btn {
+	width: 4em;
+	height: 2em;
+	background: var(--comment-bg-color);
+	color: var(--text-color);
+	opacity: 0.4;
+	border-radius: 5px;
 }
 </style>

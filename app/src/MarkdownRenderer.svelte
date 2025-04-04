@@ -64,7 +64,7 @@ div {
 }
 :global(.markdown :not(pre) > code) {
   border-radius: 3px;
-  background-color: rgba(128, 135, 142, 0.09);
+  background-color: var(--code-bg-color);
 }
 :global(.markdown blockquote) {
   margin: 0;
@@ -77,13 +77,15 @@ div {
 :global(.markdown pre) {
   white-space: pre-wrap;
   border-radius: 3px;
-  background-color: rgba(128, 135, 142, 0.09);
+  background-color: var(--code-bg-color);
   font-size: 0.95em;
   line-height: 1.15;
+  padding: 1px;
 }
 :global(.markdown pre, .markdown code) {
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 :global(.markdown ol, .markdown ul) {
   padding-left: 1.5em;

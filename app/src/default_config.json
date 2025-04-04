@@ -123,7 +123,7 @@
       "api": "google",
       "id": "gemini-2.5-pro-exp-03-25",
       "name": "gemini-2.5-pro-exp-03-25",
-      "max_tokens": 8192
+      "max_tokens": 65536
     },
     {
       "api": "google",
@@ -189,7 +189,13 @@
       "api": "deepseek",
       "id": "deepseek-chat",
       "name": "deepseek-chat",
-      "max_tokens": 4096
+      "max_tokens": 8192
+    },
+    {
+      "api": "deepseek",
+      "id": "deepseek-reasoner",
+      "name": "deepseek-reasoner",
+      "max_tokens": 8192
     },
     {
       "api": "anthropic",
@@ -461,8 +467,8 @@
     },
     {
       "api": "openrouter",
-      "id": "allenai/llama-3.1-tulu-3-405b",
-      "name": "allenai/llama-3.1-tulu-3-405b Llama 3.1 Tulu 3 405B"
+      "id": "all-hands/openhands-lm-32b-v0.1",
+      "name": "all-hands/openhands-lm-32b-v0.1 OpenHands LM 32B V0.1"
     },
     {
       "api": "openrouter",
@@ -771,6 +777,11 @@
     },
     {
       "api": "openrouter",
+      "id": "deepseek/deepseek-v3-base:free",
+      "name": "deepseek/deepseek-v3-base:free DeepSeek: DeepSeek V3 Base (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "eva-unit-01/eva-llama-3.33-70b",
       "name": "eva-unit-01/eva-llama-3.33-70b EVA Llama 3.33 70B"
     },
@@ -803,11 +814,6 @@
       "api": "openrouter",
       "id": "google/gemini-2.0-flash-lite-001",
       "name": "google/gemini-2.0-flash-lite-001 Google: Gemini 2.0 Flash Lite"
-    },
-    {
-      "api": "openrouter",
-      "id": "google/gemini-2.0-flash-lite-preview-02-05:free",
-      "name": "google/gemini-2.0-flash-lite-preview-02-05:free Google: Gemini Flash Lite 2.0 Preview (free)"
     },
     {
       "api": "openrouter",
@@ -876,6 +882,11 @@
     },
     {
       "api": "openrouter",
+      "id": "google/gemma-3-12b-it",
+      "name": "google/gemma-3-12b-it Google: Gemma 3 12B"
+    },
+    {
+      "api": "openrouter",
       "id": "google/gemma-3-12b-it:free",
       "name": "google/gemma-3-12b-it:free Google: Gemma 3 12B (free)"
     },
@@ -896,13 +907,13 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemma-3-4b-it:free",
-      "name": "google/gemma-3-4b-it:free Google: Gemma 3 4B (free)"
+      "id": "google/gemma-3-4b-it",
+      "name": "google/gemma-3-4b-it Google: Gemma 3 4B"
     },
     {
       "api": "openrouter",
-      "id": "google/gemma-7b-it",
-      "name": "google/gemma-7b-it Google: Gemma 7B"
+      "id": "google/gemma-3-4b-it:free",
+      "name": "google/gemma-3-4b-it:free Google: Gemma 3 4B (free)"
     },
     {
       "api": "openrouter",
@@ -933,11 +944,6 @@
       "api": "openrouter",
       "id": "gryphe/mythomax-l2-13b",
       "name": "gryphe/mythomax-l2-13b MythoMax 13B"
-    },
-    {
-      "api": "openrouter",
-      "id": "gryphe/mythomax-l2-13b:free",
-      "name": "gryphe/mythomax-l2-13b:free MythoMax 13B (free)"
     },
     {
       "api": "openrouter",
@@ -1008,11 +1014,6 @@
       "api": "openrouter",
       "id": "meta-llama/llama-3-8b-instruct",
       "name": "meta-llama/llama-3-8b-instruct Meta: Llama 3 8B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3-8b-instruct:free",
-      "name": "meta-llama/llama-3-8b-instruct:free Meta: Llama 3 8B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1143,6 +1144,11 @@
       "api": "openrouter",
       "id": "minimax/minimax-01",
       "name": "minimax/minimax-01 MiniMax: MiniMax-01"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistral/ministral-8b",
+      "name": "mistral/ministral-8b Mistral: Ministral 8b"
     },
     {
       "api": "openrouter",
@@ -1546,6 +1552,11 @@
     },
     {
       "api": "openrouter",
+      "id": "openrouter/quasar-alpha",
+      "name": "openrouter/quasar-alpha Quasar Alpha"
+    },
+    {
+      "api": "openrouter",
       "id": "perplexity/llama-3.1-sonar-large-128k-online",
       "name": "perplexity/llama-3.1-sonar-large-128k-online Perplexity: Llama 3.1 Sonar 70B Online"
     },
@@ -1593,16 +1604,6 @@
       "api": "openrouter",
       "id": "qwen/qwen-2-72b-instruct",
       "name": "qwen/qwen-2-72b-instruct Qwen 2 72B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "qwen/qwen-2-7b-instruct",
-      "name": "qwen/qwen-2-7b-instruct Qwen 2 7B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "qwen/qwen-2-7b-instruct:free",
-      "name": "qwen/qwen-2-7b-instruct:free Qwen 2 7B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1756,6 +1757,16 @@
     },
     {
       "api": "openrouter",
+      "id": "scb10x/llama3.1-typhoon2-70b-instruct",
+      "name": "scb10x/llama3.1-typhoon2-70b-instruct Typhoon2 70B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "scb10x/llama3.1-typhoon2-8b-instruct",
+      "name": "scb10x/llama3.1-typhoon2-8b-instruct Typhoon2 8B Instruct"
+    },
+    {
+      "api": "openrouter",
       "id": "sophosympatheia/midnight-rose-70b",
       "name": "sophosympatheia/midnight-rose-70b Midnight Rose 70B"
     },
@@ -1768,11 +1779,6 @@
       "api": "openrouter",
       "id": "steelskull/l3.3-electra-r1-70b",
       "name": "steelskull/l3.3-electra-r1-70b SteelSkull: L3.3 Electra R1 70B"
-    },
-    {
-      "api": "openrouter",
-      "id": "teknium/openhermes-2.5-mistral-7b",
-      "name": "teknium/openhermes-2.5-mistral-7b OpenHermes 2.5 Mistral 7B"
     },
     {
       "api": "openrouter",

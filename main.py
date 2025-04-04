@@ -18,7 +18,10 @@ app.add_middleware(
     expose_headers=['x-token-len', 'x-cropped'],
 )
 
-client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(timeout=20.0, read=30.0))
+client = httpx.AsyncClient(
+    http2=True,
+    timeout=httpx.Timeout(timeout=20.0, connect=5.0, read=180.0)
+)
 
 ALLOWED_BASEURLS = [
     "https://api.openai.com/v1/",

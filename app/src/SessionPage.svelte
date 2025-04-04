@@ -1,6 +1,6 @@
 <script>
 import { db } from './db.js';
-import { escapeRegExp } from './utils.js';
+import { escapeRegExp, subSessionList } from './utils.js';
 import Session from './Session.svelte';
 
 export let sessionId
@@ -19,18 +19,13 @@ $: {
 	}
 }
 async function loadSessionsList() {
-	const tx = (await db).transaction('sessions', 'readonly');
-	const keys = await tx.store.getAllKeys()
-	keys.sort((a, b) => b.localeCompare(a))
-	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i]
-		let obj = await tx.store.get(key)
-		const title = obj.title
-		sessions.push({key, title})
-	}
-	sessions = sessions
+	const tx = (await db).transaction('sessionMeta', 'readonly');
+	const allMeta = await tx.store.getAll();
+	allMeta.sort((a, b) => b.id.localeCompare(a.id));
+	sessions = allMeta
 }
 loadSessionsList()
+subSessionList(loadSessionsList);
 </script>
 
 <main>
@@ -41,8 +36,8 @@ loadSessionsList()
 		bind:value={searchQuery}
 	/>
 	<div class="sessions-list">
-		{#each filteredSessions as s (s.key)}
-			<a href={`#${s.key}`} class:session-active={s.key === sessionId}>{s.title}</a>
+		{#each filteredSessions as s (s.id)}
+			<a href={`#${s.id}`} class:session-active={s.id === sessionId}>{s.title}</a>
 		{:else}
 			<span style="filter: opacity(30%); margin: 10px;">Sessions will be here.</span>
 		{/each}
@@ -77,6 +72,7 @@ loadSessionsList()
 	overflow-y: auto;
 }
 .sessions-list a {
+	min-height: 1.2em;
 	padding: 0 5px;
 	margin: 0 5px;
 	color: var(--color-text);

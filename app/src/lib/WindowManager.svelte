@@ -101,7 +101,7 @@ onMount(() => {
 				class="header"
 				on:mousedown={(e) => handleMouseDown(e, w.id)}
 			>
-				<button on:click={() => closeWindow(w.id)}>x</button>
+				<button on:click={() => closeWindow(w.id)}>×</button>
 				{#each w.buttons as button}
 					<button on:click={instances[w.id][button.methodName]}>
 						{button.label}

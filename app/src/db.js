@@ -34,7 +34,7 @@ async function initDb() {
 	}
 
 	try {
-		return await openDB('eimi', 2, {
+		return await openDB('eimi', 3, {
 			upgrade: async function upgrade(db, oldVersion, newVersion, transaction, event) {
 				console.log('db upgrade', db, oldVersion, newVersion, transaction, event)
 				if (oldVersion < 1) {
@@ -56,6 +56,20 @@ async function initDb() {
 						sessionId: "",
 						scriptChainProcess: scriptPrompts,
 					})
+				}
+				if (oldVersion < 3) {
+					const sessionMetaStore = db.createObjectStore('sessionMeta', { keyPath: 'id' });
+					const sessionStore = transaction.objectStore('sessions');
+					const sessionKeys = await sessionStore.getAllKeys();
+					sessionKeys.sort((a, b) => b.localeCompare(a));
+					for (const key of sessionKeys) {
+						const session = await sessionStore.get(key);
+						await sessionMetaStore.put({
+							id: key,
+							title: session.title,
+							createdAt: session.createdAt,
+						});
+					}
 				}
 				await transaction.done
 			},

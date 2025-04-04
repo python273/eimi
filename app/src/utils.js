@@ -16,9 +16,23 @@ export function uniqueId() {
     return i;
 }
 
-const dbScriptsUpdate = writable(0);
-export const notifyDbScripts = () => { dbScriptsUpdate.update(n => n + 1); };
-export const subDbScripts = dbScriptsUpdate.subscribe;
+function createCrossTabs(key) {
+    const store = writable(0);
+    window.addEventListener('storage', (event) => {
+        if (event.key === key) {
+            store.update(n => n + 1);
+        }
+    });
+    const notify = () => {
+        store.update(n => n + 1);
+        localStorage.setItem(key, Date.now().toString());
+    };
+    return [notify, store.subscribe];
+}
+
+export const [notifyDbScripts, subDbScripts] = createCrossTabs('crosstabs_scripts');
+export const [notifySessionList, subSessionList] = createCrossTabs('crosstabs_sessionList');
+
 
 export function merge(base, user) {
     if (!user || typeof user !== 'object') return base;

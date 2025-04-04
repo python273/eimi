@@ -172,16 +172,36 @@ async function* streamAnthropic(apiConfig, modelParams) {
 }
 
 async function* anthropicStreamResponse(apiConfig, modelParams) {
-	const messages = modelParams.messages;
-	const systemMsgs = messages.filter(m => m.role === 'system');
-
-	const anthropicParams = {...modelParams};
+	const params = {...modelParams};
+	const systemMsgs = params.messages.filter(m => m.role === 'system');
+	
 	if (systemMsgs.length) {
-		anthropicParams.system = systemMsgs[0].content;
-		anthropicParams.messages = messages.filter(m => m.role !== 'system');
+		params.system = systemMsgs[0].content;
+		params.messages = params.messages.filter(m => m.role !== 'system');
 	}
 
-	for await (const chunk of streamAnthropic(apiConfig, anthropicParams)) {
+	params.messages = params.messages.map(message => {
+		if (!Array.isArray(message.content)) return message;
+
+		return {...message, content: message.content.map(item => {
+			if (item.type !== 'image_url') { return item; }
+			const imageUrl = item.image_url.url;
+			if (imageUrl.match(/^https?:/i)) {
+				return {type: 'image', source: {type: 'url', url: imageUrl}};
+			} else {
+				let mediaType = 'image/jpeg';
+				let data = imageUrl;
+				const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+				if (match) {
+					mediaType = match[1];
+					data = match[2];
+				}
+				return {type: 'image', source: {type: 'base64', media_type: mediaType, data: data}};
+			}
+		})};
+	});
+
+	for await (const chunk of streamAnthropic(apiConfig, params)) {
 		if (chunk.type === 'error') {
 			yield 'API error:\n' + JSON.stringify(chunk, undefined, 2);
 			continue;
@@ -262,9 +282,36 @@ async function* googleStreamResponse(apiConfig, modelParams) {
 	}
 
 	for (const msg of messages) {
+		const parts = [];
+	
+		if (typeof msg.content === 'string') {
+			parts.push({ text: msg.content });
+		} else if (Array.isArray(msg.content)) {
+			for (const item of msg.content) {
+				if (item.type === 'text') {
+					parts.push({ text: item.text });
+				} else if (item.type === 'image_url') {
+					const imageUrl = item.image_url.url;
+					if (imageUrl.match(/^https?:/i)) {
+						// TODO: seems like Gemini only supports uploaded files, `gs://`
+						parts.push({file_data: {mime_type: 'image/jpeg', file_uri: imageUrl}});
+					} else {
+						let mimeType = 'image/jpeg';
+						let data = imageUrl;
+						const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+						if (match) {
+							mimeType = match[1];
+							data = match[2];
+						}
+						parts.push({ inline_data: { mime_type: mimeType, data: data } });
+					}
+				}
+			}
+		}
+
 		convertedData.contents.push({
 			role: msg.role === 'assistant' ? 'model' : msg.role,
-			parts: typeof msg.content === 'string' ? [{text: msg.content}] : msg.content
+			parts,
 		});
 	}
 

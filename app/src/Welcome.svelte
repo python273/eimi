@@ -37,15 +37,22 @@ function saveTokens() {
 	refreshConfig();
 	show = false;
 }
+
+let dialogElement;
+$: if (show && dialogElement) {
+	dialogElement.showModal();
+} else if (dialogElement) {
+	dialogElement.close();
+}
 </script>
 
 {#if show}
-<div class="overlay">
-	<div class="dialog">
+	<dialog bind:this={dialogElement}>
 		{#if step === 1}
 			<article>
-				<button class="skip-btn" on:click={skip} title="skip">x</button>
+				<button class="skip-btn" on:click={skip} title="skip">×</button>
 				<h2>Welcome</h2>
+				<hr/>
 				<p><strong>Eimi</strong> is an open-source UI for LLMs.</p>
 				<br/>
 				<ul>
@@ -53,7 +60,7 @@ function saveTokens() {
 					<li>Full context control</li>
 					<li>Sessions are stored locally in the browser</li>
 					<li>Multi-API: OpenAI, Anthropic, OpenRouter, Google, etc.</li>
-					<li>Scripts for context modification</li>
+					<li>Scripts for context transformation</li>
 				</ul>
 				<br/>
 				<p>
@@ -62,7 +69,8 @@ function saveTokens() {
 					>
 				</p>
 				<div class="dialog-buttons">
-					<button on:click={() => (step = 2)}>Setup</button>
+					<!-- svelte-ignore a11y-autofocus -->
+					<button on:click={() => (step = 2)} type="button" autofocus>Setup</button>
 				</div>
 			</article>
 		{:else}
@@ -86,22 +94,17 @@ function saveTokens() {
 				{/each}
 			</div>
 			<div class="dialog-buttons">
-				<button on:click={saveTokens}>Save</button>
+				<button on:click={saveTokens} type="button">Save</button>
 			</div>
 		{/if}
-	</div>
-</div>
+	</dialog>
 {/if}
 
 <style>
-article {
-	position: relative;
-	padding: 0 0.5em;
-}
 .skip-btn {
 	position: absolute;
-	right: 0;
-	top: 0;
+	right: 1em;
+	top: 1em;
 }
 .dialog-buttons {
 	margin-top: 1em;
@@ -116,25 +119,6 @@ article {
 }
 h2 {
 	margin-top: 0;
-}
-.overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.2);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-.dialog {
-	background: var(--comment-bg-color);
-	padding: 1rem;
-	border-radius: 8px;
-	max-width: 500px;
-	width: 90%;
 }
 .tokens {
 	display: flex;
