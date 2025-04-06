@@ -1,12 +1,13 @@
 <script>
 import { refreshConfig } from "./config"
 
-let show = false
+let show = $state(false)
+// svelte-ignore non_reactive_update
 let config
 
-let step = 1
-let tokens = {}
-let proxies = {}
+let step = $state(1)
+let tokens = $state({})
+let proxies = $state({})
 
 try {
   config = JSON.parse(localStorage["cfg-config-user"])
@@ -38,19 +39,21 @@ function saveTokens() {
   show = false
 }
 
-let dialogElement
-$: if (show && dialogElement) {
-  dialogElement.showModal()
-} else if (dialogElement) {
-  dialogElement.close()
-}
+let dialogElement = $state()
+$effect(() => {
+  if (show && dialogElement) {
+    dialogElement.showModal()
+  } else if (dialogElement) {
+    dialogElement.close()
+  }
+})
 </script>
 
 {#if show}
   <dialog bind:this={dialogElement}>
     {#if step === 1}
       <article>
-        <button class="skip-btn" on:click={skip} title="skip">×</button>
+        <button class="skip-btn" onclick={skip} title="skip">×</button>
         <h2>Welcome</h2>
         <hr/>
         <p><strong>Eimi</strong> is an open-source UI for LLMs.</p>
@@ -69,8 +72,8 @@ $: if (show && dialogElement) {
           >
         </p>
         <div class="dialog-buttons">
-          <!-- svelte-ignore a11y-autofocus -->
-          <button on:click={() => (step = 2)} type="button" autofocus>Setup</button>
+          <!-- svelte-ignore a11y_autofocus -->
+          <button onclick={() => (step = 2)} type="button" autofocus>Setup</button>
         </div>
       </article>
     {:else}
@@ -94,7 +97,7 @@ $: if (show && dialogElement) {
         {/each}
       </div>
       <div class="dialog-buttons">
-        <button on:click={saveTokens} type="button">Save</button>
+        <button onclick={saveTokens} type="button">Save</button>
       </div>
     {/if}
   </dialog>

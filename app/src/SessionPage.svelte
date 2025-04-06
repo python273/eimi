@@ -3,21 +3,19 @@ import { db } from './db.js'
 import { escapeRegExp, subSessionList } from './utils.js'
 import Session from './Session.svelte'
 
-export let sessionId
-export let autoReply
+let { sessionId, autoReply } = $props()
 if (!sessionId) { throw new Error('sessionId is required') }
 
-let sessions = []
-let searchQuery = ''
-let filteredSessions = []
-$: {
+let sessions = $state([])
+let searchQuery = $state('')
+let filteredSessions = $derived.by(() => {
   if (searchQuery === '') {
-    filteredSessions = sessions
+    return sessions
   } else {
     let searchRe = new RegExp(escapeRegExp(searchQuery), 'i')
-    filteredSessions = sessions.filter(s => searchRe.test(s.title))
+    return sessions.filter(s => searchRe.test(s.title))
   }
-}
+})
 async function loadSessionsList() {
   const tx = (await db).transaction('sessionMeta', 'readonly')
   const allMeta = await tx.store.getAll()

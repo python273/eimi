@@ -6,26 +6,22 @@ import windowsStore from "./windowsStore"
 import { CONFIG } from '../config'
 import { favoriteModels } from './favoriteModelsStore'
 
-export let sessionId
-export let parameters
-export let scripts
-export let onUpdate
+let {sessionId, parameters, scripts, onUpdate} = $props()
 
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
-let model = MODELS.find(i => (i.api === parameters._api && i.id === parameters.model)) || $favoriteModels[0] || MODELS[0]
-let modelMaxToken = model['max_tokens'] || 32768
+let model = $state(MODELS.find(i => (i.api === parameters._api && i.id === parameters.model)) || $favoriteModels[0] || MODELS[0])
+let modelMaxToken = $derived(model['max_tokens'] || 32768)
 
-let temperature = parameters.temperature ?? 0.0
-let top_p = parameters.top_p ?? 1.0
-let frequency_penalty = parameters.frequency_penalty ?? 0.0
-let presence_penalty = parameters.presence_penalty ?? 0.0
-let max_tokens = parameters.max_tokens ?? 0
+let temperature = $state(parameters.temperature ?? 0.0)
+let top_p = $state(parameters.top_p ?? 1.0)
+let frequency_penalty = $state(parameters.frequency_penalty ?? 0.0)
+let presence_penalty = $state(parameters.presence_penalty ?? 0.0)
+let max_tokens = $state(parameters.max_tokens ?? 0)
 
-let scriptsEnabled = parameters.scriptsEnabled || []
+let scriptsEnabled = $state(parameters.scriptsEnabled || [])
 
-$: {
-  modelMaxToken = model['max_tokens'] || 32768
+$effect(() => {
   if (model.id.startsWith('claude-') && max_tokens === 0) {
     max_tokens = modelMaxToken
   }
@@ -40,11 +36,11 @@ $: {
     max_tokens,
     scriptsEnabled,
   })
-}
+})
 
 function toggleScript(id) {
   if (scriptsEnabled.includes(id)) {
-    scriptsEnabled =  scriptsEnabled.filter(i => i != id)
+    scriptsEnabled = scriptsEnabled.filter(i => i != id)
   } else {
     scriptsEnabled = [...scriptsEnabled, id]
   }
@@ -68,12 +64,11 @@ async function createScript(event) {
   windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
 }
 
-let modelQuery = ""
-let visibleModels = MODELS
-$: {
+let modelQuery = $state("")
+const visibleModels = $derived.by(() => {
   let re = new RegExp(modelQuery, "i")
-  visibleModels = MODELS.filter(i => re.test(i.name))
-}
+  return MODELS.filter(i => re.test(i.name))
+})
 function onModelQueryKeydown(e) {
   if (e.key === 'Enter' && visibleModels.length) {
     model = visibleModels[0]
@@ -122,7 +117,7 @@ function onModelQueryKeydown(e) {
     <div class="flex">
       <div>Scripts:</div>
       <div class="ml-auto"></div>
-      <button on:click={createScript}>create</button>
+      <button onclick={createScript}>create</button>
     </div>
     {#each scripts as i}
       <div class="flex script-row">
@@ -130,11 +125,11 @@ function onModelQueryKeydown(e) {
           type="checkbox"
           title="toggle in session"
           checked={scriptsEnabled.includes(i.id)}
-          on:change={() => { toggleScript(i.id) }}
+          onchange={() => { toggleScript(i.id) }}
         />
         <div class="script-name">{i.name}</div>
         <div class="ml-auto"></div>
-        <button on:click={(event) => {
+        <button onclick={(event) => {
           event.preventDefault()
           let { clientX: left, clientY: top } = event
           top += 16
@@ -150,7 +145,7 @@ function onModelQueryKeydown(e) {
       <div>
         <button
           style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
-          on:click={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
+          onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
           {m.name}
         </button>
       </div>
@@ -160,14 +155,14 @@ function onModelQueryKeydown(e) {
     <input
       class="w100"
       bind:value={modelQuery}
-      on:keydown={onModelQueryKeydown}
+      onkeydown={onModelQueryKeydown}
       placeholder="Search model..."
     />
     <div class="current-model">
       <button
         class="star-button"
         title="Add model to favorites"
-        on:click={() => {
+        onclick={() => {
           favoriteModels.toggle({api: model.api, id: model.id, name: model.name})
         }}>
         {$favoriteModels.some(f => f.id === model.id && f.api === model.api) ? '★' : '☆'}
@@ -178,7 +173,7 @@ function onModelQueryKeydown(e) {
   <div class="model-options-container">
     <div class="model-options">
       {#each visibleModels as m}
-        <button class:model-selected={model.api === m.api && model.id == m.id} on:click={() => {model = m}}>
+        <button class:model-selected={model.api === m.api && model.id == m.id} onclick={() => {model = m}}>
           {m.name}
         </button>
       {/each}

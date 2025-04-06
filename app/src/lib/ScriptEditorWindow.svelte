@@ -1,14 +1,13 @@
 <script>
-import { onMount } from 'svelte'
+import { onMount, untrack } from 'svelte'
 import { db } from '../db.js'
 import windowsStore from './windowsStore.js'
 import { notifyDbScripts } from '../utils.js'
 
-export let windowId
-export let id
+let { windowId, id } = $props()
 
-let script
-let isLoading = true
+let script = $state()
+let isLoading = $state(true)
 
 function getWindowTitle() {
   if (!script) return ''
@@ -17,7 +16,6 @@ function getWindowTitle() {
 }
 
 async function loadScript() {
-  isLoading = true
   const loadedScript = await (await db).get('scripts', id)
   if (loadedScript) {
     script = loadedScript
@@ -43,8 +41,7 @@ function toggleGlobalEnabled() {
 
 async function _saveScript() {
   console.log('saving script', script.id)
-  const dbInstance = await db
-  const tx = dbInstance.transaction('scripts', 'readwrite')
+  const tx = (await db).transaction('scripts', 'readwrite')
   const store = tx.objectStore('scripts')
   const loadedScript = await store.get(id)
   loadedScript.name = script.name
@@ -60,11 +57,20 @@ function scheduleSave(t=250) {
   if (saveTimeoutId !== null) { clearTimeout(saveTimeoutId) }
   saveTimeoutId = setTimeout(_saveScript, t)
 }
-$: {
-  script
-  windowsStore.updateById(windowId, {title: getWindowTitle()})
+$effect(() => {
+  if (isLoading) return
+  script.name
+  script.scriptChainProcess
+  script.sessionId
+  script.enabled
   scheduleSave()
-}
+})
+
+$effect(() => {
+  const newTitle = getWindowTitle()
+  // TODO: circular dependency? probably can bind instead of this??
+  untrack(() => windowsStore.updateById(windowId, {title: newTitle}))
+})
 
 async function deleteScript(event) {
   event.preventDefault()
@@ -85,9 +91,9 @@ async function deleteScript(event) {
       placeholder="Script Name"
     />
     {#if script.sessionId}
-      <button on:click="{convertToGlobal}" title="convert to global">make global</button>
+      <button onclick={convertToGlobal} title="convert to global">make global</button>
     {/if}
-    <button on:click="{deleteScript}" title="delete script (hold shift)">delete</button>
+    <button onclick={deleteScript} title="delete script (hold shift)">delete</button>
   </div>
   {#if !script.sessionId}
     <div>
@@ -96,7 +102,7 @@ async function deleteScript(event) {
         type="checkbox"
         checked={script.enabled}
         style="margin-left: 5px;"
-        on:change={toggleGlobalEnabled}
+        onchange={toggleGlobalEnabled}
       />
       <label for={`${windowId}-${script.id}-enabled`}>auto-enable for new sessions</label>
     </div>

@@ -1,6 +1,7 @@
 <script>
 import { onMount, onDestroy } from 'svelte'
-let ref
+let { children } = $props()
+let ref = $state()
 let portal
 
 onMount(() => {
@@ -17,6 +18,6 @@ onDestroy(() => {
 
 <div class="portal-clone" style="display: none;">
   <div bind:this={ref}>
-    <slot></slot>
+    {@render children?.()}
   </div>
 </div>

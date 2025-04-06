@@ -2,40 +2,41 @@
 import SessionPage from './SessionPage.svelte'
 import Settings from './Settings.svelte'
 import WindowManager from './lib/WindowManager.svelte'
-import windowsStore from './lib/windowsStore'
 import { genSessionId } from './utils.js'
 import { themeStore } from './themeStore.js'
 import Welcome from './Welcome.svelte'
 import { writable, get } from 'svelte/store'
 
-let hash = window.location.hash.slice(1)
+let hash = $state(window.location.hash.slice(1))
 
 window.addEventListener('popstate', () => {
   window.scrollTo(0, 0)
   hash = window.location.hash.slice(1)
 })
 
-let page
-let props = {}
+$effect(() => {
+  if (!hash) {
+    hash = genSessionId()
+    history.replaceState(null, '', '#' + hash)
+  } else if (hash.indexOf('?answer=') === 0) {
+    hash = `${genSessionId()}${hash}`
+    history.replaceState(null, '', '#' + hash)
+  }
+})
 
-$: {
+let {page, props} = $derived.by(() => {
+  let page = ''
+  let props = {}
   let params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
   if (hash === 'settings') {
     page = 'settings'
   } else {
     page = 'session'
-    if (!hash) {
-      hash = genSessionId()
-      history.replaceState(null, '', '#' + hash)
-    } else if (hash.indexOf('?answer=') === 0) {
-      hash = `${genSessionId()}${hash}`
-      params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
-      history.replaceState(null, '', '#' + hash)
-    }
     props = {sessionId: hash.split('?')[0], autoReply: params.answer}
   }
   console.log('page', hash, page, props, params)
-}
+  return {page, props}
+})
 
 const themeOptions = ['light', 'dark', 'system']
 const storedTheme = localStorage.getItem('theme') || 'system'
@@ -96,7 +97,7 @@ updateTheme()
 {/if}
 
 <div class="header">
-  <!-- svelte-ignore a11y-invalid-attribute -->
+  <!-- svelte-ignore a11y_invalid_attribute -->
   <div class="home"><a href="#" class="no-vs">Eimi</a></div>
   <div class='ml-auto'></div>
   <div class="settings">
@@ -124,7 +125,7 @@ updateTheme()
 </div>
 
 <Welcome/>
-<WindowManager store={windowsStore}/>
+<WindowManager/>
 
 <style>
 :global(html, body) {

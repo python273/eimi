@@ -3,22 +3,23 @@ import { db } from './db.js'
 import DEFAULT_CONFIG from "./default_config.json"
 import { refreshConfig } from './config.js'
 
-let config = localStorage["cfg-config-user"] || ""
-let valid = false
-$: {
+let config = $state(localStorage["cfg-config-user"] || "")
+let valid = $derived.by(() => {
   try {
     JSON.parse(config)
-    valid = true
+    return true
   } catch {
-    valid = false
+    return false
   }
+})
+$effect(() => {
   if (valid) {
     localStorage["cfg-config-user"] = config
     refreshConfig()
   }
-}
+})
 
-let importFileInput
+let importFileInput = $state()
 
 async function exportSessionsToFile() {
   const tx = (await db).transaction(['sessions', 'scripts'], 'readonly')
@@ -90,7 +91,10 @@ function importSessionsFromFile(e) {
   <div>
     <label for="config">Config Base</label><br/>
     <details>
-      <textarea id="config" value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)} style="width: 60ch; height: 300px;" disabled/>
+      <textarea
+        id="config"
+        value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)}
+        style="width: 60ch; height: 300px;" disabled></textarea>
     </details>
   </div>
   <div>
@@ -100,12 +104,12 @@ function importSessionsFromFile(e) {
       bind:value={config}
       style="width: 60ch; height: 300px;"
       class:invalid={!valid}
-    />
+    ></textarea>
   </div>
   <hr/>
   <div>
     <button
-      on:click={(e) => {
+      onclick={(e) => {
         e.preventDefault()
         exportSessionsToFile()
       }}
@@ -115,7 +119,7 @@ function importSessionsFromFile(e) {
   <div>
     <label for="import-sessions-file">Import sessions from a file (deletes existing data)</label><br/>
     <input bind:this={importFileInput} id="import-sessions-file" type="file" accept=".json"/>
-    <button on:click={importSessionsFromFile}>Import</button>
+    <button onclick={importSessionsFromFile}>Import</button>
   </div>
   <hr/>
   <div>

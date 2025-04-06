@@ -7,13 +7,10 @@
 import { onMount, tick } from 'svelte'
 const inputId = Math.random().toString(36)
 
-export let value = ''
-export let obj
-export let onUpdate
-export let generating
+let {value = '', message = $bindable(), generating} = $props()
 
-let el
-let elParent
+let el = $state()
+let elParent = $state()
 
 onMount(() => {
   elParent.style.height = `auto`
@@ -21,7 +18,7 @@ onMount(() => {
   el.style.height = `${el.scrollHeight}px`
 })
 
-async function valueChanged(value) {
+async function valueChanged() {
   if (!el) await tick()
   if (!el) return
   if (el.value === value) return
@@ -33,7 +30,7 @@ async function valueChanged(value) {
   el.setSelectionRange(start, end, direction)
 }
 
-async function autoresize(value) {
+async function autoresize() {
   await tick()
   if (!el) return
 
@@ -46,28 +43,28 @@ async function autoresize(value) {
 
   elParent.style.height = 'auto'
 }
-$: {
-  valueChanged(value)
-  autoresize(value)
-}
+$effect.pre(() => {
+  value
+  valueChanged()
+  autoresize()
+})
 
 function onInput(event) {
   value = el.value
-  obj.content = el.value
-  onUpdate(obj)
+  message.content = el.value
 }
 </script>
 
 <div bind:this={elParent}>
-<textarea
-  bind:this={el}
-  id={`ta-${inputId}`}
-  spellcheck={!generating}
-  autocomplete="off"
-  placeholder="..."
-  rows="1"
-  on:input={onInput}
-></textarea>
+  <textarea
+    bind:this={el}
+    id={`ta-${inputId}`}
+    spellcheck={!generating}
+    autocomplete="off"
+    placeholder="..."
+    rows="1"
+    oninput={onInput}
+  ></textarea>
 </div>
 
 <style>
@@ -76,10 +73,10 @@ div {
 }
 /* check changes to style don't trigger scroll flash on typing! */
 textarea {
-  line-height: 1.188em;
+  line-height: 1.2em;
   padding: 0 0.2em;
   margin: 0;
-  border-radius: 0;
+  border-radius: 2px;
   color: var(--text-color);
   display: block;
   width: 100%;

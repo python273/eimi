@@ -3,7 +3,8 @@ import { tick, onDestroy, onMount } from 'svelte'
 import CustomInput from './lib/CustomInput.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
-  uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction
+  uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction,
+  relationalToLinear
 } from './utils.js'
 import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
@@ -11,18 +12,19 @@ import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
 import { CONFIG } from './config'
 import SessionHotkeys from './SessionHotkeys.svelte'
-import { favoriteModels } from './lib/favoriteModelsStore';
+import { favoriteModels } from './lib/favoriteModelsStore'
 
-export let sessionId
-export let autoReply
+let props = $props()
+const sessionId = props.sessionId  // https://github.com/sveltejs/svelte/issues/15697
+let autoReply = props.autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
 
-const U = 'user'
-const A = 'assistant'
-const S = 'system'
+const USER = 'user'
+const ASSISTANT = 'assistant'
+const SYSTEM = 'system'
 
-let sessionLoaded = false
-let sessionData
+let sessionLoaded = $state(false)
+let sessionData = $state()
 /**
  * @type {Array<{
  *   id: string,
@@ -38,29 +40,28 @@ let sessionData
  *   generating?: boolean,
  *   promptTokens?: number,
  *   completionTokens?: number,
- *   cropped?: number,
  *   aborter?: AbortController,
  * }>}
  */
-let data // TODO: probably should be a store to share it nicely
+let messages = $state([])
 
 let stopSaving = false
 let isNewSession = false
 async function saveSession(sessionId) {
   if (stopSaving) return
-  const savedMessages = data.map(
+  if (!sessionLoaded) return
+  if (isNewSession && messages.length === 1 && messages[0].content === '') {
+    return
+  }
+  const obj = {...$state.snapshot(sessionData), messages: messages.map(
     ({id, createdAt, parentId, role, content, markdown}) => ({
       id, createdAt, parentId, role, content, markdown
     })
-  )
-  if (isNewSession && savedMessages.length === 1 && savedMessages[0].content === '') {
-    return
-  }
-  const obj = {...sessionData, messages: savedMessages}
+  )}
   await (await db).put('sessionMeta', {
     id: sessionId,
-    title: sessionData.title,
-    createdAt: sessionData.createdAt,
+    title: obj.title,
+    createdAt: obj.createdAt,
   })
   await (await db).put('sessions', obj, sessionId)
   if (isNewSession) {
@@ -70,13 +71,11 @@ async function saveSession(sessionId) {
   console.log('saved', sessionId)
 }
 onDestroy(async () => {
-  if (!data) return
-  for (const item of data) {
-    if (item.aborter !== undefined) {
-      item.aborter.abort()
-    }
+  for (const i of messages) {
+    i.aborter?.abort()
   }
   await saveSession(sessionId)
+  stopSaving = true
 })
 async function deleteSession() {
   stopSaving = true
@@ -109,16 +108,15 @@ async function loadSession() {
         top_p: 1.0,
         frequency_penalty: 0,
         presence_penalty: 0
-      },
-      messages: [{
-        id: uniqueId(),
-        createdAt: new Date().valueOf(),
-        parentId: null,
-        role: U,
-        content: ''
-      }]
+      }
     }
-    data = sessionData.messages
+    messages = relationalToLinear([{
+      id: uniqueId(),
+      createdAt: new Date().valueOf(),
+      parentId: null,
+      role: USER,
+      content: ''
+    }])
     sessionLoaded = true
 
     if (autoReply) {
@@ -127,7 +125,7 @@ async function loadSession() {
         i => (i.api === modelsFav.api && i.id === modelsFav.id)
       )[0]
 
-      sessionData.messages[0].content = autoReply
+      messages[0].content = autoReply
       sessionData.parameters = {
         ...sessionData.parameters,
         _api: modelDefault.api,
@@ -135,7 +133,7 @@ async function loadSession() {
         max_tokens: modelDefault.max_tokens,
       }
       autoReply = undefined
-      _genResponse(data[0])
+      _genResponse(messages[0])
     }
     return
   }
@@ -143,8 +141,9 @@ async function loadSession() {
   obj.title = meta.title
   obj.createdAt = meta.createdAt
   if (!obj.parameters) { obj.parameters = {} }
-  sessionData = obj
-  data = obj.messages
+  const {messages: loadedMessages, ...rest} = obj
+  sessionData = rest
+  messages = relationalToLinear(loadedMessages)
   sessionLoaded = true
 }
 onMount(() => {
@@ -160,91 +159,38 @@ async function _saveSession() {
 function scheduleSave(t = 500) {
   if (saveTimeoutId !== null) clearTimeout(saveTimeoutId)
   if ((Date.now() - lastSaveTime) >= 2000) {
-    _saveSession()
-  } else {
-    saveTimeoutId = setTimeout(_saveSession, t)
+    t = 0
   }
+  saveTimeoutId = setTimeout(_saveSession, t)
 }
 
-$: {
-  window._sessionData = sessionData
-  if (data && data.length) {
-    data = relationalToLinear(data)
-    scheduleSave()
+$effect(() => {
+  window._sessionInfo = sessionData
+  if (sessionData) {
     document.title = `${sessionData.title} - Eimi LLM UI`
   }
-}
-
-function relationalToLinear(data) {
-  // accepts list of objects with id, parentId
-  // returns a linear list, each items has `depth`
-  // if there's a sub-thread, where each item has a single reply
-  // it should be displayed linearly (without adding depth)
-  // so besides `depth`, there should be `ddepth` (display depth)
-
-  const replies = {}  // {parentId: [item, ...]}
-  for (const item of data) {
-    if (item.parentId === null) { continue }
-    if (replies[item.parentId] === undefined) {
-      replies[item.parentId] = []
-    }
-    replies[item.parentId].push(item)
+})
+$effect(() => {
+  for (let i of messages) {  // TODO: is there a better way?
+    i.role
+    i.content
+    i.markdown
   }
-
-  const out = []
-
-  function _pushItemWithReplies(item) {
-    out.push(item)
-    if (replies[item.id] === undefined) {
-      item.lastInChain = true
-      return
-    }
-    item.lastInChain = undefined
-
-    const children = replies[item.id]
-    if (children.length === 1) {
-      item.linear = true
-      const a = children[0]
-      a.depth = item.depth + 1
-      a.ddepth = item.ddepth  // no padding
-      a.linear = true
-      _pushItemWithReplies(a)
-    } else {
-      item.linear = undefined
-      for (const a of children) {
-        a.depth = item.depth + 1
-        a.ddepth = item.ddepth + 1
-        _pushItemWithReplies(a)
-      }
-    }
-  }
-
-  for (const item of data) {  // finding genesis
-    if (item.parentId !== null) { continue }
-    item.depth = 0
-    item.ddepth = 0
-    _pushItemWithReplies(item)
-  }
-
-  return out
-}
+  window._sessionMessages = messages
+  scheduleSave()
+})
 
 function getMessageFromEvent(event) {
   const el = event.target.closest('.message')
   if (!el) { return }
   const id = el.dataset.id
-  return data.find(i => i.id === id)
+  return messages.find(i => i.id === id)
 }
 
-function getChain(message, regenerate=false) {
-  const chain = []
-  if (!regenerate) { chain.push(message) }
-  let it = message
-  while (true) {
-    const parent = data.find(i => i.id === it.parentId)
-    if (parent === undefined) { break }
-    chain.unshift(parent)
-    it = parent
+function getChain(message, regenerate = false) {
+  const chain = regenerate ? [] : [message]
+  while (message = messages.find(p => p.id === message.parentId)) {
+    chain.unshift(message)
   }
   return chain
 }
@@ -255,7 +201,9 @@ async function genResponse(event, regenerate=false) {
   _genResponse(message, regenerate)
 }
 async function _genResponse(message, regenerate=false) {
-  console.log('genResponse', message, regenerate, sessionData.parameters)
+  console.log(
+    'genResponse', $state.snapshot(message), regenerate,
+    $state.snapshot(sessionData.parameters))
   const apiData = CONFIG.apis[sessionData.parameters._api]
   if (!apiData.token) {
     alert(`Add token in settings for "${sessionData.parameters._api}"`)
@@ -268,24 +216,24 @@ async function _genResponse(message, regenerate=false) {
 
   let newMessage
   if (!regenerate) {
-    newMessage = {
+    messages.unshift({
       id: uniqueId(),
       createdAt: new Date().valueOf(),
       parentId: message.id,
-      role: A,
+      role: ASSISTANT,
       content: '',
       generating: true,
       markdown: true,
-    }
-    data.unshift(newMessage)
+    })
+    newMessage = messages[0]  // get msg with Svelte proxy
+    messages = relationalToLinear(messages)
   } else {
     newMessage = message
+    newMessage.content = ''
+    newMessage.generating = true
+    newMessage.promptTokens = undefined
+    newMessage.completionTokens = undefined
   }
-  newMessage.content = ''
-  newMessage.generating = true
-  newMessage.promptTokens = undefined
-  newMessage.completionTokens = undefined
-  data = data
   await tick()
 
   let chain = getChain(message, regenerate)
@@ -340,7 +288,6 @@ async function _genResponse(message, regenerate=false) {
           newMessage.completionTokens = chunk.usage.completion_tokens
         }
       }
-      data = data
     }
   } catch (e) {
     if (e.name === 'AbortError') return
@@ -348,7 +295,6 @@ async function _genResponse(message, regenerate=false) {
     console.error(e)
   }
   newMessage.generating = false
-  data = data
 }
 
 async function onCreateMessage(event) {
@@ -359,53 +305,48 @@ async function onCreateMessage(event) {
     id: uniqueId(),
     createdAt: new Date().valueOf(),
     parentId: parentMsg ? parentMsg.id : null,
-    role: parentMsg ? (parentMsg.role === U ? A : U) : U,
+    role: parentMsg ? (parentMsg.role === USER ? ASSISTANT : USER) : USER,
     content: '',
   }
   if (parentMsg) {
-    data.unshift(newMessage)
+    messages.unshift(newMessage)
   } else {
-    data.push(newMessage)
+    messages.push(newMessage)
   }
-  data = data
+  messages = relationalToLinear(messages)
   await tick()
   const newEl = document.getElementById(`m_${newMessage.id}`)
   newEl.querySelector('textarea').focus()
 }
 
 async function onRoleChange(event) {
-  const item = getMessageFromEvent(event)
-  item.role = event.target.value
-  scheduleSave(0)
+  const msg = getMessageFromEvent(event)
+  msg.role = event.target.value
+  scheduleSave()
 }
 
 async function deleteMessage(event) {
   event.preventDefault()
-  const item = getMessageFromEvent(event)
+  const msg = getMessageFromEvent(event)
   if (!event.shiftKey && !confirm('Delete message?')) return
 
-  const idsToDelete = [item.id]
-  function _addChildren(item) {
-    const children = data.filter(i => i.parentId === item.id)
+  const idsToDelete = [msg.id]
+  function _addChildren(msg) {
+    const children = messages.filter(i => i.parentId === msg.id)
     for (const child of children) {
       idsToDelete.push(child.id)
       _addChildren(child)
     }
   }
-  _addChildren(item)
+  _addChildren(msg)
 
-  data = data.filter(i => !idsToDelete.includes(i.id))
+  messages = relationalToLinear(messages.filter(i => !idsToDelete.includes(i.id)))
   scheduleSave(0)
 }
 
-async function onMessagesUpdate() {
-  data = data
-  scheduleSave()
-}
-
-function onParametersUpdate(data) {
-  console.log('Params:', data)
-  sessionData.parameters = data
+function onParametersUpdate(newParameters) {
+  console.log('Params:', newParameters)
+  sessionData.parameters = newParameters
   scheduleSave()
 }
 
@@ -433,14 +374,14 @@ async function onDelete(event) {
   window.location.hash = ''
 }
 
-let loadedPlugins = window.eimiPlugins || []
+let loadedPlugins = $state(window.eimiPlugins || [])
 function updateLoadedPlugins() {
   loadedPlugins = window.eimiPlugins || []
 }
 onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
 onDestroy(() => { window.updateLoadedPlugins = null })
 
-let scripts = []
+let scripts = $state([])
 async function loadScripts() {
   const all = await (await db).getAll('scripts')
   let newScripts = all
@@ -452,36 +393,36 @@ loadScripts()
 subDbScripts(loadScripts)
 </script>
 
-{#if !sessionLoaded}<div style="height: 20000px;"></div> <!-- scroll restoration -->{/if}
-
-{#if sessionLoaded}
+{#if !sessionLoaded}
+<div style="height: 50000px;"></div> <!-- scroll restoration -->
+{:else}
 <Parameters
-  sessionId="{sessionId}"
-  parameters="{sessionData.parameters}"
-  scripts={scripts}
-  onUpdate="{onParametersUpdate}"
+  {sessionId}
+  parameters={sessionData.parameters}
+  {scripts}
+  onUpdate={onParametersUpdate}
 />
 
 <div>
-  <input class="title-input" value={sessionData.title} on:input="{onTitleUpdate}" />
-  <button on:click="{onDup}" title="make a copy of this session">dup</button>
-  <button on:click="{onDelete}" title="delete session (hold shift)">delete</button>
+  <input class="title-input" value={sessionData.title} oninput={onTitleUpdate} />
+  <button onclick={onDup} title="make a copy of this session">dup</button>
+  <button onclick={onDelete} title="delete session (hold shift)">delete</button>
 </div>
-<SessionHotkeys {data} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage}/>
+<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage}/>
 
 <div class="messages">
-{#each data as c, i (c.id)}
+{#each messages as c, i (c.id)}
   <div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
     <div class="flex">
       {#each {length: c.ddepth} as _}<div class='pad'></div>{/each}
       <div>
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div class="message-content" class:generating="{c.generating}" tabindex="0">
           <div class="message-header">
-            <select class="role" value={c.role} on:change="{onRoleChange}">
-              <option value={A}>{A}</option>
-              <option value={U}>{U}</option>
-              <option value={S}>{S}</option>
+            <select class="role" value={c.role} onchange={onRoleChange}>
+              <option value={ASSISTANT}>{ASSISTANT}</option>
+              <option value={USER}>{USER}</option>
+              <option value={SYSTEM}>{SYSTEM}</option>
             </select>
             <input type="checkbox" bind:checked={c.markdown} style="height: 0.85em;" title="Render Markdown"/>
             {#if c.promptTokens !== undefined}
@@ -490,36 +431,32 @@ subDbScripts(loadScripts)
             {#if c.completionTokens !== undefined}
               <div class="meta-gray mono pre" title="Completion tokens">{String(c.completionTokens).padStart(5, ' ')}</div>
             {/if}
-            {#if c.cropped !== undefined && c.cropped > 0}
-              <div class="meta-gray" title="Cropped messages">(M-{c.cropped})</div>
-            {/if}
             <div class="ml-auto"></div>
 
             {#each loadedPlugins as plugin}
-              <button on:click="{async (e) => {
+              <button onclick={async (e) => {
                 if (plugin.onClick?.constructor.name === 'AsyncFunction') {
                   await plugin.onClick(e, c)
                 } else {
                   plugin.onClick?.(e, c)
                 }
-                data = data
-              }}">{plugin.name}</button>
+              }}>{plugin.name}</button>
             {/each}
 
             {#if hasCodeBlocks(c.content)}
               <button
-                on:click="{(e) => {
+                onclick={(e) => {
                   e.preventDefault()
                   createJsWindow(c)
-                }}"
+                }}
                 title="run HTML / JavaScript">JS</button>
             {/if}
-            <button on:click="{deleteMessage}" title="delete this message and replies (hold shift)">x</button>
-            {#if c.role === A}
-              <button on:click="{(e) => genResponse(e, true)}" title="regenerate this message">regen</button>
+            <button onclick={deleteMessage} title="delete this message and replies (hold shift)">x</button>
+            {#if c.role === ASSISTANT}
+              <button onclick={(e) => genResponse(e, true)} title="regenerate this message">regen</button>
             {/if}
-            <button on:click="{genResponse}" title="generate a response (ctrl+enter)">gen</button>
-            <button on:click="{onCreateMessage}" title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
+            <button onclick={genResponse} title="generate a response (ctrl+enter)">gen</button>
+            <button onclick={onCreateMessage} title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
           </div>
           {#if c.markdown}
             <MarkdownRenderer generating={c.generating} content={c.content}/>
@@ -527,8 +464,7 @@ subDbScripts(loadScripts)
             <CustomInput
               generating={c.generating}
               value={c.content}
-              obj={c}
-              onUpdate="{onMessagesUpdate}"
+              bind:message={messages[i]}
             />
           {/if}
         </div>
@@ -539,7 +475,7 @@ subDbScripts(loadScripts)
   </div>
 {/each}
 </div>
-<button class="create-top-msg-btn" on:click={onCreateMessage} title="create top level message">＋&#xFE0E;</button>
+<button class="create-top-msg-btn" onclick={onCreateMessage} title="create top level message">＋&#xFE0E;</button>
 {/if}
 
 <style>

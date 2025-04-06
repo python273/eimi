@@ -1,19 +1,15 @@
 <script>
-import { onMount, onDestroy } from 'svelte'
+import { onMount, onDestroy, tick } from 'svelte'
 
-export let data
-export let genResponse
-export let onCreateMessage
-export let getMessageFromEvent
-export let deleteMessage
+let {messages, genResponse, onCreateMessage, getMessageFromEvent, deleteMessage} = $props()
 
-let show = false
+let show = $state(false)
 
 function toggleHelpDialog() {
   show = !show
 }
 
-function onKeyDown(event) {
+async function onKeyDown(event) {
   if (event.key === '?' && !event.target.matches('input, textarea')) {
     event.preventDefault()
     toggleHelpDialog()
@@ -54,22 +50,22 @@ function onKeyDown(event) {
     return genResponse(event, true)
   } else if (event.key === 'x' || event.key === 'X') {
     event.preventDefault()
-    let i = data.findIndex(i => i.id == item.id) - 1
+    let i = messages.findIndex(i => i.id == item.id) - 1
     deleteMessage(event)
     if (i < 0) return
-    document.getElementById(`m_${data[i].id}`)
+    document.getElementById(`m_${messages[i].id}`)
       ?.querySelector('.message-content')
       ?.focus({focusVisible: true})
   } else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
     event.preventDefault()
     let i
     if (event.key === 'p') {
-      i = data.findIndex(i => i.id == item.parentId)
+      i = messages.findIndex(i => i.id == item.parentId)
     } else {
-      i = data.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1)
+      i = messages.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1)
     }
-    if (i < 0 || i >= data.length) return
-    const el = document.getElementById(`m_${data[i].id}`)
+    if (i < 0 || i >= messages.length) return
+    const el = document.getElementById(`m_${messages[i].id}`)
       ?.querySelector('.message-content')
     if (!el) return
 
@@ -79,6 +75,8 @@ function onKeyDown(event) {
     el.focus({preventScroll: true, focusVisible: true})
   } else if (event.key === 'A') {
     event.preventDefault()
+    item.markdown = false
+    await tick()
     const textarea = event.target.querySelector('textarea')
     if (textarea) {
       textarea.focus()
@@ -103,17 +101,19 @@ onDestroy(() => {
   document.removeEventListener('keydown', onKeyDown)
 })
 
-let dialogElement
-$: if (show && dialogElement) {
-  dialogElement.showModal()
-} else if (dialogElement) {
-  dialogElement.close()
-}
+let dialogElement = $state()
+$effect(() => {
+  if (show && dialogElement) {
+    dialogElement.showModal()
+  } else if (dialogElement) {
+    dialogElement.close()
+  }
+})
 </script>
 
 {#if show}
-  <dialog bind:this={dialogElement} on:close={() => show = false}>
-    <button class="close-btn" on:click={() => show = false} type="button">×</button>
+  <dialog bind:this={dialogElement} onclose={() => show = false}>
+    <button class="close-btn" onclick={() => show = false} type="button">×</button>
     <h2>Keyboard Shortcuts</h2>
     <hr/>
     

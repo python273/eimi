@@ -1,6 +1,7 @@
 import './global.css'
 import App from './App.svelte'
 import { refreshConfig } from './config'
+import { mount } from "svelte"
 
 window.addEventListener('unload', function() {})
 window.addEventListener('beforeunload', function() {})
@@ -36,8 +37,9 @@ if (localStorage.getItem('cfg-config-user') === null) {
   }
 
   localStorage['cfg-config-user'] = JSON.stringify(userConfig, undefined, 2)
+  localStorage.removeItem('cfg-config')
   refreshConfig()
 }
 
-const app = new App({target: document.getElementById('app')})
+const app = mount(App, {target: document.getElementById('app')})
 export default app

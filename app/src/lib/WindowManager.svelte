@@ -1,9 +1,10 @@
 <script>
 import { onMount } from "svelte"
+import store from './windowsStore'
 import Portal from "./Portal.svelte"
 
-export let store
-const instances = {}
+const instances = $state({})
+const resizeObservers = {}
 
 let isDragging = false
 let previousX = 0
@@ -15,6 +16,10 @@ let windowLastZIndex = 9999
 const getElById = (i) => `window-${i}`
 
 function closeWindow(id) {
+  if (resizeObservers[id]) {
+    resizeObservers[id].disconnect()
+    delete resizeObservers[id]
+  }
   store.update((windows) => windows.filter((w) => w.id !== id))
 }
 
@@ -76,6 +81,17 @@ function handleMouseMove(event) {
   store.updateById(draggingWindowId, {left: newLeft, top: newTop})
 }
 
+function setupResizeObserver(node, id) {
+  if (resizeObservers[id]) {
+    resizeObservers[id].disconnect()
+  }
+  const observer = new ResizeObserver(entries => {
+    store.updateById(id, {width: node.offsetWidth, height: node.offsetHeight})
+  })
+  observer.observe(node)
+  resizeObservers[id] = observer
+}
+
 onMount(() => {
   document.addEventListener("mousemove", handleMouseMove)
   document.addEventListener("mouseup", handleMouseUp)
@@ -83,35 +99,36 @@ onMount(() => {
   return () => {
     document.removeEventListener("mousemove", handleMouseMove)
     document.removeEventListener("mouseup", handleMouseUp)
+    Object.values(resizeObservers).forEach(observer => observer.disconnect())
   }
 })
 </script>
 
 <Portal>
   {#each $store as w (w.id)}
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       id={getElById(w.id)}
       class="window"
-      on:mousedown={() => updateZIndex(w.id)}
-      style="left: {w.left}px; top: {w.top}px;"
+      onmousedown={() => updateZIndex(w.id)}
+      style="left: {w.left}px; top: {w.top}px; width: {w.width}px; height: {w.height}px;"
+      use:setupResizeObserver={w.id}
     >
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="header"
-        on:mousedown={(e) => handleMouseDown(e, w.id)}
+        onmousedown={(e) => handleMouseDown(e, w.id)}
       >
-        <button on:click={() => closeWindow(w.id)}>×</button>
+        <button onclick={() => closeWindow(w.id)}>×</button>
         {#each w.buttons as button}
-          <button on:click={instances[w.id][button.methodName]}>
+          <button onclick={instances[w.id][button.methodName]}>
             {button.label}
           </button>
         {/each}
         {w.title}
       </div>
-      <svelte:component
-        this={w.component}
-        bind:this={instances[w.id]}
+      <w.component
+        bind:this={() => instances[w.id], (v) => instances[w.id] = v /* https://github.com/sveltejs/svelte/issues/15698 */}
         windowId={w.id}
         {...w.data}
       />
@@ -129,8 +146,6 @@ onMount(() => {
   flex-direction: column;
   resize: both;
   overflow: auto;
-  width: 512px;
-  height: 512px;
   border: 1px solid var(--text-color);
   border-radius: 5px;
   box-shadow: 0px 1px 6px #00000047;

@@ -5,9 +5,8 @@ import { getCode } from './jsService'
 import { themeStore } from '../themeStore'
 import { get } from 'svelte/store'
 
-export let windowId
-export let comment
-let contentWindow
+let { windowId, comment } = $props()
+let contentWindow = null
 
 let {mode, code} = getCode(comment)
 
@@ -26,9 +25,9 @@ function handleIframeLoad(event) {
   contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*")
 }
 
-$: {
+$effect(() => {
   contentWindow && contentWindow.postMessage({dark: $themeStore}, "*")
-}
+})
 
 onDestroy(() => {
   for (const handler of cleanupWindowHandlers) {
@@ -83,7 +82,7 @@ const url = URL.createObjectURL(blob);
 */
 const url = "https://empty-iframe.p273.workers.dev/"  // for origin isolation
 
-let show = true
+let show = $state(true)
 
 export async function refresh() {
   console.log(comment)
@@ -101,7 +100,7 @@ export async function pasteHtml(event) {  // userscript
 </script>
 
 {#if show}
-  <iframe title="" src={url} on:load={(e) => handleIframeLoad(e)}></iframe>
+  <iframe title="" src={url} onload={(e) => handleIframeLoad(e)}></iframe>
 {/if}
 
 <style>

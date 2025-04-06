@@ -6,10 +6,10 @@ const { subscribe, update } = writable([])
 const windowsStore = {
   subscribe,
   update,
-  add: ({component, data, title='', left=8, top=8, buttons=[]}) => {
+  add: ({component, data, title='', left=8, top=8, width=512, height=512, buttons=[]}) => {
     update(windows => {
       windows.push({
-        id: genTabUniqueIntId(), title, component, data, left, top, buttons
+        id: genTabUniqueIntId(), title, component, data, left, top, width, height, buttons
       })
       return windows
     })

@@ -2,10 +2,9 @@
 import { marked } from 'marked'
 import { onMount } from "svelte"
 
-export let content = ""
-export let generating = false
-let element
-let currentContent = ""
+let { content = "", generating = false } = $props()
+let element = $state()
+let currentContent = $state("")
 
 marked.setOptions({
   gfm: true,
@@ -26,18 +25,20 @@ function renderContent() {
   currentContent = content
 }
 
-$: if (element && content !== currentContent) {
-  renderContent()
-}
-
-$: if (!generating && element && content) {
-  renderContent()
-}
-
-onMount(() => {
-  if (content) {
+$effect(() => {
+  if (element) {
     renderContent()
   }
+})
+
+$effect(() => {
+  if (!generating && element) {
+    renderContent()
+  }
+})
+
+onMount(() => {
+  renderContent()
 })
 </script>
 

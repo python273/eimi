@@ -62,3 +62,44 @@ export function escapeRegExp(string) {
 }
 
 export const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor
+
+
+/**
+ * Transforms a relational thread structure into a linear list with depth information.
+ * 
+ * @param {Array} data - Array of objects, each with id and parentId properties
+ * @returns {Array} Ordered list of items with added properties:
+ *   - depth: Actual nesting level in the thread hierarchy
+ *   - ddepth: Display depth (for UI rendering) which collapses single-reply chains
+ *   - lastInChain: True if no replies
+ *   - linear: True if the item is part of a single-reply chain
+ * 
+ * Single-reply chains are flattened in the display depth (ddepth remains the same)
+ * while maintaining the logical depth, allowing for more compact thread visualization.
+ */
+export function relationalToLinear(data) {
+  const replies = {null: []}  // {parentId: [item, ...]}
+  for (const item of data) {
+    (replies[item.parentId] = replies[item.parentId] || []).push(item)
+  }
+
+  const out = []
+
+  function _pushItemWithReplies(item, depth, ddepth) {
+    const children = replies[item.id] || []
+    item.depth = depth
+    item.ddepth = ddepth
+    item.lastInChain = children.length === 0
+    item.linear = children.length === 1
+    out.push(item)
+    for (const i of children) {
+      _pushItemWithReplies(i, depth + 1, item.linear ? ddepth : ddepth + 1)
+    }
+  }
+
+  for (const item of replies[null]) {
+    _pushItemWithReplies(item, 0, 0)
+  }
+
+  return out
+}
