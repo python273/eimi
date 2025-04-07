@@ -135,6 +135,8 @@ async function loadSession() {
       autoReply = undefined
       _genResponse(messages[0])
     }
+    await tick()
+    document.getElementById(`m_${messages[0].id}`)?.querySelector('textarea')?.focus()
     return
   }
   const meta = await (await db).get('sessionMeta', sessionId)
