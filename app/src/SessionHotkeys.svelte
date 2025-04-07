@@ -3,10 +3,14 @@ import { onMount, onDestroy, tick } from 'svelte'
 
 let {messages, genResponse, onCreateMessage, getMessageFromEvent, deleteMessage} = $props()
 
+const HELP_DISMISSED_KEY = 'cfg-hotkeys-shown'
 let show = $state(false)
+let showHelpTip = $state(localStorage.getItem(HELP_DISMISSED_KEY) !== '1')
 
 function toggleHelpDialog() {
   show = !show
+  showHelpTip = false
+  localStorage.setItem(HELP_DISMISSED_KEY, '1')
 }
 
 async function onKeyDown(event) {
@@ -111,6 +115,12 @@ $effect(() => {
 })
 </script>
 
+{#if showHelpTip}
+  <div class="help-tip">
+    Press <span class="key">Shift + ?</span> for keyboard shortcuts
+  </div>
+{/if}
+
 {#if show}
   <dialog bind:this={dialogElement} onclose={() => show = false}>
     <button class="close-btn" onclick={() => show = false} type="button">×</button>
@@ -135,13 +145,17 @@ $effect(() => {
       <div><span class="key">j</span> Move to next message</div>
       <div><span class="key">k</span> Move to previous message</div>
       <div><span class="key">p</span> Jump to parent message</div>
-      <div><span class="key">Shift + R</span> Regenerate response</div>
+      <div><span class="key">Shift + R</span> Regenerate current message</div>
       <div><span class="key">x</span> or <span class="key">Shift + X</span> Delete message</div>
     </div>
   </dialog>
 {/if}
 
 <style>
+.help-tip {
+  padding: 0.5em 1em;
+}
+
 .close-btn {
   position: absolute;
   right: 1em;

@@ -522,6 +522,10 @@ subDbScripts(loadScripts)
   box-shadow: 0px 1px 6px #00000047;
 }
 
+.message-content:focus, .message-content:focus-visible {
+  outline: 1px auto;
+}
+
 .generating {
   border: 1px solid var(--brand-color);
 }
