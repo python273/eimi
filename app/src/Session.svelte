@@ -13,6 +13,7 @@ import MarkdownRenderer from './MarkdownRenderer.svelte'
 import { CONFIG } from './config'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import { favoriteModels } from './lib/favoriteModelsStore'
+import SessionFaviconChanger from './SessionFaviconChanger.svelte'
 
 let props = $props()
 const sessionId = props.sessionId  // https://github.com/sveltejs/svelte/issues/15697
@@ -396,6 +397,8 @@ subDbScripts(loadScripts)
 </script>
 
 {#if sessionLoaded}
+<SessionFaviconChanger {messages} />
+
 <Parameters
   {sessionId}
   parameters={sessionData.parameters}
