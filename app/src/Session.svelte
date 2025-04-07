@@ -393,9 +393,7 @@ loadScripts()
 subDbScripts(loadScripts)
 </script>
 
-{#if !sessionLoaded}
-<div style="height: 50000px;"></div> <!-- scroll restoration -->
-{:else}
+{#if sessionLoaded}
 <Parameters
   {sessionId}
   parameters={sessionData.parameters}
@@ -410,7 +408,7 @@ subDbScripts(loadScripts)
 </div>
 <SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage}/>
 
-<div class="messages">
+<div id="messages" class="messages">
 {#each messages as c, i (c.id)}
   <div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
     <div class="flex">
@@ -475,7 +473,14 @@ subDbScripts(loadScripts)
   </div>
 {/each}
 </div>
-<button class="create-top-msg-btn" onclick={onCreateMessage} title="create top level message">＋&#xFE0E;</button>
+<button
+  class="create-top-msg-btn"
+  onclick={onCreateMessage}
+  title="create top level message"
+  type="button">＋&#xFE0E;</button>
+{:else}
+<div id="messages" class="messages"></div>
+<div id="scroll-restoration" style="height: 50000px;"></div>
 {/if}
 
 <style>

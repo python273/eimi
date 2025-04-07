@@ -13,9 +13,10 @@ let el = $state()
 let elParent = $state()
 
 onMount(() => {
-  elParent.style.height = `auto`
+  elParent.style.height = `${el.offsetHeight}px`
   el.style.height = 0
   el.style.height = `${el.scrollHeight}px`
+  elParent.style.height = 'auto'
 })
 
 async function valueChanged() {
