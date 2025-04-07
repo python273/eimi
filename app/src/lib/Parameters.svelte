@@ -129,6 +129,7 @@ function onModelQueryKeydown(e) {
         />
         <div class="script-name">{i.name}</div>
         <div class="ml-auto"></div>
+        {#if i.sessionId}<span>⛓&#xFE0E;</span>{/if}
         <button onclick={(event) => {
           event.preventDefault()
           let { clientX: left, clientY: top } = event
