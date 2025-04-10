@@ -3,7 +3,7 @@ import { db } from "../db"
 import { notifyDbScripts, uniqueId } from "../utils"
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
 import windowsStore from "./windowsStore"
-import { CONFIG } from '../config'
+import { CONFIG, configUpdated } from '../config.svelte'
 import { favoriteModels } from './favoriteModelsStore'
 
 let {sessionId, parameters, scripts, onUpdate} = $props()
@@ -53,7 +53,7 @@ async function createScript(event) {
     enabled: false,  // global new sessions
     name: 'New Script',
     sessionId: sessionId,
-    scriptChainProcess: 'return chain;',
+    scriptChainProcess: 'console.log(request);\n// request.messages = ...',
   }
   await (await db).put('scripts', newScript)
   scriptsEnabled = [...scriptsEnabled, newScript.id]
@@ -64,10 +64,19 @@ async function createScript(event) {
   windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
 }
 
+const apisWithToken = $derived.by(() => {
+  configUpdated.i
+  return Object.values(CONFIG.apis).filter(api => api?.token).length
+})
+const modelsAvailable = $derived.by(() => {
+  configUpdated.i
+  return apisWithToken === 0 ? CONFIG.models : CONFIG.models.filter(m => CONFIG.apis[m.api]?.token)
+})
+
 let modelQuery = $state("")
 const visibleModels = $derived.by(() => {
   let re = new RegExp(modelQuery, "i")
-  return MODELS.filter(i => re.test(i.name))
+  return modelsAvailable.filter(i => re.test(i.name))
 })
 function onModelQueryKeydown(e) {
   if (e.key === 'Enter' && visibleModels.length) {
@@ -141,16 +150,18 @@ function onModelQueryKeydown(e) {
     {/each}
   </div>
   <div><hr/></div>
-  <div class="models-favorite">
-    {#each $favoriteModels as m}
-      <div>
-        <button
-          style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
-          onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
-          {m.name}
-        </button>
-      </div>
-    {/each}
+  <div>
+    <div class="models-favorite">
+      {#each $favoriteModels as m}
+        <div>
+          <button
+            style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
+            onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
+            {m.name}
+          </button>
+        </div>
+      {/each}
+    </div>
   </div>
   <div>
     <input
@@ -175,6 +186,9 @@ function onModelQueryKeydown(e) {
     <div class="model-options">
       {#each visibleModels as m}
         <button class:model-selected={model.api === m.api && model.id == m.id} onclick={() => {model = m}}>
+          {#if apisWithToken === 0 || apisWithToken > 1}
+            <span class="model-api">{m.api}:&nbsp;</span>
+          {/if}
           {m.name}
         </button>
       {/each}
@@ -187,14 +201,19 @@ function onModelQueryKeydown(e) {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5em;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 .models-favorite button {
   font-size: 0.9em;
   padding-left: 0;
+  text-align: left;
+  white-space: nowrap;
 }
 .model-options-container {
   min-height: 12em;
   overflow: auto;
+  scrollbar-width: thin;
   border: 1px solid var(--bg-color);
   border-radius: 3px;
   border: 1px solid var(--text-color);
@@ -204,6 +223,7 @@ function onModelQueryKeydown(e) {
   flex-direction: column;
   width: max-content;
   font-size: 0.75em;
+  min-width: 100%;
 }
 .model-options button {
   display: block;
@@ -214,6 +234,10 @@ function onModelQueryKeydown(e) {
 }
 .model-options button:nth-child(even) {
   background-color: var(--bg-color);
+}
+.model-api {
+  opacity: 0.6;
+  font-size: 0.8em
 }
 .model-selected {
   background-color: var(--brand-color) !important;

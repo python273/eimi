@@ -108,6 +108,10 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
         yield c.text
       } else if (c.delta?.content) {
         yield c.delta.content
+      } else if (c.delta?.reasoning) {  // OpenRouter
+        yield {thinking: c.delta.reasoning}
+      } else if (c.delta?.reasoning_content) {  // DeepSeek
+        yield {thinking: c.delta.reasoning_content}
       }
     } catch (error) {
       yield 'Err: ' + JSON.stringify(chunk)
@@ -117,8 +121,8 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
 }
 
 const ANTHROPIC_API_PARAMS = [
-  'model', 'messages', 'max_tokens', 'metadata', 'stop_sequences', 'stream',
-  'system', 'temperature', 'tool_choice', 'tools', 'top_k', 'top_p'
+  'max_tokens', 'messages', 'model', 'metadata', 'stop_sequences', 'stream',
+  'system', 'temperature', 'thinking', 'tool_choice', 'tools', 'top_k', 'top_p',
 ]
 
 async function* streamAnthropic(apiConfig, modelParams) {
@@ -216,6 +220,9 @@ async function* anthropicStreamResponse(apiConfig, modelParams) {
     }
     if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
       yield chunk.delta.text
+    }
+    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'thinking_delta') {
+      yield {thinking: chunk.delta.thinking}
     }
   }
 }
@@ -333,22 +340,17 @@ async function* googleStreamResponse(apiConfig, modelParams) {
   }
 }
 
-export function runLlmApi(data) {  // TODO: separate data into separate args
+export function runLlmApi(data) {
   const apiConfig = new ApiConfig({
+    signal: data.signal,
+    proxy: data.proxy,
     baseurl: data.baseurl,
     token: data.token,
     model: data.model,
     completion: data.completion,
-    signal: data.signal,
-    proxy: data.proxy,
   })
 
-  const modelParams = {
-    temperature: data.temperature,
-    top_p: data.top_p,
-    frequency_penalty: data.frequency_penalty,
-    presence_penalty: data.presence_penalty,
-  }
+  const modelParams = {...data.parameters}
 
   if (apiConfig.completion) {
     modelParams.prompt = data.messages.map(m => m.content).join('')
@@ -356,19 +358,11 @@ export function runLlmApi(data) {  // TODO: separate data into separate args
     modelParams.messages = data.messages
   }
 
-  if (data.max_tokens !== 0) {
-    modelParams.max_tokens = data.max_tokens
-  }
-
-  if (data.stop) {
-    modelParams.stop = data.stop
-  }
-
   if (apiConfig.baseurl === 'google://') {
     return googleStreamResponse(apiConfig, modelParams)
   }
 
-  if (apiConfig.baseurl === 'anthropic://' || apiConfig.baseurl === 'https://api.anthropic.com/v1/messages') {
+  if (apiConfig.baseurl === 'anthropic://') {
     return anthropicStreamResponse(apiConfig, modelParams)
   }
 

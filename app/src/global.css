@@ -105,7 +105,7 @@ button { font-size: 1em; }
   font-weight: 300;
 }
 
-a, button, details {
+a, button, summary {
   color: var(--brand-color);
   text-decoration: none;
   cursor: pointer;

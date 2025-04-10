@@ -1,5 +1,5 @@
 <script>
-import { refreshConfig } from "./config"
+import { refreshConfig } from "./config.svelte"
 
 let show = $state(false)
 // svelte-ignore non_reactive_update

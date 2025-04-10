@@ -7,7 +7,9 @@
 import { onMount, tick } from 'svelte'
 const inputId = Math.random().toString(36)
 
-let {value = '', message = $bindable(), generating} = $props()
+let {
+  value = '', message = $bindable(), generating, attr = 'content', ...inputProps
+} = $props()
 
 let el = $state()
 let elParent = $state()
@@ -15,7 +17,7 @@ let elParent = $state()
 onMount(() => {
   elParent.style.height = `${el.offsetHeight}px`
   el.style.height = 0
-  el.style.height = `${el.scrollHeight}px`
+  el.style.height = `${el.scrollHeight+2}px`
   elParent.style.height = 'auto'
 })
 
@@ -40,7 +42,7 @@ async function autoresize() {
   elParent.style.height = `${el.offsetHeight}px`
 
   el.style.height = "auto"
-  el.style.height = `${el.scrollHeight}px`
+  el.style.height = `${el.scrollHeight+2}px`
 
   elParent.style.height = 'auto'
 }
@@ -52,7 +54,7 @@ $effect.pre(() => {
 
 function onInput(event) {
   value = el.value
-  message.content = el.value
+  message[attr] = el.value
 }
 </script>
 
@@ -65,6 +67,7 @@ function onInput(event) {
     placeholder="..."
     rows="1"
     oninput={onInput}
+    {...inputProps}
   ></textarea>
 </div>
 

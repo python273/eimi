@@ -1,6 +1,6 @@
 import './global.css'
 import App from './App.svelte'
-import { refreshConfig } from './config'
+import { refreshConfig } from './config.svelte'
 import { mount } from "svelte"
 
 window.addEventListener('unload', function() {})

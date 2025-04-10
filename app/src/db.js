@@ -5,7 +5,7 @@ const scriptTrimMessages = `/* Hides text from a message
 like here
 ~~~~
 */
-return chain.map(m => {
+request.messages = request.messages.map(m => {
     if (!m.content.includes('~~~~\\n')) return m;
     const newContent = m.content.split(/^~~~~$/gm)
         .filter((_, index) => index % 2 === 0)
@@ -21,7 +21,7 @@ const PROMPTS = {
     R: \`You are a helpful assistant. Your responses have no babbling! No code explanations unless asked.\\n\\n\`,
 };
 
-return chain.map(m => {
+request.messages = request.messages.map(m => {
     let newContent = m.content.replace(/%%(\\w+)/g, (match, p1) => PROMPTS[p1] || match);
     return { ...m, content: newContent };
 });
@@ -34,7 +34,7 @@ async function initDb() {
   }
 
   try {
-    return await openDB('eimi', 3, {
+    return await openDB('eimi', 4, {
       upgrade: async function upgrade(db, oldVersion, newVersion, transaction, event) {
         console.log('db upgrade', db, oldVersion, newVersion, transaction, event)
         if (oldVersion < 1) {
@@ -42,20 +42,6 @@ async function initDb() {
         }
         if (oldVersion < 2) {
           db.createObjectStore('scripts', { keyPath: 'id' })
-          await transaction.objectStore('scripts').put({
-            id: "lzflks6m",
-            enabled: true,
-            name: "01 Trim Messages",
-            sessionId: "",
-            scriptChainProcess: scriptTrimMessages,
-          })
-          await transaction.objectStore('scripts').put({
-            id: "lziy5kpb",
-            enabled: true,
-            name: "02 Prompts",
-            sessionId: "",
-            scriptChainProcess: scriptPrompts,
-          })
         }
         if (oldVersion < 3) {
           const sessionMetaStore = db.createObjectStore('sessionMeta', { keyPath: 'id' })
@@ -70,6 +56,28 @@ async function initDb() {
               createdAt: session.createdAt,
             })
           }
+        }
+        if (oldVersion < 4) {
+          const scriptStore = transaction.objectStore('scripts')
+          const scripts = await scriptStore.getAll()
+          for (const script of scripts) {
+            script.scriptChainProcess = `throw new Error('Update to request arg');\n${script.scriptChainProcess}`
+            await scriptStore.put(script)
+          }
+          await scriptStore.put({
+            id: "lzflks6m",
+            enabled: true,
+            name: "01 Trim Messages",
+            sessionId: "",
+            scriptChainProcess: scriptTrimMessages,
+          })
+          await scriptStore.put({
+            id: "lziy5kpb",
+            enabled: true,
+            name: "02 Prompts",
+            sessionId: "",
+            scriptChainProcess: scriptPrompts,
+          })
         }
         await transaction.done
       },

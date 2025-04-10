@@ -1,7 +1,7 @@
 <script>
 import { db } from './db.js'
 import DEFAULT_CONFIG from "./default_config.json"
-import { refreshConfig } from './config.js'
+import { refreshConfig } from './config.svelte.js'
 
 let config = $state(localStorage["cfg-config-user"] || "")
 let valid = $derived.by(() => {
@@ -88,21 +88,21 @@ function importSessionsFromFile(e) {
 </script>
 
 <main>
+  <div><h1>Settings</h1></div>
   <div>
-    <label for="config">Config Base</label><br/>
     <details>
+      <summary>Config Base</summary>
       <textarea
-        id="config"
-        value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)}
-        style="width: 60ch; height: 300px;" disabled></textarea>
+        id="config-base"
+        value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)} disabled></textarea>
     </details>
   </div>
+  <hr/>
   <div>
     <label for="config">Config User</label><br/>
     <textarea
       id="config"
       bind:value={config}
-      style="width: 60ch; height: 300px;"
       class:invalid={!valid}
     ></textarea>
   </div>
@@ -115,7 +115,6 @@ function importSessionsFromFile(e) {
       }}
     >Export sessions to a file</button>
   </div>
-  <hr/>
   <div>
     <label for="import-sessions-file">Import sessions from a file (deletes existing data)</label><br/>
     <input bind:this={importFileInput} id="import-sessions-file" type="file" accept=".json"/>
@@ -131,11 +130,19 @@ function importSessionsFromFile(e) {
 main {
   display: flex;
   justify-content: center;
-  align-items: center;
   flex-direction: column;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
-#config {
+h1 {
+  margin-bottom: 1em;
+}
+#config, #config-base {
   font-family: monospace;
+  margin: 0;
+  width: 100%;
+  height: 400px;
 }
 hr {
   width: 100%;

@@ -10,7 +10,7 @@ import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
 import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
-import { CONFIG } from './config'
+import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import { favoriteModels } from './lib/favoriteModelsStore'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
@@ -33,6 +33,7 @@ let sessionData = $state()
  *   parentId: string|null,
  *   role: string,
  *   content: string,
+ *   thinking?: string,
  *   markdown?: Boolean,
  *   depth?: number,
  *   ddepth?: number,
@@ -55,8 +56,8 @@ async function saveSession(sessionId) {
     return
   }
   const obj = {...$state.snapshot(sessionData), messages: messages.map(
-    ({id, createdAt, parentId, role, content, markdown}) => ({
-      id, createdAt, parentId, role, content, markdown
+    ({id, createdAt, parentId,  markdown, role, content, thinking}) => ({
+      id, createdAt, parentId,  markdown, role, content, thinking
     })
   )}
   await (await db).put('sessionMeta', {
@@ -225,6 +226,7 @@ async function _genResponse(message, regenerate=false) {
       parentId: message.id,
       role: ASSISTANT,
       content: '',
+      thinking: '',
       generating: true,
       markdown: true,
     })
@@ -233,62 +235,71 @@ async function _genResponse(message, regenerate=false) {
   } else {
     newMessage = message
     newMessage.content = ''
+    newMessage.thinking = ''
     newMessage.generating = true
     newMessage.promptTokens = undefined
     newMessage.completionTokens = undefined
   }
+  newMessage.aborter?.abort()
+  const aborter = new AbortController()
+  newMessage.aborter = aborter
   await tick()
 
-  let chain = getChain(message, regenerate)
+  const request = {
+    signal: aborter.signal,
+    proxy: apiData.proxy === false ? false : true,
+    baseurl: apiData.baseurl,
+    token: apiData.token,
+    model: sessionData.parameters.model,
+    completion: sessionData.parameters.completion,
+    parameters: {
+      temperature: sessionData.parameters.temperature,
+      frequency_penalty: sessionData.parameters.frequency_penalty,
+      presence_penalty: sessionData.parameters.presence_penalty,
+    },
+    messages: getChain(message, regenerate).map(({role, content}) => ({role, content})),
+  }
+  if (sessionData.parameters.max_tokens !== 0) {
+    request.parameters.max_tokens = sessionData.parameters.max_tokens
+  }
+  console.log('runLlmApi before scripts:', {
+    ...request,
+    parameters: JSON.parse(JSON.stringify(request.parameters)),
+    messages: JSON.parse(JSON.stringify(request.messages)),
+  })
 
   const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
   const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id))
 
   console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
   for (let script of orderedScriptsEnabled) {
-    const fn = new AsyncFunction('chain', script.scriptChainProcess)
-    let updatedChain
+    const fn = new AsyncFunction('request', script.scriptChainProcess)
     try {
-      updatedChain = await fn(chain)
+      await fn(request)
     } catch (e) {
       console.error(e)
+      console.log('runLlmApi after script error:', request)
       alert(`Script '${script.name}' error:\n${e}`)
+      newMessage.generating = false
       return
     }
-    if (updatedChain != undefined) chain = updatedChain
   }
-  console.log('Chain after scripts:', chain)
+  console.log('runLlmApi after scripts:', request)
 
-  newMessage.aborter?.abort()
-  const aborter = new AbortController()
-  newMessage.aborter = aborter
   try {
-    const request = {
-      baseurl: apiData.baseurl,
-      token: apiData.token,
-      proxy: apiData.proxy === false ? false : true,
-      signal: aborter.signal,
-      messages: chain.map(i => ({role: i.role, content: i.content}))
-    }
-    ;[
-      'model', 'completion',
-      'temperature', 'frequency_penalty', 'presence_penalty',
-      'max_tokens'
-    ].forEach(i => { request[i] = sessionData.parameters[i] })
-    window._patchApiData && window._patchApiData(request)
-    console.log('runLlmApi', request)
-
     newMessage.content = ''
     for await (const chunk of runLlmApi(request)) {
       if (typeof(chunk) === "string") {
         newMessage.content += chunk
       } else {
-        console.log(chunk)
         if (chunk?.usage?.prompt_tokens) {
           newMessage.promptTokens = chunk.usage.prompt_tokens
         }
         if (chunk?.usage?.completion_tokens) {
           newMessage.completionTokens = chunk.usage.completion_tokens
+        }
+        if (chunk?.thinking) {
+          newMessage.thinking += chunk.thinking
         }
       }
     }
@@ -461,6 +472,18 @@ subDbScripts(loadScripts)
             <button onclick={genResponse} title="generate a response (ctrl+enter)">gen</button>
             <button onclick={onCreateMessage} title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
           </div>
+          {#if c.thinking}
+            <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
+              <summary>Thinking</summary>
+              <CustomInput
+                generating={c.generating}
+                value={c.thinking}
+                bind:message={messages[i]}
+                attr='thinking'
+                style="border: 1px solid var(--text-color);"
+              />
+            </details>
+          {/if}
           {#if c.markdown}
             <MarkdownRenderer generating={c.generating} content={c.content}/>
           {:else}
