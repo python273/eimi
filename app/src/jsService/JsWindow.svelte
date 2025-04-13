@@ -26,7 +26,7 @@ function handleIframeLoad(event) {
 }
 
 $effect(() => {
-  contentWindow && contentWindow.postMessage({dark: $themeStore}, "*")
+  contentWindow && contentWindow.postMessage({dark: $themeStore.isDark}, "*")
 })
 
 onDestroy(() => {

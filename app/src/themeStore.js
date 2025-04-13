@@ -1,25 +1,57 @@
 import { writable } from 'svelte/store'
 
-function createThemeStore() {
-  const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-  let initialValue = prefersDarkMode
-  if (localStorage.getItem("cfg-dark-theme") !== null) {
-    initialValue = localStorage.getItem("cfg-dark-theme") === "1"
+const THEME_KEY = 'cfg-theme'
+const THEME_OPTIONS = ['system', 'light', 'dark']
+
+const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+const storedTheme = localStorage.getItem(THEME_KEY) || 'system'
+
+function getIsDark(theme) {
+  let isDark = theme === 'dark'
+  if (theme === 'system') {
+    isDark = prefersDarkQuery.matches
   }
-
-  const { subscribe, set } = writable(initialValue)
-
-  subscribe(value => {
-    localStorage.setItem("cfg-dark-theme", value ? "1" : "0")
-  })
-
-  window.addEventListener('storage', (event) => {
-    if (event.key === "cfg-dark-theme") {
-      set(event.newValue === "1")
-    }
-  })
-
-  return {subscribe, set}
+  return isDark
 }
 
-export const themeStore = createThemeStore()
+const { subscribe, set, update } = writable({
+  theme: storedTheme,
+  isDark: getIsDark(storedTheme)
+})
+
+const store = {
+  subscribe,
+  set: (theme) => {
+    set({theme, isDark: getIsDark(theme)})
+  },
+  toggle: () => {
+    update(state => {
+      const currentIdx = THEME_OPTIONS.indexOf(state.theme)
+      const nextTheme = THEME_OPTIONS[(currentIdx + 1) % THEME_OPTIONS.length]
+      return {
+        theme: nextTheme,
+        isDark: getIsDark(nextTheme)
+      }
+    })
+  },
+  options: THEME_OPTIONS
+}
+
+prefersDarkQuery.addEventListener('change', () => {
+  update(state => ({
+    ...state,
+    isDark: getIsDark(state.theme)
+  }))
+})
+
+subscribe(state => {
+  localStorage.setItem(THEME_KEY, state.theme)
+})
+
+window.addEventListener('storage', (event) => {
+  if (event.key === THEME_KEY) {
+    store.set(event.newValue)
+  }
+})
+
+export const themeStore = store

@@ -35,6 +35,7 @@ let sessionData = $state()
  *   content: string,
  *   thinking?: string,
  *   markdown?: Boolean,
+ *   parameters?: object,
  *   depth?: number,
  *   ddepth?: number,
  *   linear?: boolean,
@@ -213,6 +214,9 @@ async function _genResponse(message, regenerate=false) {
     alert(`Add token in settings for "${sessionData.parameters._api}"`)
     throw Error('no token')
   }
+  const modelInfo = CONFIG.models.find(i => (
+    i.api === sessionData.parameters._api
+    && i.id === sessionData.parameters.model))
 
   if (location.hostname === 'eimi.cns.wtf') {
     fetch('https://ut.cns.wtf/api/record/eimi_gen')
@@ -229,6 +233,7 @@ async function _genResponse(message, regenerate=false) {
       thinking: '',
       generating: true,
       markdown: true,
+      parameters: {...sessionData.parameters},
     })
     newMessage = messages[0]  // get msg with Svelte proxy
     messages = relationalToLinear(messages)
@@ -239,6 +244,7 @@ async function _genResponse(message, regenerate=false) {
     newMessage.generating = true
     newMessage.promptTokens = undefined
     newMessage.completionTokens = undefined
+    newMessage.parameters = {...sessionData.parameters}
   }
   newMessage.aborter?.abort()
   const aborter = new AbortController()
@@ -251,7 +257,7 @@ async function _genResponse(message, regenerate=false) {
     baseurl: apiData.baseurl,
     token: apiData.token,
     model: sessionData.parameters.model,
-    completion: sessionData.parameters.completion,
+    completion: modelInfo.completion,
     parameters: {
       temperature: sessionData.parameters.temperature,
       frequency_penalty: sessionData.parameters.frequency_penalty,
@@ -259,9 +265,12 @@ async function _genResponse(message, regenerate=false) {
     },
     messages: getChain(message, regenerate).map(({role, content}) => ({role, content})),
   }
-  if (sessionData.parameters.max_tokens !== 0) {
+  if (sessionData.parameters._api === 'anthropic' && sessionData.parameters.max_tokens === 0) {
+    request.parameters.max_tokens = modelInfo.max_tokens
+  } else if (sessionData.parameters.max_tokens !== 0) {
     request.parameters.max_tokens = sessionData.parameters.max_tokens
   }
+
   console.log('runLlmApi before scripts:', {
     ...request,
     parameters: JSON.parse(JSON.stringify(request.parameters)),
@@ -438,7 +447,14 @@ subDbScripts(loadScripts)
               <option value={USER}>{USER}</option>
               <option value={SYSTEM}>{SYSTEM}</option>
             </select>
-            <input type="checkbox" bind:checked={c.markdown} style="height: 0.85em;" title="Render Markdown"/>
+            {#if c.markdown}
+              <button onclick={() => { c.markdown = false }}>edit</button>
+            {:else}
+              <button onclick={() => { c.markdown = true }} title="Markdown">md</button>
+            {/if}
+            {#if c.parameters?.model}
+              <div class="meta-gray mono pre meta-model">{c.parameters?.model}</div>
+            {/if}
             {#if c.promptTokens !== undefined}
               <div class="meta-gray mono pre" title="Prompt tokens">{String(c.promptTokens).padStart(5, ' ')}</div>
             {/if}
@@ -448,13 +464,7 @@ subDbScripts(loadScripts)
             <div class="ml-auto"></div>
 
             {#each loadedPlugins as plugin}
-              <button onclick={async (e) => {
-                if (plugin.onClick?.constructor.name === 'AsyncFunction') {
-                  await plugin.onClick(e, c)
-                } else {
-                  plugin.onClick?.(e, c)
-                }
-              }}>{plugin.name}</button>
+              <button onclick={async (e) => { plugin.onClick(e, c) }}>{plugin.name}</button>
             {/each}
 
             {#if hasCodeBlocks(c.content)}
@@ -465,7 +475,9 @@ subDbScripts(loadScripts)
                 }}
                 title="run HTML / JavaScript">JS</button>
             {/if}
-            <button onclick={deleteMessage} title="delete this message and replies (hold shift)">x</button>
+            <button onclick={deleteMessage} title="delete this message and replies (hold shift)" aria-label="Delete">
+              x
+            </button>
             {#if c.role === ASSISTANT}
               <button onclick={(e) => genResponse(e, true)} title="regenerate this message">regen</button>
             {/if}
@@ -547,7 +559,7 @@ subDbScripts(loadScripts)
 }
 
 .message-content {
-  width: 62ch;
+  width: 64ch;
   margin: 1px 0;
   border-radius: 5px;
   background-color: var(--comment-bg-color);
@@ -570,9 +582,9 @@ subDbScripts(loadScripts)
 
 .message-header {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   font-size: 0.9em;
   margin: 0 0.6em;
 }
@@ -580,6 +592,10 @@ subDbScripts(loadScripts)
 .role {
   margin: 0;
   padding: 0;
+}
+
+.meta-model {
+  overflow-x: auto;
 }
 
 .create-top-msg-btn {

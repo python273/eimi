@@ -336,7 +336,7 @@ async function* googleStreamResponse(apiConfig, modelParams) {
       prompt_tokens: chunk.usageMetadata.promptTokenCount,
       completion_tokens: chunk.usageMetadata.candidatesTokenCount,
     }}
-    yield chunk.candidates[0].content.parts[0].text
+    yield chunk.candidates[0].content.parts?.[0]?.text || ""
   }
 }
 

@@ -22,16 +22,12 @@ let max_tokens = $state(parameters.max_tokens ?? 0)
 let scriptsEnabled = $state(parameters.scriptsEnabled || [])
 
 $effect(() => {
-  if (model.id.startsWith('claude-') && max_tokens === 0) {
-    max_tokens = modelMaxToken
-  }
   if (max_tokens > modelMaxToken) {
     max_tokens = modelMaxToken
   }
   onUpdate({
     _api: model.api,
     model: model.id,
-    completion: model.completion,  // TODO: move out of params, get from model info
     temperature, frequency_penalty, presence_penalty,
     max_tokens,
     scriptsEnabled,

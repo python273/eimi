@@ -5,7 +5,6 @@ import WindowManager from './lib/WindowManager.svelte'
 import { genSessionId } from './utils.js'
 import { themeStore } from './themeStore.js'
 import Welcome from './Welcome.svelte'
-import { writable, get } from 'svelte/store'
 
 let hash = $state(window.location.hash.slice(1))
 
@@ -38,33 +37,9 @@ let {page, props} = $derived.by(() => {
   return {page, props}
 })
 
-const themeOptions = ['light', 'dark', 'system']
-const storedTheme = localStorage.getItem('theme') || 'system'
-export const currentTheme = writable(storedTheme)
-
-const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)')
-prefersDarkQuery.addEventListener('change', updateTheme)
-
-function updateTheme() {
-  const theme = get(currentTheme)
-  let isDark = false
-  if (theme === 'dark') {
-    isDark = true
-  } else if (theme === 'system') {
-    isDark = prefersDarkQuery.matches
-  }
-  themeStore.set(isDark)
-}
-
-currentTheme.subscribe((value) => {
-  localStorage.setItem('theme', value)
-  updateTheme()
-})
-
-updateTheme()
 </script>
 
-{#if !$themeStore}
+{#if !$themeStore.isDark}
 <style>
   :root {
     --bg-color: #ecedee;
@@ -106,12 +81,13 @@ updateTheme()
       href="#settings"
       title="settings"
     >settings</a>
-    <!-- TODO: maybe switch from select input -->
-    <select bind:value={$currentTheme} class='c-pointer' title="theme">
-      {#each themeOptions as option}
-        <option value={option}>{option}</option>
-      {/each}
-    </select>
+    <button onclick={themeStore.toggle}>
+      {#if $themeStore.theme === 'system'}
+        light/dark
+      {:else}
+        {$themeStore.theme}
+      {/if}
+    </button>
   </div>
 </div>
 
