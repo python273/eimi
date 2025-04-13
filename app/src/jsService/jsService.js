@@ -28,7 +28,9 @@ export function getCode({content}) {
 }
 
 export function createJsWindow(comment) {
+  const { mode } = getCode(comment)
   const buttons = [{methodName: 'refresh', label: 'refresh'}]
+  if (mode === 'js') buttons.push({methodName: 'toggleConsole', label: 'console'})
   if (window._pasteHtml) buttons.push({methodName: 'pasteHtml', label: 'publish'})
   windowsStore.add({
     component: JsWindow,

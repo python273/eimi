@@ -115,10 +115,7 @@ onMount(() => {
       use:setupResizeObserver={w.id}
     >
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        class="header"
-        onmousedown={(e) => handleMouseDown(e, w.id)}
-      >
+      <div class="window-header" onmousedown={(e) => handleMouseDown(e, w.id)}>
         <button onclick={() => closeWindow(w.id)}>×</button>
         {#each w.buttons as button}
           <button onclick={instances[w.id][button.methodName]}>
@@ -127,11 +124,15 @@ onMount(() => {
         {/each}
         {w.title}
       </div>
-      <w.component
-        bind:this={() => instances[w.id], (v) => instances[w.id] = v /* https://github.com/sveltejs/svelte/issues/15698 */}
-        windowId={w.id}
-        {...w.data}
-      />
+      <div class="window-content">
+        <w.component
+          bind:this={() => instances[w.id], (v) => instances[w.id] = v /* https://github.com/sveltejs/svelte/issues/15698 */}
+          windowId={w.id}
+          windowWidth={w.width}
+          windowHeight={w.height}
+          {...w.data}
+        />
+      </div>
     </div>
   {/each}
 </Portal>
@@ -151,10 +152,15 @@ onMount(() => {
   box-shadow: 0px 1px 6px #00000047;
 }
 
-.header {
+.window-header {
   background-color: var(--panel-bg-color);
   user-select: none;
   font-size: 0.8em;
   padding-left: 3px;
+}
+
+.window-content {
+  flex: 1;
+  overflow: auto;
 }
 </style>
