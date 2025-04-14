@@ -1,4 +1,5 @@
 <script>
+import { favoriteModels, API_DEFAULT_FAVORITES } from './lib/favoriteModelsStore'
 import { refreshConfig } from "./config.svelte"
 
 let show = $state(false)
@@ -30,12 +31,17 @@ function skip() {
 function saveTokens() {
   const config = JSON.parse(localStorage["cfg-config-user"])
   Object.keys(tokens).forEach((api) => {
-    config.apis[api].$set.token = tokens[api]
+    config.apis[api].$set.token = tokens[api].trim()
     config.apis[api].$set.proxy = proxies[api]
   })
   localStorage["cfg-config-user"] = JSON.stringify(config, null, 2)
   localStorage.setItem("cfg-welcome", "1")
   refreshConfig()
+
+  const apisWithTokens = Object.keys(tokens).filter(api => tokens[api])
+  const newFavorites = apisWithTokens.flatMap(api => API_DEFAULT_FAVORITES[api] || [])
+  favoriteModels.set(newFavorites)
+
   show = false
 }
 

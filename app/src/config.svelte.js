@@ -11,6 +11,7 @@ export function refreshConfig() {
     alert('User config is not valid')
     CONFIG = DEFAULT_CONFIG
   }
+  window._config = CONFIG
   configUpdated.i += 1
 }
 
