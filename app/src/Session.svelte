@@ -353,10 +353,13 @@ async function deleteMessage(event) {
   const msg = getMessageFromEvent(event)
   if (!event.shiftKey && !confirm('Delete message?')) return
 
+  msg.aborter?.abort()
+
   const idsToDelete = [msg.id]
   function _addChildren(msg) {
     const children = messages.filter(i => i.parentId === msg.id)
     for (const child of children) {
+      child.aborter?.abort()
       idsToDelete.push(child.id)
       _addChildren(child)
     }
@@ -414,6 +417,48 @@ async function loadScripts() {
 }
 loadScripts()
 subDbScripts(loadScripts)
+
+async function moveMessage(messageId, direction) {
+  console.log('moving', messageId, direction)
+  const currentIndex = messages.findIndex(m => m.id === messageId)
+  const current = messages[currentIndex]
+
+  if (direction === 'up') {
+    if (currentIndex === 0) return
+    const up = messages[currentIndex - 1]
+    if (up.id === current.parentId) {
+      // Case 1: up is shallower (is parent), becoming sibling and moving higher
+      current.parentId = up.parentId
+      messages[currentIndex - 1] = current
+      messages[currentIndex] = up
+    } else {
+      // Case 2: up is same depth, set as parent
+      // Case 3: up is deeper, drill up till same depth
+      let i = currentIndex - 1
+      while (i >= 0 && messages[i].depth > current.depth) i--
+      current.parentId = messages[i].id
+    }
+  } else if (direction === 'down') {
+    // Drilling past children
+    let i = currentIndex + 1
+    while (i < messages.length && messages[i].depth > current.depth) i++
+    const down = messages[i]
+    if (down?.depth === current.depth) {
+      // Case 4: down is same depth, set as parent
+      current.parentId = down.id
+    } else {
+      // Case 5: down is shallower OR end of messages, set parent to .parent.parent
+      const parent = messages.find(m => m.id === current.parentId)
+      current.parentId = parent ? parent.parentId : null
+    }
+  }
+
+  messages = relationalToLinear(messages)
+  await tick()
+  document.getElementById(`m_${current.id}`)
+    ?.querySelector('.message-content')
+    ?.focus({focusVisible: true})
+}
 </script>
 
 {#if sessionLoaded}
@@ -431,7 +476,7 @@ subDbScripts(loadScripts)
   <button onclick={onDup} title="make a copy of this session">dup</button>
   <button onclick={onDelete} title="delete session (hold shift)">delete</button>
 </div>
-<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage}/>
+<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
 
 <div id="messages" class="messages">
 {#each messages as c, i (c.id)}

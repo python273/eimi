@@ -1,7 +1,7 @@
 <script>
 import { onMount, onDestroy, tick } from 'svelte'
 
-let {messages, genResponse, onCreateMessage, getMessageFromEvent, deleteMessage} = $props()
+let {messages, genResponse, onCreateMessage, getMessageFromEvent, deleteMessage, moveMessage} = $props()
 
 const HELP_DISMISSED_KEY = 'cfg-hotkeys-shown'
 let show = $state(false)
@@ -30,6 +30,8 @@ async function onKeyDown(event) {
   // p - jump to parent
   // R - regen
   // x / X - delete
+  // Ctrl+k - move the message up
+  // Ctrl+j - move the message down
 
   if (!event.target.closest('.message-content')) return
 
@@ -60,6 +62,12 @@ async function onKeyDown(event) {
     document.getElementById(`m_${messages[i].id}`)
       ?.querySelector('.message-content')
       ?.focus({focusVisible: true})
+  } else if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+    event.preventDefault()
+    moveMessage(item.id, 'up')
+  } else if ((event.metaKey || event.ctrlKey) && event.key === 'j') {
+    event.preventDefault()
+    moveMessage(item.id, 'down')
   } else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
     event.preventDefault()
     let i
@@ -147,6 +155,8 @@ $effect(() => {
       <div><span class="key">p</span> Jump to parent message</div>
       <div><span class="key">Shift + R</span> Regenerate current message</div>
       <div><span class="key">x</span> or <span class="key">Shift + X</span> Delete message</div>
+      <div><span class="key">Ctrl + k</span> Move the message up</div>
+      <div><span class="key">Ctrl + j</span> Move the message down</div>
     </div>
   </dialog>
 {/if}
