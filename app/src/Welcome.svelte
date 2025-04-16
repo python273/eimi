@@ -42,6 +42,7 @@ function saveTokens() {
   const newFavorites = apisWithTokens.flatMap(api => API_DEFAULT_FAVORITES[api] || [])
   favoriteModels.set(newFavorites)
 
+  window.dispatchEvent(new CustomEvent('welcome-finished'))
   show = false
 }
 
@@ -70,6 +71,7 @@ $effect(() => {
           <li>Sessions are stored locally in the browser</li>
           <li>Multi-API: OpenAI, Anthropic, OpenRouter, Google, etc.</li>
           <li>Scripts for context transformation</li>
+          <li>Simple HTML and JavaScript execution from code blocks</li>
         </ul>
         <br/>
         <p>

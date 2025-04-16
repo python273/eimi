@@ -235,6 +235,62 @@
     },
     {
       "api": "openai",
+      "id": "chatgpt-4o-latest",
+      "name": "chatgpt-4o-latest",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo",
+      "name": "gpt-3.5-turbo",
+      "max_tokens": 16385
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo-0125",
+      "name": "gpt-3.5-turbo-0125",
+      "max_tokens": 16385
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo-1106",
+      "name": "gpt-3.5-turbo-1106",
+      "max_tokens": 16385
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo-16k",
+      "name": "gpt-3.5-turbo-16k",
+      "max_tokens": 16385
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo-instruct",
+      "name": "gpt-3.5-turbo-instruct",
+      "max_tokens": 4096,
+      "completion": true
+    },
+    {
+      "api": "openai",
+      "id": "gpt-3.5-turbo-instruct-0914",
+      "name": "gpt-3.5-turbo-instruct-0914",
+      "max_tokens": 4096,
+      "completion": true
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4",
+      "name": "gpt-4",
+      "max_tokens": 8192
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4-0125-preview",
+      "name": "gpt-4-0125-preview",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
       "id": "gpt-4-0314",
       "name": "gpt-4-0314",
       "max_tokens": 8192
@@ -253,14 +309,62 @@
     },
     {
       "api": "openai",
-      "id": "gpt-4-0125-preview",
-      "name": "gpt-4-0125-preview",
+      "id": "gpt-4-turbo",
+      "name": "gpt-4-turbo",
       "max_tokens": 128000
     },
     {
       "api": "openai",
       "id": "gpt-4-turbo-2024-04-09",
       "name": "gpt-4-turbo-2024-04-09",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1",
+      "name": "gpt-4.1",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1-2025-04-14",
+      "name": "gpt-4.1-2025-04-14",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1-mini",
+      "name": "gpt-4.1-mini",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1-mini-2025-04-14",
+      "name": "gpt-4.1-mini-2025-04-14",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1-nano",
+      "name": "gpt-4.1-nano",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.1-nano-2025-04-14",
+      "name": "gpt-4.1-nano-2025-04-14",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4.5-preview",
+      "name": "gpt-4.5-preview",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openai",
+      "id": "gpt-4o",
+      "name": "gpt-4o",
       "max_tokens": 128000
     },
     {
@@ -283,83 +387,39 @@
     },
     {
       "api": "openai",
-      "id": "gpt-4o-mini-2024-07-18",
-      "name": "gpt-4o-mini-2024-07-18",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
-      "id": "chatgpt-4o-latest",
-      "name": "chatgpt-4o-latest",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
-      "id": "gpt-4.5-preview",
-      "name": "gpt-4.5-preview",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
-      "id": "gpt-4",
-      "name": "gpt-4",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openai",
-      "id": "gpt-4-turbo",
-      "name": "gpt-4-turbo",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
-      "id": "gpt-4o",
-      "name": "gpt-4o",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
       "id": "gpt-4o-mini",
       "name": "gpt-4o-mini",
       "max_tokens": 128000
     },
     {
       "api": "openai",
-      "id": "gpt-3.5-turbo-instruct",
-      "name": "gpt-3.5-turbo-instruct",
-      "max_tokens": 4096,
-      "completion": true
+      "id": "gpt-4o-mini-2024-07-18",
+      "name": "gpt-4o-mini-2024-07-18",
+      "max_tokens": 128000
     },
     {
       "api": "openai",
-      "id": "gpt-3.5-turbo-instruct-0914",
-      "name": "gpt-3.5-turbo-instruct-0914",
-      "max_tokens": 4096,
-      "completion": true
+      "id": "gpt-4o-mini-search-preview",
+      "name": "gpt-4o-mini-search-preview",
+      "max_tokens": 128000
     },
     {
       "api": "openai",
-      "id": "gpt-3.5-turbo",
-      "name": "gpt-3.5-turbo",
-      "max_tokens": 16385
+      "id": "gpt-4o-mini-search-preview-2025-03-11",
+      "name": "gpt-4o-mini-search-preview-2025-03-11",
+      "max_tokens": 128000
     },
     {
       "api": "openai",
-      "id": "gpt-3.5-turbo-16k",
-      "name": "gpt-3.5-turbo-16k",
-      "max_tokens": 16385
+      "id": "gpt-4o-search-preview",
+      "name": "gpt-4o-search-preview",
+      "max_tokens": 128000
     },
     {
       "api": "openai",
-      "id": "gpt-3.5-turbo-1106",
-      "name": "gpt-3.5-turbo-1106",
-      "max_tokens": 16385
-    },
-    {
-      "api": "openai",
-      "id": "gpt-3.5-turbo-0125",
-      "name": "gpt-3.5-turbo-0125",
-      "max_tokens": 16385
+      "id": "gpt-4o-search-preview-2025-03-11",
+      "name": "gpt-4o-search-preview-2025-03-11",
+      "max_tokens": 128000
     },
     {
       "api": "openai",
@@ -369,39 +429,27 @@
     },
     {
       "api": "openai",
-      "id": "o1-mini",
-      "name": "o1-mini",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
-      "id": "o3-mini",
-      "name": "o3-mini",
-      "max_tokens": 200000
-    },
-    {
-      "api": "openai",
-      "id": "o1-preview",
-      "name": "o1-preview",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openai",
       "id": "o1-2024-12-17",
       "name": "o1-2024-12-17",
       "max_tokens": 200000
     },
     {
       "api": "openai",
-      "id": "o1-preview-2024-09-12",
-      "name": "o1-preview-2024-09-12",
-      "max_tokens": 128000
+      "id": "o3",
+      "name": "o3",
+      "max_tokens": 200000
     },
     {
       "api": "openai",
-      "id": "o1-mini-2024-09-12",
-      "name": "o1-mini-2024-09-12",
-      "max_tokens": 128000
+      "id": "o3-2025-04-16",
+      "name": "o3-2025-04-16",
+      "max_tokens": 200000
+    },
+    {
+      "api": "openai",
+      "id": "o3-mini",
+      "name": "o3-mini",
+      "max_tokens": 200000
     },
     {
       "api": "openai",
@@ -473,6 +521,12 @@
       "id": "aion-labs/aion-rp-llama-3.1-8b",
       "name": "aion-labs/aion-rp-llama-3.1-8b AionLabs: Aion-RP 1.0 (8B)",
       "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
+      "id": "alfredpros/codellama-7b-instruct-solidity",
+      "name": "alfredpros/codellama-7b-instruct-solidity AlfredPros: CodeLLaMa 7B Instruct Solidity",
+      "max_tokens": 4096
     },
     {
       "api": "openrouter",
@@ -774,7 +828,7 @@
       "api": "openrouter",
       "id": "deepseek/deepseek-r1",
       "name": "deepseek/deepseek-r1 DeepSeek: R1",
-      "max_tokens": 163840
+      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -836,6 +890,12 @@
       "api": "openrouter",
       "id": "deepseek/deepseek-v3-base:free",
       "name": "deepseek/deepseek-v3-base:free DeepSeek: DeepSeek V3 Base (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "eleutherai/llemma_7b",
+      "name": "eleutherai/llemma_7b EleutherAI: Llemma 7b",
+      "max_tokens": 4096
     },
     {
       "api": "openrouter",
@@ -1167,7 +1227,7 @@
       "api": "openrouter",
       "id": "meta-llama/llama-3.2-3b-instruct",
       "name": "meta-llama/llama-3.2-3b-instruct Meta: Llama 3.2 3B Instruct",
-      "max_tokens": 131000
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
@@ -1185,7 +1245,7 @@
       "api": "openrouter",
       "id": "meta-llama/llama-3.3-70b-instruct",
       "name": "meta-llama/llama-3.3-70b-instruct Meta: Llama 3.3 70B Instruct",
-      "max_tokens": 8192
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
@@ -1473,19 +1533,19 @@
       "api": "openrouter",
       "id": "nousresearch/hermes-2-pro-llama-3-8b",
       "name": "nousresearch/hermes-2-pro-llama-3-8b NousResearch: Hermes 2 Pro - Llama-3 8B",
-      "max_tokens": 131000
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-405b",
       "name": "nousresearch/hermes-3-llama-3.1-405b Nous: Hermes 3 405B Instruct",
-      "max_tokens": 131000
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-70b",
       "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct",
-      "max_tokens": 131000
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
@@ -1502,7 +1562,7 @@
       "api": "openrouter",
       "id": "nvidia/llama-3.1-nemotron-70b-instruct",
       "name": "nvidia/llama-3.1-nemotron-70b-instruct NVIDIA: Llama 3.1 Nemotron 70B Instruct",
-      "max_tokens": 131000
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
@@ -1620,6 +1680,24 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/gpt-4.1",
+      "name": "openai/gpt-4.1 OpenAI: GPT-4.1",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-4.1-mini",
+      "name": "openai/gpt-4.1-mini OpenAI: GPT-4.1 Mini",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-4.1-nano",
+      "name": "openai/gpt-4.1-nano OpenAI: GPT-4.1 Nano",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
       "id": "openai/gpt-4.5-preview",
       "name": "openai/gpt-4.5-preview OpenAI: GPT-4.5 (Preview)",
       "max_tokens": 16384
@@ -1716,6 +1794,12 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/o3",
+      "name": "openai/o3 OpenAI: o3",
+      "max_tokens": 100000
+    },
+    {
+      "api": "openrouter",
       "id": "openai/o3-mini",
       "name": "openai/o3-mini OpenAI: o3 Mini",
       "max_tokens": 100000
@@ -1728,6 +1812,18 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/o4-mini",
+      "name": "openai/o4-mini OpenAI: o4 Mini",
+      "max_tokens": 100000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/o4-mini-high",
+      "name": "openai/o4-mini-high OpenAI: o4 Mini High",
+      "max_tokens": 100000
+    },
+    {
+      "api": "openrouter",
       "id": "openchat/openchat-7b",
       "name": "openchat/openchat-7b OpenChat 3.5 7B"
     },
@@ -1735,12 +1831,6 @@
       "api": "openrouter",
       "id": "openrouter/auto",
       "name": "openrouter/auto Auto Router"
-    },
-    {
-      "api": "openrouter",
-      "id": "openrouter/optimus-alpha",
-      "name": "openrouter/optimus-alpha Optimus Alpha",
-      "max_tokens": 32000
     },
     {
       "api": "openrouter",
@@ -1877,9 +1967,9 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen2.5-32b-instruct",
-      "name": "qwen/qwen2.5-32b-instruct Qwen: Qwen2.5 32B Instruct",
-      "max_tokens": 131072
+      "id": "qwen/qwen2.5-coder-7b-instruct",
+      "name": "qwen/qwen2.5-coder-7b-instruct Qwen: Qwen2.5 Coder 7B Instruct",
+      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -1985,6 +2075,11 @@
     },
     {
       "api": "openrouter",
+      "id": "shisa-ai/shisa-v2-llama3.3-70b:free",
+      "name": "shisa-ai/shisa-v2-llama3.3-70b:free Shisa AI: Shisa V2 Llama 3.3 70B  (free)"
+    },
+    {
+      "api": "openrouter",
       "id": "sophosympatheia/midnight-rose-70b",
       "name": "sophosympatheia/midnight-rose-70b Midnight Rose 70B"
     },
@@ -2020,18 +2115,6 @@
       "api": "openrouter",
       "id": "thedrummer/unslopnemo-12b",
       "name": "thedrummer/unslopnemo-12b Unslopnemo 12B"
-    },
-    {
-      "api": "openrouter",
-      "id": "tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.3",
-      "name": "tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.3 Swallow: Llama 3.1 Swallow 70B Instruct V0.3",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "tokyotech-llm/llama-3.1-swallow-8b-instruct-v0.3",
-      "name": "tokyotech-llm/llama-3.1-swallow-8b-instruct-v0.3 Swallow: Llama 3.1 Swallow 8B Instruct V0.3",
-      "max_tokens": 4096
     },
     {
       "api": "openrouter",

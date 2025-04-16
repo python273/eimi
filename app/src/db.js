@@ -6,10 +6,13 @@ like here
 ~~~~
 */
 request.messages = request.messages.map(m => {
-    if (!m.content.includes('~~~~\\n')) return m;
-    const newContent = m.content.split(/^~~~~$/gm)
-        .filter((_, index) => index % 2 === 0)
-        .join('');
+    const newContent = m.content.map(c => {
+        if (c.type !== 'text') return c;
+        const newText = c.text.split(/^~~~~$/gm)
+            .filter((_, index) => index % 2 === 0)
+            .join('');
+        return { ...c, text: newText };
+    });
     return { ...m, content: newContent };
 });
 `
@@ -22,7 +25,11 @@ const PROMPTS = {
 };
 
 request.messages = request.messages.map(m => {
-    let newContent = m.content.replace(/%%(\\w+)/g, (match, p1) => PROMPTS[p1] || match);
+    const newContent = m.content.map(c => {
+        if (c.type !== 'text') return c;
+        const newText = c.text.replace(/%%(\\w+)/g, (match, p1) => PROMPTS[p1] || match);
+        return { ...c, text: newText };
+    });
     return { ...m, content: newContent };
 });
 `
@@ -34,7 +41,7 @@ async function initDb() {
   }
 
   try {
-    return await openDB('eimi', 4, {
+    return await openDB('eimi', 5, {
       upgrade: async function upgrade(db, oldVersion, newVersion, transaction, event) {
         console.log('db upgrade', db, oldVersion, newVersion, transaction, event)
         if (oldVersion < 1) {
@@ -64,6 +71,9 @@ async function initDb() {
             script.scriptChainProcess = `throw new Error('Update to request arg');\n${script.scriptChainProcess}`
             await scriptStore.put(script)
           }
+        }
+        if (oldVersion < 5) {
+          const scriptStore = transaction.objectStore('scripts')
           await scriptStore.put({
             id: "lzflks6m",
             enabled: true,

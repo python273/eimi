@@ -11,6 +11,14 @@ let {sessionId, parameters, scripts, onUpdate} = $props()
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
 let model = $state(MODELS.find(i => (i.api === parameters._api && i.id === parameters.model)) || $favoriteModels[0] || MODELS[0])
+
+$effect(() => {
+  const handler = () => {
+    model = $favoriteModels[0] || MODELS.find(i => CONFIG.apis[i.api]?.token) || MODELS[0]
+  }
+  window.addEventListener('welcome-finished', handler)
+  return () => window.removeEventListener('welcome-finished', handler)
+})
 let modelMaxToken = $derived(model['max_tokens'] || 32768)
 
 let temperature = $state(parameters.temperature ?? 0.0)

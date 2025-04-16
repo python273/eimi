@@ -52,7 +52,7 @@ function iframeAction(node) {
 
   const handleLoad = (event) => {
     contentWindow = event.target.contentWindow
-    contentWindow.postMessage({mode, code, dark: get(themeStore)}, "*")
+    contentWindow.postMessage({mode, code, dark: get(themeStore).isDark}, "*")
   }
 
   node.addEventListener("load", handleLoad)
@@ -169,9 +169,12 @@ export function toggleConsole() {
   {#if showConsole}
   <div class="console-log" bind:offsetHeight={consoleHeight} style="height: {consoleHeight}px">
     <div class="resize-handle" onpointerdown={startResize}></div>
-    {#each consoleLog as i (i.id)}
-      <pre>{i.text}</pre>
-    {/each}
+    <button class="clear-btn" onclick={() => consoleLog.length = 0}>clear</button>
+    <div class="messages">
+      {#each consoleLog as i (i.id)}
+        <pre class:error={i.text.startsWith('[error]')}>{i.text}</pre>
+      {/each}
+    </div>
   </div>
   {/if}
 </div>
@@ -215,7 +218,29 @@ iframe {
   background-color: var(--text-color);
   opacity: 0.2;
 }
+
+.clear-btn {
+  position: sticky;
+  top: 5px;
+  float: right;
+  margin: 5px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
+  background-color: transparent;
+}
 .console-log pre {
   white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 4px;
+}
+
+.console-log pre.error {
+  color: #f00000;
+}
+
+.messages pre:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.07);
 }
 </style>

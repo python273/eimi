@@ -6,6 +6,7 @@ Eimi is a lightweight threaded UI for LLMs.
 - Multi-API: OpenAI, Anthropic, OpenRouter, Google, etc.
 - Full context control
 - Scripts for context transformation
+- Simple HTML and JavaScript execution from code blocks
 
 https://eimi.cns.wtf/
 

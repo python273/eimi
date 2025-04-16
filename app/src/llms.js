@@ -38,8 +38,8 @@ async function* streamOpenai(apiConfig, modelParams) {
     url = 'https://api.openai.com/v1/chat/completions'
   }
 
-  if (url.startsWith('https://api.openai.com/v1/')) {
-    jsonData['stream_options'] = {include_usage: true}
+  if (url.startsWith('https://api.openai.com/v1/') && jsonData.stream) {
+    (jsonData['stream_options'] = jsonData['stream_options'] || {})['include_usage'] = true
   }
 
   // TODO: remove hacks
@@ -63,6 +63,17 @@ async function* streamOpenai(apiConfig, modelParams) {
 
   if (!response.ok) {
     yield {error: await response.text()}
+    return
+  }
+
+  if (!jsonData.stream) {
+    const result = await response.json()
+    yield {
+      choices: [{
+        delta: result.choices[0].message
+      }],
+      usage: result.usage
+    }
     return
   }
 
@@ -101,7 +112,7 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
       }}
     }
     try {
-      const c = chunk.choices[0]
+      const c = chunk?.choices[0]
       if (!c) continue
 
       if ('text' in c) {
@@ -355,7 +366,13 @@ export function runLlmApi(data) {
   if (apiConfig.completion) {
     modelParams.prompt = data.messages.map(m => m.content).join('')
   } else {
-    modelParams.messages = data.messages
+    modelParams.messages = data.messages.map(message => {
+      if (!Array.isArray(message.content)) return message
+      if (!message.content.every(item => item.type === 'text')) return message
+      return {  // DeepSeek compat
+        ...message, content: message.content.map(item => item.text).join('')
+      }
+    })
   }
 
   if (apiConfig.baseurl === 'google://') {
@@ -368,3 +385,5 @@ export function runLlmApi(data) {
 
   return openaiStreamResponse(apiConfig, modelParams)
 }
+
+window._runLlmApi = runLlmApi

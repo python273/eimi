@@ -155,8 +155,8 @@ onMount(() => {
 .window-header {
   background-color: var(--panel-bg-color);
   user-select: none;
-  font-size: 0.8em;
-  padding-left: 3px;
+  font-size: .85em;
+  padding: 2px;
 }
 
 .window-content {
