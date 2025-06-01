@@ -3,6 +3,10 @@ import { db } from './db.js'
 import DEFAULT_CONFIG from "./default_config.json"
 import { refreshConfig } from './config.svelte.js'
 
+$effect(() => {
+  document.title = `Settings - Eimi LLM UI`
+})
+
 let config = $state(localStorage["cfg-config-user"] || "")
 let valid = $derived.by(() => {
   try {

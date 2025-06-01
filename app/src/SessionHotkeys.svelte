@@ -22,7 +22,6 @@ async function onKeyDown(event) {
 
   // Hotkeys:
   // Ctrl+Enter - gen response
-  // Shift+Enter - reply
   // (textarea)+Esc - focus on message
   // A - focus on textarea
   // j - down
@@ -32,6 +31,8 @@ async function onKeyDown(event) {
   // x / X - delete
   // Ctrl+k - move the message up
   // Ctrl+j - move the message down
+  // n - new message (reply)
+  // q - abort message generation
 
   if (!event.target.closest('.message-content')) return
 
@@ -42,16 +43,20 @@ async function onKeyDown(event) {
   } else if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
     event.preventDefault()
     return genResponse(event)
-  } else if (event.shiftKey && event.code === "Enter") {
-    event.preventDefault()
-    return onCreateMessage(event)
   }
 
   if (!event.target.classList.contains('message-content')) return
   const item = getMessageFromEvent(event)
   if (!item) return
 
-  if (event.key === 'R') {
+  if (event.key === 'n') {
+    event.preventDefault()
+    return onCreateMessage(event)
+  } else if (event.key === 'q') {
+    event.preventDefault()
+    item.aborter?.abort()
+    return
+  } else if (event.key === 'R') {
     event.preventDefault()
     return genResponse(event, true)
   } else if (event.key === 'x' || event.key === 'X') {
@@ -143,12 +148,12 @@ $effect(() => {
     <div class="shortcuts-section">
       <h3>Message Textarea</h3>
       <div><span class="key">Ctrl + Enter</span> Generate response</div>
-      <div><span class="key">Shift + Enter</span> Create empty reply</div>
       <div><span class="key">Esc</span> Exit text area to use other hotkeys</div>
     </div>
 
     <div class="shortcuts-section">
-      <h3>Message Actions</h3>
+      <h3>Message Actions (when a message is focused)</h3>
+      <div><span class="key">n</span> Create empty reply</div>
       <div><span class="key">Shift + A</span> Focus on text area</div>
       <div><span class="key">j</span> Move to next message</div>
       <div><span class="key">k</span> Move to previous message</div>
@@ -157,6 +162,7 @@ $effect(() => {
       <div><span class="key">x</span> or <span class="key">Shift + X</span> Delete message</div>
       <div><span class="key">Ctrl + k</span> Move the message up</div>
       <div><span class="key">Ctrl + j</span> Move the message down</div>
+      <div><span class="key">q</span> Stop generation</div>
     </div>
   </dialog>
 {/if}

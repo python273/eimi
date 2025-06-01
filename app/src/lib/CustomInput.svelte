@@ -17,7 +17,7 @@ let elParent = $state()
 onMount(() => {
   elParent.style.height = `${el.offsetHeight}px`
   el.style.height = 0
-  el.style.height = `${el.scrollHeight+2}px`
+  el.style.height = `${el.scrollHeight}px`
   elParent.style.height = 'auto'
 })
 
@@ -42,7 +42,7 @@ async function autoresize() {
   elParent.style.height = `${el.offsetHeight}px`
 
   el.style.height = "auto"
-  el.style.height = `${el.scrollHeight+2}px`
+  el.style.height = `${el.scrollHeight}px`
 
   elParent.style.height = 'auto'
 }
@@ -78,7 +78,7 @@ div {
 /* check changes to style don't trigger scroll flash on typing! */
 textarea {
   line-height: 1.2em;
-  padding: 0 0.2em;
+  padding: 0.1em 0.2em;
   margin: 0;
   border-radius: 2px;
   color: var(--text-color);
@@ -87,5 +87,6 @@ textarea {
   resize: none;
   background: none;
   border: none;
+  overflow: hidden;
 }
 </style>

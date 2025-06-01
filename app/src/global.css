@@ -111,6 +111,10 @@ a, button, summary {
   cursor: pointer;
 }
 
+summary {
+  width: fit-content;
+}
+
 a:hover, button:hover, .no-vs:hover {
   color: var(--brand-hover-color);
 }

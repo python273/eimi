@@ -35,6 +35,7 @@ let sessionData = $state()
  *   content: string,
  *   thinking?: string,
  *   markdown?: Boolean,
+ *   collapsed?: Boolean,
  *   parameters?: object,
  *   depth?: number,
  *   ddepth?: number,
@@ -151,8 +152,33 @@ async function loadSession() {
   messages = relationalToLinear(loadedMessages)
   sessionLoaded = true
 }
+
+onMount(async () => {
+  await loadSession()
+  const savedScrollY = sessionStorage.getItem(`scroll-${sessionId}`)
+  if (savedScrollY) {
+    await tick()
+    window.scrollTo(0, parseInt(savedScrollY, 10))
+  }
+})
+
 onMount(() => {
-  loadSession()
+  // TODO: probably better to just save before navigation
+  const saveScroll = () => {
+    sessionStorage.setItem(`scroll-${sessionId}`, window.scrollY.toString())
+  }
+  let saveScrollTimeoutId = undefined;
+  const handleScroll = () => {
+    clearTimeout(saveScrollTimeoutId)
+    saveScrollTimeoutId = setTimeout(saveScroll, 200)
+  }
+  window.addEventListener('beforeunload', saveScroll)
+  window.addEventListener('scroll', handleScroll)
+  return () => {
+    clearTimeout(saveScrollTimeoutId)
+    window.removeEventListener('beforeunload', saveScroll)
+    window.removeEventListener('scroll', handleScroll)
+  }
 })
 
 let saveTimeoutId = null
@@ -180,6 +206,7 @@ $effect(() => {
     i.role
     i.content
     i.markdown
+    i.collapsed
   }
   window._sessionMessages = messages
   scheduleSave()
@@ -253,19 +280,21 @@ async function _genResponse(message, regenerate=false) {
   await tick()
 
   const request = {
+    runner: runLlmApi,
     signal: aborter.signal,
     proxy: apiData.proxy === false ? false : true,
     baseurl: apiData.baseurl,
     token: apiData.token,
     model: sessionData.parameters.model,
     completion: modelInfo.completion,
+    postGenerationCallbacks: [],
     parameters: {
       temperature: sessionData.parameters.temperature,
       frequency_penalty: sessionData.parameters.frequency_penalty,
       presence_penalty: sessionData.parameters.presence_penalty,
     },
-    messages: getChain(message, regenerate).map(({role, content}) => ({
-      role, content: [{type: 'text', text: content}]
+    messages: getChain(message, regenerate).map((msg) => ({
+      ...msg, content: [{type: 'text', text: msg.content}]
     })),
   }
   if (sessionData.parameters._api === 'anthropic' && sessionData.parameters.max_tokens === 0) {
@@ -285,9 +314,9 @@ async function _genResponse(message, regenerate=false) {
 
   console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
   for (let script of orderedScriptsEnabled) {
-    const fn = new AsyncFunction('request', script.scriptChainProcess)
     try {
-      await fn(request)
+      const fn = new AsyncFunction('request', 'newMessage', 'messages', script.scriptChainProcess)
+      await fn(request, newMessage, messages)
     } catch (e) {
       console.error(e)
       console.log('runLlmApi after script error:', request)
@@ -296,11 +325,12 @@ async function _genResponse(message, regenerate=false) {
       return
     }
   }
+  request.messages = request.messages.map(({role, content}) => ({role, content}))
   console.log('runLlmApi after scripts:', request)
 
   try {
     newMessage.content = ''
-    for await (const chunk of runLlmApi(request)) {
+    for await (const chunk of request.runner(request)) {
       if (typeof(chunk) === "string") {
         newMessage.content += chunk
       } else {
@@ -319,8 +349,16 @@ async function _genResponse(message, regenerate=false) {
     if (e.name === 'AbortError') return
     alert(`Request error:\n${e}`)
     console.error(e)
+  } finally {
+    newMessage.generating = false
+    for (const fn of request.postGenerationCallbacks) {
+      try {
+        fn(newMessage)
+      } catch (e) {
+        console.error('Post-generation callback error:', e)
+      }
+    }
   }
-  newMessage.generating = false
 }
 
 async function onCreateMessage(event) {
@@ -490,6 +528,9 @@ async function moveMessage(messageId, direction) {
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div class="message-content" class:generating="{c.generating}" tabindex="0">
           <div class="message-header">
+            <button class="mono" onclick={(e) => { c.collapsed = !c.collapsed }} title="collapse">
+              {#if c.collapsed}[+]{:else}[-]{/if}
+            </button>
             <select class="role" value={c.role} onchange={onRoleChange}>
               <option value={ASSISTANT}>{ASSISTANT}</option>
               <option value={USER}>{USER}</option>
@@ -530,28 +571,30 @@ async function moveMessage(messageId, direction) {
               <button onclick={(e) => genResponse(e, true)} title="regenerate this message">regen</button>
             {/if}
             <button onclick={genResponse} title="generate a response (ctrl+enter)">gen</button>
-            <button onclick={onCreateMessage} title="create an empty reply (shift+enter)">&#10149;&#xFE0E;</button>
+            <button onclick={onCreateMessage} title="create an empty reply (message focus+n)">&#10149;&#xFE0E;</button>
           </div>
-          {#if c.thinking}
-            <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
-              <summary>Thinking</summary>
+          {#if !c.collapsed}
+            {#if c.thinking}
+              <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
+                <summary>Thinking</summary>
+                <CustomInput
+                  generating={c.generating}
+                  value={c.thinking}
+                  bind:message={messages[i]}
+                  attr='thinking'
+                  style="border: 1px solid var(--text-color);"
+                />
+              </details>
+            {/if}
+            {#if c.markdown}
+              <MarkdownRenderer generating={c.generating} content={c.content}/>
+            {:else}
               <CustomInput
                 generating={c.generating}
-                value={c.thinking}
+                value={c.content}
                 bind:message={messages[i]}
-                attr='thinking'
-                style="border: 1px solid var(--text-color);"
               />
-            </details>
-          {/if}
-          {#if c.markdown}
-            <MarkdownRenderer generating={c.generating} content={c.content}/>
-          {:else}
-            <CustomInput
-              generating={c.generating}
-              value={c.content}
-              bind:message={messages[i]}
-            />
+            {/if}
           {/if}
         </div>
         {#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
@@ -634,7 +677,6 @@ async function moveMessage(messageId, direction) {
   align-items: center;
   gap: 2px;
   font-size: 0.9em;
-  margin: 0 0.6em;
 }
 
 .role {

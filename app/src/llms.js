@@ -16,8 +16,10 @@ function proxy(apiConfig, url) {
 }
 
 function formatErrorChunk(chunk) {
-  return 'API error:\n' + (typeof chunk.error === "string" ?
-    chunk.error : JSON.stringify(chunk.error, undefined, 2))
+  // TODO: handle outside llms.js?
+  const errorText = (typeof chunk.error === "string"
+    ? chunk.error : JSON.stringify(chunk.error, undefined, 2))
+  return `\n# API error:\n\`\`\`json\n${errorText}\n\`\`\``
 }
 
 async function* streamOpenai(apiConfig, modelParams) {

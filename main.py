@@ -86,6 +86,10 @@ async def post_proxy(request: Request, url: str):
 async def serve_favicon():
     return FileResponse("app/dist/favicon.png")
 
+@app.get("/robots.txt")
+async def serve_favicon():
+    return FileResponse("app/dist/robots.txt")
+
 app.mount("/assets", StaticFiles(directory="app/dist/assets"), name="assets")
 
 @app.get("/{full_path:path}")

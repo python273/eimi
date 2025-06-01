@@ -51,6 +51,8 @@ div {
 }
 .markdown {
   word-break: break-word;
+  padding: 0.1em 0;
+  line-height: 1.2em;
 }
 :global(.markdown > *:first-child) {
   margin-block-start: 0;
@@ -64,6 +66,7 @@ div {
   margin-block-end: 1.188em;
 }
 :global(.markdown :not(pre) > code) {
+  white-space: pre-wrap;
   border-radius: 3px;
   background-color: var(--code-bg-color);
 }

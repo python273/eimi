@@ -5,6 +5,7 @@ import Portal from "./Portal.svelte"
 
 const instances = $state({})
 const resizeObservers = {}
+const windowZIndices = $state({})
 
 let isDragging = false
 let previousX = 0
@@ -24,10 +25,7 @@ function closeWindow(id) {
 }
 
 function updateZIndex(id) {
-  const container = document.getElementById(getElById(id))
-  if (container) {
-    container.style.zIndex = `${windowLastZIndex++}`
-  }
+  windowZIndices[id] = windowLastZIndex++
 }
 
 function handleMouseDown(event, id) {
@@ -111,7 +109,7 @@ onMount(() => {
       id={getElById(w.id)}
       class="window"
       onmousedown={() => updateZIndex(w.id)}
-      style="left: {w.left}px; top: {w.top}px; width: {w.width}px; height: {w.height}px;"
+      style="left: {w.left}px; top: {w.top}px; width: {w.width}px; height: {w.height}px; z-index: {windowZIndices[w.id] || 0};"
       use:setupResizeObserver={w.id}
     >
       <!-- svelte-ignore a11y_no_static_element_interactions -->

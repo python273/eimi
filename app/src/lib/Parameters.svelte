@@ -135,12 +135,13 @@ function onModelQueryKeydown(e) {
     {#each scripts as i}
       <div class="flex script-row">
         <input
+          id={`script_enabled_${i.id}`}
           type="checkbox"
           title="toggle in session"
           checked={scriptsEnabled.includes(i.id)}
           onchange={() => { toggleScript(i.id) }}
         />
-        <div class="script-name">{i.name}</div>
+        <label for={`script_enabled_${i.id}`} class="script-name">{i.name}</label>
         <div class="ml-auto"></div>
         {#if i.sessionId}<span>⛓&#xFE0E;</span>{/if}
         <button onclick={(event) => {
@@ -320,10 +321,8 @@ label {
   width: 100%;
   font-size: 0.75em;
 }
-.script-row {
-  align-items: baseline;
-}
 .script-name {
+  font-size: 0.85em;
   margin-left: 0.3em;
   white-space: nowrap;
   overflow: hidden;
