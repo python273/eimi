@@ -4,7 +4,7 @@ import CustomInput from './lib/CustomInput.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
   uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction,
-  relationalToLinear, omit
+  relationalToLinear, omit, mergeOpenaiDiff
 } from './utils.js'
 import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
@@ -14,6 +14,7 @@ import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import { favoriteModels } from './lib/favoriteModelsStore'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
+
 
 let props = $props()
 const sessionId = props.sessionId  // https://github.com/sveltejs/svelte/issues/15697
@@ -334,6 +335,7 @@ async function _genResponse(message, regenerate=false) {
   console.log('runLlmApi after scripts:', request)
 
   try {
+    const tool_calls = []
     newMessage.content = ''
     for await (const chunk of request.runner(request)) {
       if (typeof(chunk) === "string") {
@@ -348,7 +350,22 @@ async function _genResponse(message, regenerate=false) {
         if (chunk?.thinking) {
           newMessage.thinking += chunk.thinking
         }
+        if (chunk?.tool_call_delta) {
+          const { index, ...diff } = chunk.tool_call_delta
+          if (tool_calls[index] === undefined) tool_calls[index] = {}
+          const accumulated_tool_call = tool_calls[index]
+          mergeOpenaiDiff(accumulated_tool_call, diff)
+
+          const key = `toolcall_${index}`
+          let tcData = newMessage.customData.find(d => d.key === key)
+          if (!tcData) {
+            tcData = {key: key, value: ''}
+            newMessage.customData.push(tcData)
+          }
+          tcData.value = JSON.stringify(accumulated_tool_call, null, 2)
+        }
       }
+      await tick();
     }
   } catch (e) {
     if (e.name === 'AbortError') return

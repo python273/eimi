@@ -38,7 +38,7 @@ const paramInputs = $derived.by(() => {
   return Array.from(base.values()).filter(p => !p.remove)
 })
 
-let paramState = $state(omit(parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']))
+let paramState = $state(omit(parameters, ['_api', 'model', 'scriptsEnabled']))
 $effect(() => {
   // Ensure each param has a value, falling back to its `initial_value` when undefined.
   // This runs whenever `model` or `paramInputs` change, but only sets values that are missing.
@@ -177,14 +177,14 @@ function onModelQueryKeydown(e) {
             type="range"
             id={`param-${p.key}`}
             min={p.min}
-            max={p.key === 'max_token' ? modelMaxToken : p.max}
+            max={p.key === 'max_tokens' ? modelMaxToken : p.max}
             step={p.step}
             bind:value={paramState[p.key]} />
           <input
             type="number"
             bind:value={paramState[p.key]}
             min={p.min}
-            max={p.key === 'max_token' ? modelMaxToken : p.max}
+            max={p.key === 'max_tokens' ? modelMaxToken : p.max}
             step={p.step} />
         {:else if p.widget === 'select'}
           <select

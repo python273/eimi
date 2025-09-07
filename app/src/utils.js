@@ -107,3 +107,20 @@ export function relationalToLinear(data) {
 export function omit(obj, keys) {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key)))
 }
+
+export function mergeOpenaiDiff(target, diff) {
+  for (const key in diff) {
+    if (!Object.prototype.hasOwnProperty.call(diff, key)) continue
+
+    if (target[key] === undefined) {
+      target[key] = diff[key]
+    } else if (typeof target[key] === 'string' && typeof diff[key] === 'string') {
+      target[key] += diff[key]
+    } else if (typeof target[key] === 'object' && target[key] !== null && typeof diff[key] === 'object' && diff[key] !== null && !Array.isArray(target[key]) && !Array.isArray(diff[key])) {
+      mergeOpenaiDiff(target[key], diff[key])
+    } else {
+      target[key] = diff[key]
+    }
+  }
+  return target
+}
