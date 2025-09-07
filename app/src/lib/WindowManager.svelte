@@ -2,6 +2,7 @@
 import { onMount } from "svelte"
 import store from './windowsStore'
 import Portal from "./Portal.svelte"
+import EmptyWindowContent from './EmptyWindowContent.svelte'
 
 const instances = $state({})
 const resizeObservers = {}
@@ -94,10 +95,20 @@ onMount(() => {
   document.addEventListener("mousemove", handleMouseMove)
   document.addEventListener("mouseup", handleMouseUp)
 
+  window._createEmptyWindow = (options = {}) => {
+    const { onReady, ...rest } = options
+    store.add({
+      component: EmptyWindowContent,
+      data: { onReady },
+      ...rest
+    })
+  }
+
   return () => {
     document.removeEventListener("mousemove", handleMouseMove)
     document.removeEventListener("mouseup", handleMouseUp)
     Object.values(resizeObservers).forEach(observer => observer.disconnect())
+    delete window._createEmptyWindow
   }
 })
 </script>

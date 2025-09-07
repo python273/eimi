@@ -37,6 +37,7 @@ let sessionData = $state()
  *   markdown?: Boolean,
  *   collapsed?: Boolean,
  *   parameters?: object,
+ *   customData?: Array<{key: string, value: string}>,
  *   depth?: number,
  *   ddepth?: number,
  *   linear?: boolean,
@@ -58,8 +59,11 @@ async function saveSession(sessionId) {
     return
   }
   const obj = {...$state.snapshot(sessionData), messages: messages.map(
-    ({id, createdAt, parentId,  markdown, role, content, thinking}) => ({
-      id, createdAt, parentId,  markdown, role, content, thinking
+    ({id, createdAt, parentId,  markdown, role, content, thinking, customData, parameters, collapsed}) => ({
+      id, createdAt, parentId,  markdown, role, content, thinking,
+      customData: $state.snapshot(customData),
+      parameters: $state.snapshot(parameters),
+      collapsed,
     })
   )}
   await (await db).put('sessionMeta', {
@@ -119,7 +123,8 @@ async function loadSession() {
       createdAt: new Date().valueOf(),
       parentId: null,
       role: USER,
-      content: ''
+      content: '',
+      customData: [],
     }])
     sessionLoaded = true
 
@@ -167,7 +172,7 @@ onMount(() => {
   const saveScroll = () => {
     sessionStorage.setItem(`scroll-${sessionId}`, window.scrollY.toString())
   }
-  let saveScrollTimeoutId = undefined;
+  let saveScrollTimeoutId = undefined
   const handleScroll = () => {
     clearTimeout(saveScrollTimeoutId)
     saveScrollTimeoutId = setTimeout(saveScroll, 200)
@@ -207,6 +212,7 @@ $effect(() => {
     i.content
     i.markdown
     i.collapsed
+    i.customData?.forEach(d => d.value)
   }
   window._sessionMessages = messages
   scheduleSave()
@@ -229,11 +235,13 @@ function getChain(message, regenerate = false) {
 }
 
 async function genResponse(event, regenerate=false) {
+  console.log('genResponse', event)
   event.preventDefault()
   const message = getMessageFromEvent(event)
   _genResponse(message, regenerate)
 }
 async function _genResponse(message, regenerate=false) {
+  console.log('_genResponse', message)
   console.log(
     'genResponse', $state.snapshot(message), regenerate,
     $state.snapshot(sessionData.parameters))
@@ -262,6 +270,7 @@ async function _genResponse(message, regenerate=false) {
       generating: true,
       markdown: true,
       parameters: {...sessionData.parameters},
+      customData: [],
     })
     newMessage = messages[0]  // get msg with Svelte proxy
     messages = relationalToLinear(messages)
@@ -371,6 +380,7 @@ async function onCreateMessage(event) {
     parentId: parentMsg ? parentMsg.id : null,
     role: parentMsg ? (parentMsg.role === USER ? ASSISTANT : USER) : USER,
     content: '',
+    customData: [],
   }
   if (parentMsg) {
     messages.unshift(newMessage)
@@ -594,6 +604,29 @@ async function moveMessage(messageId, direction) {
                 value={c.content}
                 bind:message={messages[i]}
               />
+            {/if}
+            {#if c.customData}
+              {#each c.customData as item, index (item)}
+                <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
+                  <summary>
+                    {item.key}
+                    <button
+                      onclick={(e) => {
+                        e.preventDefault()
+                        c.customData.splice(index, 1)
+                      }}
+                      title="Remove field"
+                    >x</button>
+                  </summary>
+                  <CustomInput
+                    generating={c.generating}
+                    value={item.value}
+                    bind:message={c.customData[index]}
+                    attr='value'
+                    style="border: 1px solid var(--text-color);"
+                  />
+                </details>
+              {/each}
             {/if}
           {/if}
         </div>

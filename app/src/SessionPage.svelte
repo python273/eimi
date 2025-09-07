@@ -55,7 +55,7 @@ subSessionList(loadSessionsList)
   left: 0;
   padding: 5px 0;
   height: calc(100% - 2.5em);
-  width: 22ch;
+  width: 24ch;
   overflow-y: auto;
   background-color: var(--panel-bg-color);
   border-radius: 5px;

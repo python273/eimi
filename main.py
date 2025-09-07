@@ -87,8 +87,12 @@ async def serve_favicon():
     return FileResponse("app/dist/favicon.png")
 
 @app.get("/robots.txt")
-async def serve_favicon():
+async def serve_robots_txt():
     return FileResponse("app/dist/robots.txt")
+
+@app.get("/service-worker.js")
+async def serve_service_worker():
+    return FileResponse("app/dist/service-worker.js")
 
 app.mount("/assets", StaticFiles(directory="app/dist/assets"), name="assets")
 

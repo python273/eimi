@@ -109,3 +109,23 @@ async function initDb() {
 
 export const db = initDb()
 window._db = db
+
+export async function rebuildSessionMeta() {
+  const tx = (await db).transaction(['sessions', 'sessionMeta'], 'readwrite')
+  const sessionStore = tx.objectStore('sessions')
+  const sessionMetaStore = tx.objectStore('sessionMeta')
+
+  await sessionMetaStore.clear()
+
+  const sessionKeys = await sessionStore.getAllKeys()
+  for (const key of sessionKeys) {
+    const session = await sessionStore.get(key)
+    await sessionMetaStore.put({
+      id: key,
+      title: session.title,
+      createdAt: session.createdAt,
+    })
+  }
+  await tx.done
+}
+window._rebuildSessionMeta = rebuildSessionMeta

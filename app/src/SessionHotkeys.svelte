@@ -3,6 +3,33 @@ import { onMount, onDestroy, tick } from 'svelte'
 
 let {messages, genResponse, onCreateMessage, getMessageFromEvent, deleteMessage, moveMessage} = $props()
 
+function isPressed(e, combo) {
+  const parts = combo.toLowerCase().split('+')
+  const key = parts.pop()
+  
+  let code
+  switch (key) {
+  case '?': code = 'Slash'; break
+  case 'esc':
+  case 'escape': code = 'Escape'; break
+  case 'enter': code = 'Enter'; break
+  default: code = key.length === 1 ? `Key${key.toUpperCase()}` : key
+  }
+  
+  const wants = {
+    shift: parts.includes('shift'),
+    ctrl: parts.includes('ctrl'),
+    alt: parts.includes('alt'),
+    meta: parts.includes('meta'),
+  }
+  
+  return e.code === code &&
+    e.shiftKey === wants.shift &&
+    e.ctrlKey === wants.ctrl &&
+    e.altKey === wants.alt &&
+    e.metaKey === wants.meta
+}
+
 const HELP_DISMISSED_KEY = 'cfg-hotkeys-shown'
 let show = $state(false)
 let showHelpTip = $state(localStorage.getItem(HELP_DISMISSED_KEY) !== '1')
@@ -13,9 +40,11 @@ function toggleHelpDialog() {
   localStorage.setItem(HELP_DISMISSED_KEY, '1')
 }
 
-async function onKeyDown(event) {
-  if (event.key === '?' && !event.target.matches('input, textarea')) {
-    event.preventDefault()
+async function onKeyDown(e) {
+  const hot = (combo) => isPressed(e, combo)
+
+  if (hot('shift+?') && !e.target.matches('input, textarea')) {
+    e.preventDefault()
     toggleHelpDialog()
     return
   }
@@ -34,52 +63,52 @@ async function onKeyDown(event) {
   // n - new message (reply)
   // q - abort message generation
 
-  if (!event.target.closest('.message-content')) return
+  if (!e.target.closest('.message-content')) return
 
-  if (event.target.tagName === 'TEXTAREA' && event.key === 'Escape') {
-    event.preventDefault()
-    event.target.closest('.message-content')?.focus({focusVisible: true})
+  if (e.target.tagName === 'TEXTAREA' && hot('escape')) {
+    e.preventDefault()
+    e.target.closest('.message-content')?.focus({focusVisible: true})
     return
-  } else if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
-    event.preventDefault()
-    return genResponse(event)
+  } else if (hot('ctrl+enter') || hot('meta+enter')) {
+    e.preventDefault()
+    return genResponse(e)
   }
 
-  if (!event.target.classList.contains('message-content')) return
-  const item = getMessageFromEvent(event)
+  if (!e.target.classList.contains('message-content')) return
+  const item = getMessageFromEvent(e)
   if (!item) return
 
-  if (event.key === 'n') {
-    event.preventDefault()
-    return onCreateMessage(event)
-  } else if (event.key === 'q') {
-    event.preventDefault()
+  if (hot('n')) {
+    e.preventDefault()
+    return onCreateMessage(e)
+  } else if (hot('q')) {
+    e.preventDefault()
     item.aborter?.abort()
     return
-  } else if (event.key === 'R') {
-    event.preventDefault()
-    return genResponse(event, true)
-  } else if (event.key === 'x' || event.key === 'X') {
-    event.preventDefault()
+  } else if (hot('shift+r')) {
+    e.preventDefault()
+    return genResponse(e, true)
+  } else if (hot('x') || hot('shift+x')) {
+    e.preventDefault()
     let i = messages.findIndex(i => i.id == item.id) - 1
-    deleteMessage(event)
+    deleteMessage(e)
     if (i < 0) return
     document.getElementById(`m_${messages[i].id}`)
       ?.querySelector('.message-content')
       ?.focus({focusVisible: true})
-  } else if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-    event.preventDefault()
+  } else if (hot('ctrl+k') || hot('meta+k')) {
+    e.preventDefault()
     moveMessage(item.id, 'up')
-  } else if ((event.metaKey || event.ctrlKey) && event.key === 'j') {
-    event.preventDefault()
+  } else if (hot('ctrl+j') || hot('meta+j')) {
+    e.preventDefault()
     moveMessage(item.id, 'down')
-  } else if (event.key === 'j' || event.key === 'k' || event.key === 'p') {
-    event.preventDefault()
+  } else if (hot('j') || hot('k') || hot('p')) {
+    e.preventDefault()
     let i
-    if (event.key === 'p') {
+    if (e.code === 'KeyP') {
       i = messages.findIndex(i => i.id == item.parentId)
     } else {
-      i = messages.findIndex(i => i.id == item.id) + (event.key === 'j' ? 1 : -1)
+      i = messages.findIndex(i => i.id == item.id) + (e.code === 'KeyJ' ? 1 : -1)
     }
     if (i < 0 || i >= messages.length) return
     const el = document.getElementById(`m_${messages[i].id}`)
@@ -90,11 +119,11 @@ async function onKeyDown(event) {
     const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight
     if (isPartiallyOffscreen) el.scrollIntoView(true)
     el.focus({preventScroll: true, focusVisible: true})
-  } else if (event.key === 'A') {
-    event.preventDefault()
+  } else if (hot('shift+a')) {
+    e.preventDefault()
     item.markdown = false
     await tick()
-    const textarea = event.target.querySelector('textarea')
+    const textarea = e.target.querySelector('textarea')
     if (textarea) {
       textarea.focus()
       textarea.setSelectionRange(textarea.value.length, textarea.value.length)
@@ -153,8 +182,8 @@ $effect(() => {
 
     <div class="shortcuts-section">
       <h3>Message Actions (when a message is focused)</h3>
-      <div><span class="key">n</span> Create empty reply</div>
       <div><span class="key">Shift + A</span> Focus on text area</div>
+      <div><span class="key">n</span> Create empty reply</div>
       <div><span class="key">j</span> Move to next message</div>
       <div><span class="key">k</span> Move to previous message</div>
       <div><span class="key">p</span> Jump to parent message</div>

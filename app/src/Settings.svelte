@@ -9,6 +9,7 @@ $effect(() => {
 
 let config = $state(localStorage["cfg-config-user"] || "")
 let valid = $derived.by(() => {
+  console.log('re-derive valid')
   try {
     JSON.parse(config)
     return true
@@ -17,9 +18,11 @@ let valid = $derived.by(() => {
   }
 })
 $effect(() => {
+  config;
   if (valid) {
-    localStorage["cfg-config-user"] = config
-    refreshConfig()
+    localStorage["cfg-config-user"] = $state.snapshot(config)
+    console.log('valid update')
+    setTimeout(() => { refreshConfig() }, 1)  // TODO: hmm?
   }
 })
 

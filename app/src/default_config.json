@@ -54,6 +54,11 @@
       "baseurl": "https://generativelanguage.googleapis.com/v1beta/",
       "token": "",
       "proxy": true
+    },
+    "cerebras": {
+      "baseurl": "https://api.cerebras.ai/v1/",
+      "token": "",
+      "proxy": true
     }
   },
   "models": [
@@ -100,6 +105,18 @@
       "id": "llama-3.1-8b-instant",
       "name": "groq/llama-3.1-8b-instant",
       "max_tokens": 4096
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.5-pro",
+      "name": "gemini-2.5-pro",
+      "max_tokens": 65536
+    },
+    {
+      "api": "google",
+      "id": "gemini-2.5-flash",
+      "name": "gemini-2.5-flash",
+      "max_tokens": 65536
     },
     {
       "api": "google",
@@ -199,9 +216,24 @@
     },
     {
       "api": "xai",
-      "id": "grok-beta",
-      "name": "grok-beta",
-      "max_tokens": 4096
+      "id": "grok-4",
+      "name": "grok-4"
+    },
+    {
+      "api": "xai",
+      "id": "grok-3",
+      "name": "grok-3"
+    },
+    {
+      "api": "xai",
+      "id": "grok-3-mini",
+      "name": "grok-3-mini"
+    },
+    {
+      "api": "cerebras",
+      "id": "qwen-3-32b",
+      "name": "qwen-3-32b",
+      "max_tokens": 16385
     },
     {
       "api": "anthropic",
@@ -459,6 +491,41 @@
     },
     {
       "api": "openai",
+      "id": "gpt-5",
+      "name": "gpt-5"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-2025-08-07",
+      "name": "gpt-5-2025-08-07"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-chat-latest",
+      "name": "gpt-5-chat-latest"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-mini",
+      "name": "gpt-5-mini"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-mini-2025-08-07",
+      "name": "gpt-5-mini-2025-08-07"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-nano",
+      "name": "gpt-5-nano"
+    },
+    {
+      "api": "openai",
+      "id": "gpt-5-nano-2025-08-07",
+      "name": "gpt-5-nano-2025-08-07"
+    },
+    {
+      "api": "openai",
       "id": "o1",
       "name": "o1",
       "max_tokens": 200000
@@ -483,6 +550,16 @@
     },
     {
       "api": "openai",
+      "id": "o3-deep-research",
+      "name": "o3-deep-research"
+    },
+    {
+      "api": "openai",
+      "id": "o3-deep-research-2025-06-26",
+      "name": "o3-deep-research-2025-06-26"
+    },
+    {
+      "api": "openai",
       "id": "o3-mini",
       "name": "o3-mini",
       "max_tokens": 200000
@@ -494,16 +571,19 @@
       "max_tokens": 200000
     },
     {
-      "api": "openrouter",
-      "id": "01-ai/yi-large",
-      "name": "01-ai/yi-large 01.AI: Yi Large",
-      "max_tokens": 4096
+      "api": "openai",
+      "id": "o3-pro",
+      "name": "o3-pro"
+    },
+    {
+      "api": "openai",
+      "id": "o3-pro-2025-06-10",
+      "name": "o3-pro-2025-06-10"
     },
     {
       "api": "openrouter",
-      "id": "aetherwiing/mn-starcannon-12b",
-      "name": "aetherwiing/mn-starcannon-12b Aetherwiing: Starcannon 12B",
-      "max_tokens": 4096
+      "id": "agentica-org/deepcoder-14b-preview",
+      "name": "agentica-org/deepcoder-14b-preview Agentica: Deepcoder 14B Preview"
     },
     {
       "api": "openrouter",
@@ -512,14 +592,14 @@
     },
     {
       "api": "openrouter",
-      "id": "ai21/jamba-1.6-large",
-      "name": "ai21/jamba-1.6-large AI21: Jamba 1.6 Large",
+      "id": "ai21/jamba-large-1.7",
+      "name": "ai21/jamba-large-1.7 AI21: Jamba Large 1.7",
       "max_tokens": 4096
     },
     {
       "api": "openrouter",
-      "id": "ai21/jamba-1.6-mini",
-      "name": "ai21/jamba-1.6-mini AI21: Jamba Mini 1.6",
+      "id": "ai21/jamba-mini-1.7",
+      "name": "ai21/jamba-mini-1.7 AI21: Jamba Mini 1.7",
       "max_tokens": 4096
     },
     {
@@ -544,25 +624,13 @@
       "api": "openrouter",
       "id": "alfredpros/codellama-7b-instruct-solidity",
       "name": "alfredpros/codellama-7b-instruct-solidity AlfredPros: CodeLLaMa 7B Instruct Solidity",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "all-hands/openhands-lm-32b-v0.1",
-      "name": "all-hands/openhands-lm-32b-v0.1 OpenHands LM 32B V0.1",
-      "max_tokens": 4096
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
       "id": "alpindale/goliath-120b",
       "name": "alpindale/goliath-120b Goliath 120B",
       "max_tokens": 512
-    },
-    {
-      "api": "openrouter",
-      "id": "alpindale/magnum-72b",
-      "name": "alpindale/magnum-72b Magnum 72B",
-      "max_tokens": 4096
     },
     {
       "api": "openrouter",
@@ -591,43 +659,7 @@
       "api": "openrouter",
       "id": "anthracite-org/magnum-v4-72b",
       "name": "anthracite-org/magnum-v4-72b Magnum v4 72B",
-      "max_tokens": 1024
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2",
-      "name": "anthropic/claude-2 Anthropic: Claude v2",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2.0",
-      "name": "anthropic/claude-2.0 Anthropic: Claude v2.0",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2.0:beta",
-      "name": "anthropic/claude-2.0:beta Anthropic: Claude v2.0 (self-moderated)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2.1",
-      "name": "anthropic/claude-2.1 Anthropic: Claude v2.1",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2.1:beta",
-      "name": "anthropic/claude-2.1:beta Anthropic: Claude v2.1 (self-moderated)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-2:beta",
-      "name": "anthropic/claude-2:beta Anthropic: Claude v2 (self-moderated)",
-      "max_tokens": 4096
+      "max_tokens": 2048
     },
     {
       "api": "openrouter",
@@ -637,32 +669,8 @@
     },
     {
       "api": "openrouter",
-      "id": "anthropic/claude-3-haiku:beta",
-      "name": "anthropic/claude-3-haiku:beta Anthropic: Claude 3 Haiku (self-moderated)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "anthropic/claude-3-opus",
       "name": "anthropic/claude-3-opus Anthropic: Claude 3 Opus",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-opus:beta",
-      "name": "anthropic/claude-3-opus:beta Anthropic: Claude 3 Opus (self-moderated)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-sonnet",
-      "name": "anthropic/claude-3-sonnet Anthropic: Claude 3 Sonnet",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3-sonnet:beta",
-      "name": "anthropic/claude-3-sonnet:beta Anthropic: Claude 3 Sonnet (self-moderated)",
       "max_tokens": 4096
     },
     {
@@ -679,18 +687,6 @@
     },
     {
       "api": "openrouter",
-      "id": "anthropic/claude-3.5-haiku-20241022:beta",
-      "name": "anthropic/claude-3.5-haiku-20241022:beta Anthropic: Claude 3.5 Haiku (2024-10-22) (self-moderated)",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3.5-haiku:beta",
-      "name": "anthropic/claude-3.5-haiku:beta Anthropic: Claude 3.5 Haiku (self-moderated)",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
       "id": "anthropic/claude-3.5-sonnet",
       "name": "anthropic/claude-3.5-sonnet Anthropic: Claude 3.5 Sonnet",
       "max_tokens": 8192
@@ -703,33 +699,15 @@
     },
     {
       "api": "openrouter",
-      "id": "anthropic/claude-3.5-sonnet-20240620:beta",
-      "name": "anthropic/claude-3.5-sonnet-20240620:beta Anthropic: Claude 3.5 Sonnet (2024-06-20) (self-moderated)",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
-      "id": "anthropic/claude-3.5-sonnet:beta",
-      "name": "anthropic/claude-3.5-sonnet:beta Anthropic: Claude 3.5 Sonnet (self-moderated)",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
       "id": "anthropic/claude-3.7-sonnet",
       "name": "anthropic/claude-3.7-sonnet Anthropic: Claude 3.7 Sonnet",
       "max_tokens": 64000
     },
     {
       "api": "openrouter",
-      "id": "anthropic/claude-3.7-sonnet:beta",
-      "name": "anthropic/claude-3.7-sonnet:beta Anthropic: Claude 3.7 Sonnet (self-moderated)",
-      "max_tokens": 128000
-    },
-    {
-      "api": "openrouter",
       "id": "anthropic/claude-3.7-sonnet:thinking",
       "name": "anthropic/claude-3.7-sonnet:thinking Anthropic: Claude 3.7 Sonnet (thinking)",
-      "max_tokens": 128000
+      "max_tokens": 64000
     },
     {
       "api": "openrouter",
@@ -739,19 +717,15 @@
     },
     {
       "api": "openrouter",
+      "id": "anthropic/claude-opus-4.1",
+      "name": "anthropic/claude-opus-4.1 Anthropic: Claude Opus 4.1",
+      "max_tokens": 32000
+    },
+    {
+      "api": "openrouter",
       "id": "anthropic/claude-sonnet-4",
       "name": "anthropic/claude-sonnet-4 Anthropic: Claude Sonnet 4",
       "max_tokens": 64000
-    },
-    {
-      "api": "openrouter",
-      "id": "arcee-ai/arcee-blitz",
-      "name": "arcee-ai/arcee-blitz Arcee AI: Arcee Blitz"
-    },
-    {
-      "api": "openrouter",
-      "id": "arcee-ai/caller-large",
-      "name": "arcee-ai/caller-large Arcee AI: Caller Large"
     },
     {
       "api": "openrouter",
@@ -778,14 +752,53 @@
     },
     {
       "api": "openrouter",
-      "id": "arcee-ai/virtuoso-medium-v2",
-      "name": "arcee-ai/virtuoso-medium-v2 Arcee AI: Virtuoso Medium V2",
-      "max_tokens": 32768
+      "id": "arliai/qwq-32b-arliai-rpr-v1",
+      "name": "arliai/qwq-32b-arliai-rpr-v1 ArliAI: QwQ 32B RpR v1"
     },
     {
       "api": "openrouter",
       "id": "arliai/qwq-32b-arliai-rpr-v1:free",
       "name": "arliai/qwq-32b-arliai-rpr-v1:free ArliAI: QwQ 32B RpR v1 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "baidu/ernie-4.5-21b-a3b",
+      "name": "baidu/ernie-4.5-21b-a3b Baidu: ERNIE 4.5 21B A3B",
+      "max_tokens": 8000
+    },
+    {
+      "api": "openrouter",
+      "id": "baidu/ernie-4.5-300b-a47b",
+      "name": "baidu/ernie-4.5-300b-a47b Baidu: ERNIE 4.5 300B A47B ",
+      "max_tokens": 12000
+    },
+    {
+      "api": "openrouter",
+      "id": "baidu/ernie-4.5-vl-28b-a3b",
+      "name": "baidu/ernie-4.5-vl-28b-a3b Baidu: ERNIE 4.5 VL 28B A3B",
+      "max_tokens": 8000
+    },
+    {
+      "api": "openrouter",
+      "id": "baidu/ernie-4.5-vl-424b-a47b",
+      "name": "baidu/ernie-4.5-vl-424b-a47b Baidu: ERNIE 4.5 VL 424B A47B ",
+      "max_tokens": 16000
+    },
+    {
+      "api": "openrouter",
+      "id": "bytedance/seed-oss-36b-instruct",
+      "name": "bytedance/seed-oss-36b-instruct ByteDance: Seed OSS 36B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "bytedance/ui-tars-1.5-7b",
+      "name": "bytedance/ui-tars-1.5-7b ByteDance: UI-TARS 7B ",
+      "max_tokens": 2048
+    },
+    {
+      "api": "openrouter",
+      "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+      "name": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free Venice: Uncensored (free)"
     },
     {
       "api": "openrouter",
@@ -795,8 +808,18 @@
     },
     {
       "api": "openrouter",
+      "id": "cognitivecomputations/dolphin3.0-mistral-24b",
+      "name": "cognitivecomputations/dolphin3.0-mistral-24b Dolphin3.0 Mistral 24B"
+    },
+    {
+      "api": "openrouter",
       "id": "cognitivecomputations/dolphin3.0-mistral-24b:free",
       "name": "cognitivecomputations/dolphin3.0-mistral-24b:free Dolphin3.0 Mistral 24B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "cognitivecomputations/dolphin3.0-r1-mistral-24b",
+      "name": "cognitivecomputations/dolphin3.0-r1-mistral-24b Dolphin3.0 R1 Mistral 24B"
     },
     {
       "api": "openrouter",
@@ -812,8 +835,7 @@
     {
       "api": "openrouter",
       "id": "cohere/command-a",
-      "name": "cohere/command-a Cohere: Command A",
-      "max_tokens": 8192
+      "name": "cohere/command-a Cohere: Command A"
     },
     {
       "api": "openrouter",
@@ -859,9 +881,18 @@
     },
     {
       "api": "openrouter",
+      "id": "deepcogito/cogito-v2-preview-deepseek-671b",
+      "name": "deepcogito/cogito-v2-preview-deepseek-671b Deep Cogito: Cogito V2 Preview Deepseek 671B"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepcogito/cogito-v2-preview-llama-109b-moe",
+      "name": "deepcogito/cogito-v2-preview-llama-109b-moe Cogito V2 Preview Llama 109B"
+    },
+    {
+      "api": "openrouter",
       "id": "deepseek/deepseek-chat",
-      "name": "deepseek/deepseek-chat DeepSeek: DeepSeek V3",
-      "max_tokens": 163840
+      "name": "deepseek/deepseek-chat DeepSeek: DeepSeek V3"
     },
     {
       "api": "openrouter",
@@ -875,8 +906,13 @@
     },
     {
       "api": "openrouter",
-      "id": "deepseek/deepseek-chat:free",
-      "name": "deepseek/deepseek-chat:free DeepSeek: DeepSeek V3 (free)"
+      "id": "deepseek/deepseek-chat-v3.1",
+      "name": "deepseek/deepseek-chat-v3.1 DeepSeek: DeepSeek V3.1"
+    },
+    {
+      "api": "openrouter",
+      "id": "deepseek/deepseek-chat-v3.1:free",
+      "name": "deepseek/deepseek-chat-v3.1:free DeepSeek: DeepSeek V3.1 (free)"
     },
     {
       "api": "openrouter",
@@ -885,26 +921,19 @@
     },
     {
       "api": "openrouter",
-      "id": "deepseek/deepseek-prover-v2:free",
-      "name": "deepseek/deepseek-prover-v2:free DeepSeek: DeepSeek Prover V2 (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "deepseek/deepseek-r1",
       "name": "deepseek/deepseek-r1 DeepSeek: R1",
-      "max_tokens": 32768
+      "max_tokens": 163840
     },
     {
       "api": "openrouter",
       "id": "deepseek/deepseek-r1-0528",
-      "name": "deepseek/deepseek-r1-0528 DeepSeek: R1 0528",
-      "max_tokens": 32768
+      "name": "deepseek/deepseek-r1-0528 DeepSeek: R1 0528"
     },
     {
       "api": "openrouter",
       "id": "deepseek/deepseek-r1-0528-qwen3-8b",
-      "name": "deepseek/deepseek-r1-0528-qwen3-8b DeepSeek: Deepseek R1 0528 Qwen3 8B",
-      "max_tokens": 32000
+      "name": "deepseek/deepseek-r1-0528-qwen3-8b DeepSeek: Deepseek R1 0528 Qwen3 8B"
     },
     {
       "api": "openrouter",
@@ -919,8 +948,7 @@
     {
       "api": "openrouter",
       "id": "deepseek/deepseek-r1-distill-llama-70b",
-      "name": "deepseek/deepseek-r1-distill-llama-70b DeepSeek: R1 Distill Llama 70B",
-      "max_tokens": 16384
+      "name": "deepseek/deepseek-r1-distill-llama-70b DeepSeek: R1 Distill Llama 70B"
     },
     {
       "api": "openrouter",
@@ -933,12 +961,6 @@
       "id": "deepseek/deepseek-r1-distill-llama-8b",
       "name": "deepseek/deepseek-r1-distill-llama-8b DeepSeek: R1 Distill Llama 8B",
       "max_tokens": 32000
-    },
-    {
-      "api": "openrouter",
-      "id": "deepseek/deepseek-r1-distill-qwen-1.5b",
-      "name": "deepseek/deepseek-r1-distill-qwen-1.5b DeepSeek: R1 Distill Qwen 1.5B",
-      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -959,58 +981,18 @@
     },
     {
       "api": "openrouter",
-      "id": "deepseek/deepseek-r1-distill-qwen-32b:free",
-      "name": "deepseek/deepseek-r1-distill-qwen-32b:free DeepSeek: R1 Distill Qwen 32B (free)",
-      "max_tokens": 16000
-    },
-    {
-      "api": "openrouter",
-      "id": "deepseek/deepseek-r1-distill-qwen-7b",
-      "name": "deepseek/deepseek-r1-distill-qwen-7b DeepSeek: R1 Distill Qwen 7B"
-    },
-    {
-      "api": "openrouter",
-      "id": "deepseek/deepseek-r1-zero:free",
-      "name": "deepseek/deepseek-r1-zero:free DeepSeek: DeepSeek R1 Zero (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "deepseek/deepseek-r1:free",
       "name": "deepseek/deepseek-r1:free DeepSeek: R1 (free)"
     },
     {
       "api": "openrouter",
-      "id": "deepseek/deepseek-v3-base:free",
-      "name": "deepseek/deepseek-v3-base:free DeepSeek: DeepSeek V3 Base (free)"
+      "id": "deepseek/deepseek-v3.1-base",
+      "name": "deepseek/deepseek-v3.1-base DeepSeek: DeepSeek V3.1 Base"
     },
     {
       "api": "openrouter",
       "id": "eleutherai/llemma_7b",
       "name": "eleutherai/llemma_7b EleutherAI: Llemma 7b",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "eva-unit-01/eva-llama-3.33-70b",
-      "name": "eva-unit-01/eva-llama-3.33-70b EVA Llama 3.33 70B",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "eva-unit-01/eva-qwen-2.5-32b",
-      "name": "eva-unit-01/eva-qwen-2.5-32b EVA Qwen2.5 32B",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "eva-unit-01/eva-qwen-2.5-72b",
-      "name": "eva-unit-01/eva-qwen-2.5-72b EVA Qwen2.5 72B",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "featherless/qwerky-72b:free",
-      "name": "featherless/qwerky-72b:free Qwerky 72B (free)",
       "max_tokens": 4096
     },
     {
@@ -1033,27 +1015,33 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-2.5-flash-preview",
-      "name": "google/gemini-2.5-flash-preview Google: Gemini 2.5 Flash Preview 04-17",
+      "id": "google/gemini-2.5-flash",
+      "name": "google/gemini-2.5-flash Google: Gemini 2.5 Flash",
       "max_tokens": 65535
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-2.5-flash-preview-05-20",
-      "name": "google/gemini-2.5-flash-preview-05-20 Google: Gemini 2.5 Flash Preview 05-20",
+      "id": "google/gemini-2.5-flash-image-preview",
+      "name": "google/gemini-2.5-flash-image-preview Google: Gemini 2.5 Flash Image Preview",
+      "max_tokens": 8192
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.5-flash-lite",
+      "name": "google/gemini-2.5-flash-lite Google: Gemini 2.5 Flash Lite",
       "max_tokens": 65535
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-2.5-flash-preview-05-20:thinking",
-      "name": "google/gemini-2.5-flash-preview-05-20:thinking Google: Gemini 2.5 Flash Preview 05-20 (thinking)",
+      "id": "google/gemini-2.5-flash-lite-preview-06-17",
+      "name": "google/gemini-2.5-flash-lite-preview-06-17 Google: Gemini 2.5 Flash Lite Preview 06-17",
       "max_tokens": 65535
     },
     {
       "api": "openrouter",
-      "id": "google/gemini-2.5-flash-preview:thinking",
-      "name": "google/gemini-2.5-flash-preview:thinking Google: Gemini 2.5 Flash Preview 04-17 (thinking)",
-      "max_tokens": 65535
+      "id": "google/gemini-2.5-pro",
+      "name": "google/gemini-2.5-pro Google: Gemini 2.5 Pro",
+      "max_tokens": 65536
     },
     {
       "api": "openrouter",
@@ -1064,7 +1052,13 @@
     {
       "api": "openrouter",
       "id": "google/gemini-2.5-pro-preview",
-      "name": "google/gemini-2.5-pro-preview Google: Gemini 2.5 Pro Preview",
+      "name": "google/gemini-2.5-pro-preview Google: Gemini 2.5 Pro Preview 06-05",
+      "max_tokens": 65536
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemini-2.5-pro-preview-05-06",
+      "name": "google/gemini-2.5-pro-preview-05-06 Google: Gemini 2.5 Pro Preview 05-06",
       "max_tokens": 65535
     },
     {
@@ -1088,8 +1082,7 @@
     {
       "api": "openrouter",
       "id": "google/gemma-2-27b-it",
-      "name": "google/gemma-2-27b-it Google: Gemma 2 27B",
-      "max_tokens": 2048
+      "name": "google/gemma-2-27b-it Google: Gemma 2 27B"
     },
     {
       "api": "openrouter",
@@ -1105,13 +1098,9 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemma-2b-it",
-      "name": "google/gemma-2b-it Google: Gemma 2 2B"
-    },
-    {
-      "api": "openrouter",
       "id": "google/gemma-3-12b-it",
-      "name": "google/gemma-3-12b-it Google: Gemma 3 12B"
+      "name": "google/gemma-3-12b-it Google: Gemma 3 12B",
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -1121,15 +1110,9 @@
     },
     {
       "api": "openrouter",
-      "id": "google/gemma-3-1b-it:free",
-      "name": "google/gemma-3-1b-it:free Google: Gemma 3 1B (free)",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
       "id": "google/gemma-3-27b-it",
       "name": "google/gemma-3-27b-it Google: Gemma 3 27B",
-      "max_tokens": 16384
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -1150,6 +1133,17 @@
     },
     {
       "api": "openrouter",
+      "id": "google/gemma-3n-e2b-it:free",
+      "name": "google/gemma-3n-e2b-it:free Google: Gemma 3n 2B (free)",
+      "max_tokens": 2048
+    },
+    {
+      "api": "openrouter",
+      "id": "google/gemma-3n-e4b-it",
+      "name": "google/gemma-3n-e4b-it Google: Gemma 3n 4B"
+    },
+    {
+      "api": "openrouter",
       "id": "google/gemma-3n-e4b-it:free",
       "name": "google/gemma-3n-e4b-it:free Google: Gemma 3n 4B (free)",
       "max_tokens": 2048
@@ -1157,19 +1151,25 @@
     {
       "api": "openrouter",
       "id": "gryphe/mythomax-l2-13b",
-      "name": "gryphe/mythomax-l2-13b MythoMax 13B",
-      "max_tokens": 4096
+      "name": "gryphe/mythomax-l2-13b MythoMax 13B"
     },
     {
       "api": "openrouter",
-      "id": "inception/mercury-coder-small-beta",
-      "name": "inception/mercury-coder-small-beta Inception: Mercury Coder Small Beta"
+      "id": "inception/mercury",
+      "name": "inception/mercury Inception: Mercury",
+      "max_tokens": 16384
+    },
+    {
+      "api": "openrouter",
+      "id": "inception/mercury-coder",
+      "name": "inception/mercury-coder Inception: Mercury Coder",
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
       "id": "infermatic/mn-inferor-12b",
       "name": "infermatic/mn-inferor-12b Infermatic: Mistral Nemo Inferor 12B",
-      "max_tokens": 4096
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -1190,11 +1190,6 @@
     },
     {
       "api": "openrouter",
-      "id": "liquid/lfm-40b",
-      "name": "liquid/lfm-40b Liquid: LFM 40B MoE"
-    },
-    {
-      "api": "openrouter",
       "id": "liquid/lfm-7b",
       "name": "liquid/lfm-7b Liquid: LFM 7B"
     },
@@ -1202,12 +1197,7 @@
       "api": "openrouter",
       "id": "mancer/weaver",
       "name": "mancer/weaver Mancer: Weaver (alpha)",
-      "max_tokens": 1000
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-2-70b-chat",
-      "name": "meta-llama/llama-2-70b-chat Meta: Llama 2 70B Chat"
+      "max_tokens": 2000
     },
     {
       "api": "openrouter",
@@ -1234,8 +1224,8 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3.1-405b:free",
-      "name": "meta-llama/llama-3.1-405b:free Meta: Llama 3.1 405B (base) (free)"
+      "id": "meta-llama/llama-3.1-405b-instruct:free",
+      "name": "meta-llama/llama-3.1-405b-instruct:free Meta: Llama 3.1 405B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1251,33 +1241,15 @@
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3.1-8b-instruct:free",
-      "name": "meta-llama/llama-3.1-8b-instruct:free Meta: Llama 3.1 8B Instruct (free)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "meta-llama/llama-3.2-11b-vision-instruct",
       "name": "meta-llama/llama-3.2-11b-vision-instruct Meta: Llama 3.2 11B Vision Instruct",
       "max_tokens": 16384
     },
     {
       "api": "openrouter",
-      "id": "meta-llama/llama-3.2-11b-vision-instruct:free",
-      "name": "meta-llama/llama-3.2-11b-vision-instruct:free Meta: Llama 3.2 11B Vision Instruct (free)",
-      "max_tokens": 2048
-    },
-    {
-      "api": "openrouter",
       "id": "meta-llama/llama-3.2-1b-instruct",
       "name": "meta-llama/llama-3.2-1b-instruct Meta: Llama 3.2 1B Instruct",
       "max_tokens": 16384
-    },
-    {
-      "api": "openrouter",
-      "id": "meta-llama/llama-3.2-1b-instruct:free",
-      "name": "meta-llama/llama-3.2-1b-instruct:free Meta: Llama 3.2 1B Instruct (free)",
-      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -1288,14 +1260,13 @@
     {
       "api": "openrouter",
       "id": "meta-llama/llama-3.2-3b-instruct:free",
-      "name": "meta-llama/llama-3.2-3b-instruct:free Meta: Llama 3.2 3B Instruct (free)",
-      "max_tokens": 20000
+      "name": "meta-llama/llama-3.2-3b-instruct:free Meta: Llama 3.2 3B Instruct (free)"
     },
     {
       "api": "openrouter",
       "id": "meta-llama/llama-3.2-90b-vision-instruct",
       "name": "meta-llama/llama-3.2-90b-vision-instruct Meta: Llama 3.2 90B Vision Instruct",
-      "max_tokens": 2048
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
@@ -1306,8 +1277,7 @@
     {
       "api": "openrouter",
       "id": "meta-llama/llama-3.3-70b-instruct:free",
-      "name": "meta-llama/llama-3.3-70b-instruct:free Meta: Llama 3.3 70B Instruct (free)",
-      "max_tokens": 2048
+      "name": "meta-llama/llama-3.3-70b-instruct:free Meta: Llama 3.3 70B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -1324,7 +1294,8 @@
     {
       "api": "openrouter",
       "id": "meta-llama/llama-4-maverick:free",
-      "name": "meta-llama/llama-4-maverick:free Meta: Llama 4 Maverick (free)"
+      "name": "meta-llama/llama-4-maverick:free Meta: Llama 4 Maverick (free)",
+      "max_tokens": 4028
     },
     {
       "api": "openrouter",
@@ -1335,7 +1306,8 @@
     {
       "api": "openrouter",
       "id": "meta-llama/llama-4-scout:free",
-      "name": "meta-llama/llama-4-scout:free Meta: Llama 4 Scout (free)"
+      "name": "meta-llama/llama-4-scout:free Meta: Llama 4 Scout (free)",
+      "max_tokens": 4028
     },
     {
       "api": "openrouter",
@@ -1351,6 +1323,11 @@
       "api": "openrouter",
       "id": "meta-llama/llama-guard-4-12b",
       "name": "meta-llama/llama-guard-4-12b Meta: Llama Guard 4 12B"
+    },
+    {
+      "api": "openrouter",
+      "id": "microsoft/mai-ds-r1",
+      "name": "microsoft/mai-ds-r1 Microsoft: MAI DS R1"
     },
     {
       "api": "openrouter",
@@ -1375,8 +1352,7 @@
     {
       "api": "openrouter",
       "id": "microsoft/phi-4",
-      "name": "microsoft/phi-4 Microsoft: Phi 4",
-      "max_tokens": 16384
+      "name": "microsoft/phi-4 Microsoft: Phi 4"
     },
     {
       "api": "openrouter",
@@ -1390,19 +1366,9 @@
     },
     {
       "api": "openrouter",
-      "id": "microsoft/phi-4-reasoning-plus:free",
-      "name": "microsoft/phi-4-reasoning-plus:free Microsoft: Phi 4 Reasoning Plus (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "microsoft/phi-4-reasoning:free",
-      "name": "microsoft/phi-4-reasoning:free Microsoft: Phi 4 Reasoning (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "microsoft/wizardlm-2-8x22b",
       "name": "microsoft/wizardlm-2-8x22b WizardLM-2 8x22B",
-      "max_tokens": 16384
+      "max_tokens": 65536
     },
     {
       "api": "openrouter",
@@ -1412,18 +1378,57 @@
     },
     {
       "api": "openrouter",
+      "id": "minimax/minimax-m1",
+      "name": "minimax/minimax-m1 MiniMax: MiniMax M1",
+      "max_tokens": 40000
+    },
+    {
+      "api": "openrouter",
       "id": "mistralai/codestral-2501",
       "name": "mistralai/codestral-2501 Mistral: Codestral 2501"
     },
     {
       "api": "openrouter",
-      "id": "mistralai/devstral-small",
-      "name": "mistralai/devstral-small Mistral: Devstral Small"
+      "id": "mistralai/codestral-2508",
+      "name": "mistralai/codestral-2508 Mistral: Codestral 2508"
     },
     {
       "api": "openrouter",
-      "id": "mistralai/devstral-small:free",
-      "name": "mistralai/devstral-small:free Mistral: Devstral Small (free)"
+      "id": "mistralai/devstral-medium",
+      "name": "mistralai/devstral-medium Mistral: Devstral Medium"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/devstral-small",
+      "name": "mistralai/devstral-small Mistral: Devstral Small 1.1"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/devstral-small-2505",
+      "name": "mistralai/devstral-small-2505 Mistral: Devstral Small 2505"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/devstral-small-2505:free",
+      "name": "mistralai/devstral-small-2505:free Mistral: Devstral Small 2505 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/magistral-medium-2506",
+      "name": "mistralai/magistral-medium-2506 Mistral: Magistral Medium 2506",
+      "max_tokens": 40000
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/magistral-medium-2506:thinking",
+      "name": "mistralai/magistral-medium-2506:thinking Mistral: Magistral Medium 2506 (thinking)",
+      "max_tokens": 40000
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/magistral-small-2506",
+      "name": "mistralai/magistral-small-2506 Mistral: Magistral Small 2506",
+      "max_tokens": 40000
     },
     {
       "api": "openrouter",
@@ -1445,11 +1450,6 @@
       "api": "openrouter",
       "id": "mistralai/mistral-7b-instruct-v0.1",
       "name": "mistralai/mistral-7b-instruct-v0.1 Mistral: Mistral 7B Instruct v0.1"
-    },
-    {
-      "api": "openrouter",
-      "id": "mistralai/mistral-7b-instruct-v0.2",
-      "name": "mistralai/mistral-7b-instruct-v0.2 Mistral: Mistral 7B Instruct v0.2"
     },
     {
       "api": "openrouter",
@@ -1480,19 +1480,19 @@
     },
     {
       "api": "openrouter",
-      "id": "mistralai/mistral-medium",
-      "name": "mistralai/mistral-medium Mistral Medium"
-    },
-    {
-      "api": "openrouter",
       "id": "mistralai/mistral-medium-3",
       "name": "mistralai/mistral-medium-3 Mistral: Mistral Medium 3"
     },
     {
       "api": "openrouter",
+      "id": "mistralai/mistral-medium-3.1",
+      "name": "mistralai/mistral-medium-3.1 Mistral: Mistral Medium 3.1"
+    },
+    {
+      "api": "openrouter",
       "id": "mistralai/mistral-nemo",
       "name": "mistralai/mistral-nemo Mistral: Mistral Nemo",
-      "max_tokens": 16384
+      "max_tokens": 128000
     },
     {
       "api": "openrouter",
@@ -1513,8 +1513,7 @@
     {
       "api": "openrouter",
       "id": "mistralai/mistral-small-24b-instruct-2501",
-      "name": "mistralai/mistral-small-24b-instruct-2501 Mistral: Mistral Small 3",
-      "max_tokens": 16384
+      "name": "mistralai/mistral-small-24b-instruct-2501 Mistral: Mistral Small 3"
     },
     {
       "api": "openrouter",
@@ -1524,13 +1523,23 @@
     {
       "api": "openrouter",
       "id": "mistralai/mistral-small-3.1-24b-instruct",
-      "name": "mistralai/mistral-small-3.1-24b-instruct Mistral: Mistral Small 3.1 24B"
+      "name": "mistralai/mistral-small-3.1-24b-instruct Mistral: Mistral Small 3.1 24B",
+      "max_tokens": 96000
     },
     {
       "api": "openrouter",
       "id": "mistralai/mistral-small-3.1-24b-instruct:free",
-      "name": "mistralai/mistral-small-3.1-24b-instruct:free Mistral: Mistral Small 3.1 24B (free)",
-      "max_tokens": 96000
+      "name": "mistralai/mistral-small-3.1-24b-instruct:free Mistral: Mistral Small 3.1 24B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-small-3.2-24b-instruct",
+      "name": "mistralai/mistral-small-3.2-24b-instruct Mistral: Mistral Small 3.2 24B"
+    },
+    {
+      "api": "openrouter",
+      "id": "mistralai/mistral-small-3.2-24b-instruct:free",
+      "name": "mistralai/mistral-small-3.2-24b-instruct:free Mistral: Mistral Small 3.2 24B (free)"
     },
     {
       "api": "openrouter",
@@ -1560,13 +1569,52 @@
     },
     {
       "api": "openrouter",
-      "id": "moonshotai/kimi-vl-a3b-thinking:free",
-      "name": "moonshotai/kimi-vl-a3b-thinking:free Moonshot AI: Kimi VL A3B Thinking (free)"
+      "id": "moonshotai/kimi-dev-72b",
+      "name": "moonshotai/kimi-dev-72b MoonshotAI: Kimi Dev 72B",
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
-      "id": "moonshotai/moonlight-16b-a3b-instruct:free",
-      "name": "moonshotai/moonlight-16b-a3b-instruct:free Moonshot AI: Moonlight 16B A3B Instruct (free)"
+      "id": "moonshotai/kimi-dev-72b:free",
+      "name": "moonshotai/kimi-dev-72b:free MoonshotAI: Kimi Dev 72B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/kimi-k2",
+      "name": "moonshotai/kimi-k2 MoonshotAI: Kimi K2 0711",
+      "max_tokens": 63000
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/kimi-k2-0905",
+      "name": "moonshotai/kimi-k2-0905 MoonshotAI: Kimi K2 0905"
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/kimi-k2:free",
+      "name": "moonshotai/kimi-k2:free MoonshotAI: Kimi K2 0711 (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/kimi-vl-a3b-thinking",
+      "name": "moonshotai/kimi-vl-a3b-thinking MoonshotAI: Kimi VL A3B Thinking"
+    },
+    {
+      "api": "openrouter",
+      "id": "moonshotai/kimi-vl-a3b-thinking:free",
+      "name": "moonshotai/kimi-vl-a3b-thinking:free MoonshotAI: Kimi VL A3B Thinking (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "morph/morph-v3-fast",
+      "name": "morph/morph-v3-fast Morph: Morph V3 Fast",
+      "max_tokens": 38000
+    },
+    {
+      "api": "openrouter",
+      "id": "morph/morph-v3-large",
+      "name": "morph/morph-v3-large Morph: Morph V3 Large",
+      "max_tokens": 38000
     },
     {
       "api": "openrouter",
@@ -1576,33 +1624,13 @@
     },
     {
       "api": "openrouter",
-      "id": "neversleep/llama-3-lumimaid-8b",
-      "name": "neversleep/llama-3-lumimaid-8b NeverSleep: Llama 3 Lumimaid 8B",
-      "max_tokens": 2048
-    },
-    {
-      "api": "openrouter",
-      "id": "neversleep/llama-3.1-lumimaid-70b",
-      "name": "neversleep/llama-3.1-lumimaid-70b NeverSleep: Lumimaid v0.2 70B",
-      "max_tokens": 2048
-    },
-    {
-      "api": "openrouter",
       "id": "neversleep/llama-3.1-lumimaid-8b",
-      "name": "neversleep/llama-3.1-lumimaid-8b NeverSleep: Lumimaid v0.2 8B",
-      "max_tokens": 2048
+      "name": "neversleep/llama-3.1-lumimaid-8b NeverSleep: Lumimaid v0.2 8B"
     },
     {
       "api": "openrouter",
       "id": "neversleep/noromaid-20b",
-      "name": "neversleep/noromaid-20b Noromaid 20B",
-      "max_tokens": 2048
-    },
-    {
-      "api": "openrouter",
-      "id": "nothingiisreal/mn-celeste-12b",
-      "name": "nothingiisreal/mn-celeste-12b Mistral Nemo 12B Celeste",
-      "max_tokens": 4096
+      "name": "neversleep/noromaid-20b Noromaid 20B"
     },
     {
       "api": "openrouter",
@@ -1611,8 +1639,8 @@
     },
     {
       "api": "openrouter",
-      "id": "nousresearch/deephermes-3-mistral-24b-preview:free",
-      "name": "nousresearch/deephermes-3-mistral-24b-preview:free Nous: DeepHermes 3 Mistral 24B Preview (free)"
+      "id": "nousresearch/deephermes-3-mistral-24b-preview",
+      "name": "nousresearch/deephermes-3-mistral-24b-preview Nous: DeepHermes 3 Mistral 24B Preview"
     },
     {
       "api": "openrouter",
@@ -1629,20 +1657,23 @@
     {
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-70b",
-      "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct",
-      "max_tokens": 131072
+      "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct"
     },
     {
       "api": "openrouter",
-      "id": "nousresearch/nous-hermes-2-mixtral-8x7b-dpo",
-      "name": "nousresearch/nous-hermes-2-mixtral-8x7b-dpo Nous: Hermes 2 Mixtral 8x7B DPO",
-      "max_tokens": 2048
+      "id": "nousresearch/hermes-4-405b",
+      "name": "nousresearch/hermes-4-405b Nous: Hermes 4 405B"
+    },
+    {
+      "api": "openrouter",
+      "id": "nousresearch/hermes-4-70b",
+      "name": "nousresearch/hermes-4-70b Nous: Hermes 4 70B"
     },
     {
       "api": "openrouter",
       "id": "nvidia/llama-3.1-nemotron-70b-instruct",
       "name": "nvidia/llama-3.1-nemotron-70b-instruct NVIDIA: Llama 3.1 Nemotron 70B Instruct",
-      "max_tokens": 131072
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
@@ -1658,16 +1689,6 @@
       "api": "openrouter",
       "id": "nvidia/llama-3.3-nemotron-super-49b-v1",
       "name": "nvidia/llama-3.3-nemotron-super-49b-v1 NVIDIA: Llama 3.3 Nemotron Super 49B v1"
-    },
-    {
-      "api": "openrouter",
-      "id": "nvidia/llama-3.3-nemotron-super-49b-v1:free",
-      "name": "nvidia/llama-3.3-nemotron-super-49b-v1:free NVIDIA: Llama 3.3 Nemotron Super 49B v1 (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "open-r1/olympiccoder-32b:free",
-      "name": "open-r1/olympiccoder-32b:free OlympicCoder 32B (free)"
     },
     {
       "api": "openrouter",
@@ -1689,20 +1710,8 @@
     },
     {
       "api": "openrouter",
-      "id": "openai/gpt-3.5-turbo-0125",
-      "name": "openai/gpt-3.5-turbo-0125 OpenAI: GPT-3.5 Turbo 16k",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "openai/gpt-3.5-turbo-0613",
       "name": "openai/gpt-3.5-turbo-0613 OpenAI: GPT-3.5 Turbo (older v0613)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "openai/gpt-3.5-turbo-1106",
-      "name": "openai/gpt-3.5-turbo-1106 OpenAI: GPT-3.5 Turbo 16k (older v1106)",
       "max_tokens": 4096
     },
     {
@@ -1737,18 +1746,6 @@
     },
     {
       "api": "openrouter",
-      "id": "openai/gpt-4-32k",
-      "name": "openai/gpt-4-32k OpenAI: GPT-4 32k",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
-      "id": "openai/gpt-4-32k-0314",
-      "name": "openai/gpt-4-32k-0314 OpenAI: GPT-4 32k (older v0314)",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "openai/gpt-4-turbo",
       "name": "openai/gpt-4-turbo OpenAI: GPT-4 Turbo",
       "max_tokens": 4096
@@ -1779,12 +1776,6 @@
     },
     {
       "api": "openrouter",
-      "id": "openai/gpt-4.5-preview",
-      "name": "openai/gpt-4.5-preview OpenAI: GPT-4.5 (Preview)",
-      "max_tokens": 16384
-    },
-    {
-      "api": "openrouter",
       "id": "openai/gpt-4o",
       "name": "openai/gpt-4o OpenAI: GPT-4o",
       "max_tokens": 16384
@@ -1805,6 +1796,12 @@
       "api": "openrouter",
       "id": "openai/gpt-4o-2024-11-20",
       "name": "openai/gpt-4o-2024-11-20 OpenAI: GPT-4o (2024-11-20)",
+      "max_tokens": 16384
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-4o-audio-preview",
+      "name": "openai/gpt-4o-audio-preview OpenAI: GPT-4o Audio",
       "max_tokens": 16384
     },
     {
@@ -1839,6 +1836,53 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/gpt-5",
+      "name": "openai/gpt-5 OpenAI: GPT-5",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-5-chat",
+      "name": "openai/gpt-5-chat OpenAI: GPT-5 Chat",
+      "max_tokens": 16384
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-5-mini",
+      "name": "openai/gpt-5-mini OpenAI: GPT-5 Mini",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-5-nano",
+      "name": "openai/gpt-5-nano OpenAI: GPT-5 Nano",
+      "max_tokens": 128000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-oss-120b",
+      "name": "openai/gpt-oss-120b OpenAI: gpt-oss-120b",
+      "max_tokens": 131000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-oss-120b:free",
+      "name": "openai/gpt-oss-120b:free OpenAI: gpt-oss-120b (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-oss-20b",
+      "name": "openai/gpt-oss-20b OpenAI: gpt-oss-20b",
+      "max_tokens": 131000
+    },
+    {
+      "api": "openrouter",
+      "id": "openai/gpt-oss-20b:free",
+      "name": "openai/gpt-oss-20b:free OpenAI: gpt-oss-20b (free)",
+      "max_tokens": 131072
+    },
+    {
+      "api": "openrouter",
       "id": "openai/o1",
       "name": "openai/o1 OpenAI: o1",
       "max_tokens": 100000
@@ -1854,18 +1898,6 @@
       "id": "openai/o1-mini-2024-09-12",
       "name": "openai/o1-mini-2024-09-12 OpenAI: o1-mini (2024-09-12)",
       "max_tokens": 65536
-    },
-    {
-      "api": "openrouter",
-      "id": "openai/o1-preview",
-      "name": "openai/o1-preview OpenAI: o1-preview",
-      "max_tokens": 32768
-    },
-    {
-      "api": "openrouter",
-      "id": "openai/o1-preview-2024-09-12",
-      "name": "openai/o1-preview-2024-09-12 OpenAI: o1-preview (2024-09-12)",
-      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -1893,6 +1925,12 @@
     },
     {
       "api": "openrouter",
+      "id": "openai/o3-pro",
+      "name": "openai/o3-pro OpenAI: o3 Pro",
+      "max_tokens": 100000
+    },
+    {
+      "api": "openrouter",
       "id": "openai/o4-mini",
       "name": "openai/o4-mini OpenAI: o4 Mini",
       "max_tokens": 100000
@@ -1905,28 +1943,18 @@
     },
     {
       "api": "openrouter",
-      "id": "opengvlab/internvl3-14b:free",
-      "name": "opengvlab/internvl3-14b:free OpenGVLab: InternVL3 14B (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "opengvlab/internvl3-2b:free",
-      "name": "opengvlab/internvl3-2b:free OpenGVLab: InternVL3 2B (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "openrouter/auto",
       "name": "openrouter/auto Auto Router"
     },
     {
       "api": "openrouter",
-      "id": "perplexity/llama-3.1-sonar-large-128k-online",
-      "name": "perplexity/llama-3.1-sonar-large-128k-online Perplexity: Llama 3.1 Sonar 70B Online"
+      "id": "openrouter/sonoma-dusk-alpha",
+      "name": "openrouter/sonoma-dusk-alpha Sonoma Dusk Alpha"
     },
     {
       "api": "openrouter",
-      "id": "perplexity/llama-3.1-sonar-small-128k-online",
-      "name": "perplexity/llama-3.1-sonar-small-128k-online Perplexity: Llama 3.1 Sonar 8B Online"
+      "id": "openrouter/sonoma-sky-alpha",
+      "name": "openrouter/sonoma-sky-alpha Sonoma Sky Alpha"
     },
     {
       "api": "openrouter",
@@ -1967,15 +1995,8 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen-2-72b-instruct",
-      "name": "qwen/qwen-2-72b-instruct Qwen 2 72B Instruct",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "qwen/qwen-2.5-72b-instruct",
-      "name": "qwen/qwen-2.5-72b-instruct Qwen2.5 72B Instruct",
-      "max_tokens": 16384
+      "name": "qwen/qwen-2.5-72b-instruct Qwen2.5 72B Instruct"
     },
     {
       "api": "openrouter",
@@ -1989,15 +2010,8 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen-2.5-7b-instruct:free",
-      "name": "qwen/qwen-2.5-7b-instruct:free Qwen2.5 7B Instruct (free)",
-      "max_tokens": 32768
-    },
-    {
-      "api": "openrouter",
       "id": "qwen/qwen-2.5-coder-32b-instruct",
-      "name": "qwen/qwen-2.5-coder-32b-instruct Qwen2.5 Coder 32B Instruct",
-      "max_tokens": 16384
+      "name": "qwen/qwen-2.5-coder-32b-instruct Qwen2.5 Coder 32B Instruct"
     },
     {
       "api": "openrouter",
@@ -2008,12 +2022,6 @@
       "api": "openrouter",
       "id": "qwen/qwen-2.5-vl-7b-instruct",
       "name": "qwen/qwen-2.5-vl-7b-instruct Qwen: Qwen2.5-VL 7B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "qwen/qwen-2.5-vl-7b-instruct:free",
-      "name": "qwen/qwen-2.5-vl-7b-instruct:free Qwen: Qwen2.5-VL 7B Instruct (free)",
-      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -2057,19 +2065,13 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen2.5-vl-3b-instruct:free",
-      "name": "qwen/qwen2.5-vl-3b-instruct:free Qwen: Qwen2.5 VL 3B Instruct (free)"
-    },
-    {
-      "api": "openrouter",
       "id": "qwen/qwen2.5-vl-72b-instruct",
       "name": "qwen/qwen2.5-vl-72b-instruct Qwen: Qwen2.5 VL 72B Instruct"
     },
     {
       "api": "openrouter",
       "id": "qwen/qwen2.5-vl-72b-instruct:free",
-      "name": "qwen/qwen2.5-vl-72b-instruct:free Qwen: Qwen2.5 VL 72B Instruct (free)",
-      "max_tokens": 2048
+      "name": "qwen/qwen2.5-vl-72b-instruct:free Qwen: Qwen2.5 VL 72B Instruct (free)"
     },
     {
       "api": "openrouter",
@@ -2090,14 +2092,34 @@
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwen3-235b-a22b-2507",
+      "name": "qwen/qwen3-235b-a22b-2507 Qwen: Qwen3 235B A22B Instruct 2507"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-235b-a22b-thinking-2507",
+      "name": "qwen/qwen3-235b-a22b-thinking-2507 Qwen: Qwen3 235B A22B Thinking 2507"
+    },
+    {
+      "api": "openrouter",
       "id": "qwen/qwen3-235b-a22b:free",
       "name": "qwen/qwen3-235b-a22b:free Qwen: Qwen3 235B A22B (free)"
     },
     {
       "api": "openrouter",
       "id": "qwen/qwen3-30b-a3b",
-      "name": "qwen/qwen3-30b-a3b Qwen: Qwen3 30B A3B",
-      "max_tokens": 40960
+      "name": "qwen/qwen3-30b-a3b Qwen: Qwen3 30B A3B"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-30b-a3b-instruct-2507",
+      "name": "qwen/qwen3-30b-a3b-instruct-2507 Qwen: Qwen3 30B A3B Instruct 2507"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-30b-a3b-thinking-2507",
+      "name": "qwen/qwen3-30b-a3b-thinking-2507 Qwen: Qwen3 30B A3B Thinking 2507",
+      "max_tokens": 262144
     },
     {
       "api": "openrouter",
@@ -2111,8 +2133,8 @@
     },
     {
       "api": "openrouter",
-      "id": "qwen/qwen3-32b:free",
-      "name": "qwen/qwen3-32b:free Qwen: Qwen3 32B (free)"
+      "id": "qwen/qwen3-4b:free",
+      "name": "qwen/qwen3-4b:free Qwen: Qwen3 4B (free)"
     },
     {
       "api": "openrouter",
@@ -2128,6 +2150,27 @@
     },
     {
       "api": "openrouter",
+      "id": "qwen/qwen3-coder",
+      "name": "qwen/qwen3-coder Qwen: Qwen3 Coder 480B A35B"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-coder-30b-a3b-instruct",
+      "name": "qwen/qwen3-coder-30b-a3b-instruct Qwen: Qwen3 Coder 30B A3B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-coder:free",
+      "name": "qwen/qwen3-coder:free Qwen: Qwen3 Coder 480B A35B (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-max",
+      "name": "qwen/qwen3-max Qwen: Qwen3 Max",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
       "id": "qwen/qwq-32b",
       "name": "qwen/qwq-32b Qwen: QwQ 32B"
     },
@@ -2139,8 +2182,7 @@
     {
       "api": "openrouter",
       "id": "qwen/qwq-32b:free",
-      "name": "qwen/qwq-32b:free Qwen: QwQ 32B (free)",
-      "max_tokens": 40000
+      "name": "qwen/qwq-32b:free Qwen: QwQ 32B (free)"
     },
     {
       "api": "openrouter",
@@ -2151,12 +2193,6 @@
       "api": "openrouter",
       "id": "rekaai/reka-flash-3:free",
       "name": "rekaai/reka-flash-3:free Reka: Flash 3 (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "sao10k/fimbulvetr-11b-v2",
-      "name": "sao10k/fimbulvetr-11b-v2 Fimbulvetr 11B v2",
-      "max_tokens": 4096
     },
     {
       "api": "openrouter",
@@ -2172,8 +2208,7 @@
     {
       "api": "openrouter",
       "id": "sao10k/l3.1-euryale-70b",
-      "name": "sao10k/l3.1-euryale-70b Sao10K: Llama 3.1 Euryale 70B v2.2",
-      "max_tokens": 16384
+      "name": "sao10k/l3.1-euryale-70b Sao10K: Llama 3.1 Euryale 70B v2.2"
     },
     {
       "api": "openrouter",
@@ -2183,24 +2218,8 @@
     },
     {
       "api": "openrouter",
-      "id": "sarvamai/sarvam-m",
-      "name": "sarvamai/sarvam-m Sarvam AI: Sarvam-M",
-      "max_tokens": 32768
-    },
-    {
-      "api": "openrouter",
-      "id": "sarvamai/sarvam-m:free",
-      "name": "sarvamai/sarvam-m:free Sarvam AI: Sarvam-M (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "scb10x/llama3.1-typhoon2-70b-instruct",
-      "name": "scb10x/llama3.1-typhoon2-70b-instruct Typhoon2 70B Instruct"
-    },
-    {
-      "api": "openrouter",
-      "id": "scb10x/llama3.1-typhoon2-8b-instruct",
-      "name": "scb10x/llama3.1-typhoon2-8b-instruct Typhoon2 8B Instruct"
+      "id": "shisa-ai/shisa-v2-llama3.3-70b",
+      "name": "shisa-ai/shisa-v2-llama3.3-70b Shisa AI: Shisa V2 Llama 3.3 70B "
     },
     {
       "api": "openrouter",
@@ -2212,6 +2231,32 @@
       "id": "sophosympatheia/midnight-rose-70b",
       "name": "sophosympatheia/midnight-rose-70b Midnight Rose 70B",
       "max_tokens": 2048
+    },
+    {
+      "api": "openrouter",
+      "id": "stepfun-ai/step3",
+      "name": "stepfun-ai/step3 StepFun: Step3",
+      "max_tokens": 65536
+    },
+    {
+      "api": "openrouter",
+      "id": "switchpoint/router",
+      "name": "switchpoint/router Switchpoint Router"
+    },
+    {
+      "api": "openrouter",
+      "id": "tencent/hunyuan-a13b-instruct",
+      "name": "tencent/hunyuan-a13b-instruct Tencent: Hunyuan A13B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "tencent/hunyuan-a13b-instruct:free",
+      "name": "tencent/hunyuan-a13b-instruct:free Tencent: Hunyuan A13B Instruct (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "thedrummer/anubis-70b-v1.1",
+      "name": "thedrummer/anubis-70b-v1.1 TheDrummer: Anubis 70B V1.1"
     },
     {
       "api": "openrouter",
@@ -2227,20 +2272,12 @@
     {
       "api": "openrouter",
       "id": "thedrummer/skyfall-36b-v2",
-      "name": "thedrummer/skyfall-36b-v2 TheDrummer: Skyfall 36B V2",
-      "max_tokens": 32768
+      "name": "thedrummer/skyfall-36b-v2 TheDrummer: Skyfall 36B V2"
     },
     {
       "api": "openrouter",
       "id": "thedrummer/unslopnemo-12b",
-      "name": "thedrummer/unslopnemo-12b TheDrummer: UnslopNemo 12B",
-      "max_tokens": 16000
-    },
-    {
-      "api": "openrouter",
-      "id": "thedrummer/valkyrie-49b-v1",
-      "name": "thedrummer/valkyrie-49b-v1 TheDrummer: Valkyrie 49B V1",
-      "max_tokens": 131072
+      "name": "thedrummer/unslopnemo-12b TheDrummer: UnslopNemo 12B"
     },
     {
       "api": "openrouter",
@@ -2250,25 +2287,19 @@
     },
     {
       "api": "openrouter",
-      "id": "thudm/glm-4-32b:free",
-      "name": "thudm/glm-4-32b:free THUDM: GLM 4 32B (free)"
+      "id": "thudm/glm-4.1v-9b-thinking",
+      "name": "thudm/glm-4.1v-9b-thinking THUDM: GLM 4.1V 9B Thinking",
+      "max_tokens": 8000
     },
     {
       "api": "openrouter",
       "id": "thudm/glm-z1-32b",
-      "name": "thudm/glm-z1-32b THUDM: GLM Z1 32B",
-      "max_tokens": 32000
+      "name": "thudm/glm-z1-32b THUDM: GLM Z1 32B"
     },
     {
       "api": "openrouter",
-      "id": "thudm/glm-z1-32b:free",
-      "name": "thudm/glm-z1-32b:free THUDM: GLM Z1 32B (free)"
-    },
-    {
-      "api": "openrouter",
-      "id": "thudm/glm-z1-rumination-32b",
-      "name": "thudm/glm-z1-rumination-32b THUDM: GLM Z1 Rumination 32B ",
-      "max_tokens": 32000
+      "id": "tngtech/deepseek-r1t-chimera",
+      "name": "tngtech/deepseek-r1t-chimera TNG: DeepSeek R1T Chimera"
     },
     {
       "api": "openrouter",
@@ -2277,15 +2308,13 @@
     },
     {
       "api": "openrouter",
-      "id": "undi95/remm-slerp-l2-13b",
-      "name": "undi95/remm-slerp-l2-13b ReMM SLERP 13B",
-      "max_tokens": 4096
+      "id": "tngtech/deepseek-r1t2-chimera:free",
+      "name": "tngtech/deepseek-r1t2-chimera:free TNG: DeepSeek R1T2 Chimera (free)"
     },
     {
       "api": "openrouter",
-      "id": "undi95/toppy-m-7b",
-      "name": "undi95/toppy-m-7b Toppy M 7B",
-      "max_tokens": 4096
+      "id": "undi95/remm-slerp-l2-13b",
+      "name": "undi95/remm-slerp-l2-13b ReMM SLERP 13B"
     },
     {
       "api": "openrouter",
@@ -2299,8 +2328,18 @@
     },
     {
       "api": "openrouter",
+      "id": "x-ai/grok-3",
+      "name": "x-ai/grok-3 xAI: Grok 3"
+    },
+    {
+      "api": "openrouter",
       "id": "x-ai/grok-3-beta",
       "name": "x-ai/grok-3-beta xAI: Grok 3 Beta"
+    },
+    {
+      "api": "openrouter",
+      "id": "x-ai/grok-3-mini",
+      "name": "x-ai/grok-3-mini xAI: Grok 3 Mini"
     },
     {
       "api": "openrouter",
@@ -2309,13 +2348,41 @@
     },
     {
       "api": "openrouter",
-      "id": "x-ai/grok-beta",
-      "name": "x-ai/grok-beta xAI: Grok Beta"
+      "id": "x-ai/grok-4",
+      "name": "x-ai/grok-4 xAI: Grok 4"
     },
     {
       "api": "openrouter",
-      "id": "x-ai/grok-vision-beta",
-      "name": "x-ai/grok-vision-beta xAI: Grok Vision Beta"
+      "id": "x-ai/grok-code-fast-1",
+      "name": "x-ai/grok-code-fast-1 xAI: Grok Code Fast 1",
+      "max_tokens": 10000
+    },
+    {
+      "api": "openrouter",
+      "id": "z-ai/glm-4-32b",
+      "name": "z-ai/glm-4-32b Z.AI: GLM 4 32B "
+    },
+    {
+      "api": "openrouter",
+      "id": "z-ai/glm-4.5",
+      "name": "z-ai/glm-4.5 Z.AI: GLM 4.5"
+    },
+    {
+      "api": "openrouter",
+      "id": "z-ai/glm-4.5-air",
+      "name": "z-ai/glm-4.5-air Z.AI: GLM 4.5 Air",
+      "max_tokens": 131072
+    },
+    {
+      "api": "openrouter",
+      "id": "z-ai/glm-4.5-air:free",
+      "name": "z-ai/glm-4.5-air:free Z.AI: GLM 4.5 Air (free)"
+    },
+    {
+      "api": "openrouter",
+      "id": "z-ai/glm-4.5v",
+      "name": "z-ai/glm-4.5v Z.AI: GLM 4.5V",
+      "max_tokens": 65536
     }
   ]
 }
