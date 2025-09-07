@@ -4,7 +4,7 @@ import CustomInput from './lib/CustomInput.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
   uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction,
-  relationalToLinear
+  relationalToLinear, omit
 } from './utils.js'
 import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
@@ -297,11 +297,7 @@ async function _genResponse(message, regenerate=false) {
     model: sessionData.parameters.model,
     completion: modelInfo.completion,
     postGenerationCallbacks: [],
-    parameters: {
-      temperature: sessionData.parameters.temperature,
-      frequency_penalty: sessionData.parameters.frequency_penalty,
-      presence_penalty: sessionData.parameters.presence_penalty,
-    },
+    parameters: omit(sessionData.parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
     messages: getChain(message, regenerate).map((msg) => ({
       ...msg, content: [{type: 'text', text: msg.content}]
     })),

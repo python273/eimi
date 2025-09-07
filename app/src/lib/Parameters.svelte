@@ -1,6 +1,6 @@
 <script>
 import { db } from "../db"
-import { notifyDbScripts, uniqueId } from "../utils"
+import { notifyDbScripts, omit, uniqueId } from "../utils"
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
 import windowsStore from "./windowsStore"
 import { CONFIG, configUpdated } from '../config.svelte'
@@ -21,25 +21,60 @@ $effect(() => {
 })
 let modelMaxToken = $derived(model['max_tokens'] || 32768)
 
-let temperature = $state(parameters.temperature ?? 0.0)
-let top_p = $state(parameters.top_p ?? 1.0)
-let frequency_penalty = $state(parameters.frequency_penalty ?? 0.0)
-let presence_penalty = $state(parameters.presence_penalty ?? 0.0)
-let max_tokens = $state(parameters.max_tokens ?? 0)
+const DEFAULT_PARAMS = [
+  { id: 'temperature', key: 'temperature', widget: 'range', label: 'Temperature', min: 0, max: 2, step: 0.01, initial_value: 0.0 },
+  { id: 'top_p', key: 'top_p', widget: 'range', label: 'Top P', min: 0, max: 1, step: 0.01, initial_value: 1.0 },
+  { id: 'frequency_penalty', key: 'frequency_penalty', widget: 'range', label: 'Frequency Penalty', min: 0, max: 2, step: 0.01, initial_value: 0.0 },
+  { id: 'presence_penalty', key: 'presence_penalty', widget: 'range', label: 'Presence Penalty', min: 0, max: 2, step: 0.01, initial_value: 0.0 },
+  { id: 'max_tokens', key: 'max_tokens', widget: 'range', label: 'Max Tokens', min: 0, max: null, step: 1, initial_value: 0 }
+]
+const paramInputs = $derived.by(() => {
+  const base = new Map(DEFAULT_PARAMS.map(p => [p.id, p]))
+  if (model && model.params) {
+    model.params.forEach(p => {
+      base.set(p.id, { ...base.get(p.id), ...p })
+    })
+  }
+  return Array.from(base.values()).filter(p => !p.remove)
+})
+
+let paramState = $state(omit(parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']))
+$effect(() => {
+  // Ensure each param has a value, falling back to its `initial_value` when undefined.
+  // This runs whenever `model` or `paramInputs` change, but only sets values that are missing.
+  for (const p of paramInputs) {
+    if (paramState[p.key] === undefined) {
+      let defaultVal = p.initial_value
+      if (defaultVal === undefined && p.widget === 'select' && Array.isArray(p.options) && p.options.length) {
+        defaultVal = p.options[0].value
+      }
+      if (defaultVal !== undefined) {
+        paramState[p.key] = defaultVal
+      }
+    }
+  }
+})
 
 let scriptsEnabled = $state(parameters.scriptsEnabled || [])
 
 $effect(() => {
-  if (max_tokens > modelMaxToken) {
-    max_tokens = modelMaxToken
+  if (paramState.max_tokens > modelMaxToken) {
+    paramState.max_tokens = modelMaxToken
   }
-  onUpdate({
+
+  const updateObj = {
     _api: model.api,
     model: model.id,
-    temperature, frequency_penalty, presence_penalty,
-    max_tokens,
     scriptsEnabled,
-  })
+  }
+  for (const p of paramInputs) {
+    if (p.remove) {
+      updateObj[p.key] = undefined
+    } else {
+      updateObj[p.key] = paramState[p.key]
+    }
+  }
+  onUpdate(updateObj)
 })
 
 function toggleScript(id) {
@@ -90,42 +125,6 @@ function onModelQueryKeydown(e) {
 </script>
 
 <div class="params-panel">
-  <div class="param">
-    <label for="temperature">Temperature</label>
-    <div>
-      <input type="range" id="temperature" min="0" max="2" step="0.01" bind:value={temperature} />
-      <input type="number" bind:value={temperature} min="0" max="2" step="0.01" />
-    </div>
-  </div>
-  <div class="param">
-    <label for="top_p">Top P</label>
-    <div>
-      <input type="range" id="top_p" min="0" max="1" step="0.01" bind:value={top_p} />
-      <input type="number" bind:value={top_p} min="0" max="1" step="0.01" />
-    </div>
-  </div>
-  <div class="param">
-    <label for="frequency_penalty">Frequency Penalty</label>
-    <div>
-      <input type="range" id="frequency_penalty" min="0" max="2" step="0.01" bind:value={frequency_penalty} />
-      <input type="number" bind:value={frequency_penalty} min="0" max="2" step="0.01" />
-    </div>
-  </div>
-  <div class="param">
-    <label for="presence_penalty">Presence Penalty</label>
-    <div>
-      <input type="range" id="presence_penalty" min="0" max="2" step="0.01" bind:value={presence_penalty} />
-      <input type="number" bind:value={presence_penalty} min="0" max="2" step="0.01" />
-    </div>
-  </div>
-  <div class="param">
-    <label for="max_tokens">Max Tokens</label>
-    <div>
-      <input type="range" id="max_tokens" min="0" max={modelMaxToken} step="1" bind:value={max_tokens} />
-      <input type="number" bind:value={max_tokens} min="0" max={modelMaxToken} step="1" />
-    </div>
-  </div>
-  <div><hr/></div>
   <div>
     <div class="flex">
       <div>Scripts:</div>
@@ -168,6 +167,40 @@ function onModelQueryKeydown(e) {
       {/each}
     </div>
   </div>
+  <div><hr/></div>
+  {#each paramInputs as p}
+    <div class="param">
+      <label for={`param-${p.key}`}>{p.label}</label>
+      <div>
+        {#if p.widget === 'range'}
+          <input
+            type="range"
+            id={`param-${p.key}`}
+            min={p.min}
+            max={p.key === 'max_token' ? modelMaxToken : p.max}
+            step={p.step}
+            bind:value={paramState[p.key]} />
+          <input
+            type="number"
+            bind:value={paramState[p.key]}
+            min={p.min}
+            max={p.key === 'max_token' ? modelMaxToken : p.max}
+            step={p.step} />
+        {:else if p.widget === 'select'}
+          <select
+            id={`param-${p.key}`}
+            value={paramState[p.key] ?? p.initial_value}
+            onchange={(e) => paramState[p.key] = e.currentTarget.value}
+          >
+            {#each p.options as opt}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+        {/if}
+      </div>
+    </div>
+  {/each}
+  <div><hr/></div>
   <div>
     <input
       class="w100"

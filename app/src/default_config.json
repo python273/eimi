@@ -492,37 +492,450 @@
     {
       "api": "openai",
       "id": "gpt-5",
-      "name": "gpt-5"
+      "name": "gpt-5",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-2025-08-07",
-      "name": "gpt-5-2025-08-07"
+      "name": "gpt-5-2025-08-07",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-chat-latest",
-      "name": "gpt-5-chat-latest"
+      "name": "gpt-5-chat-latest",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-mini",
-      "name": "gpt-5-mini"
+      "name": "gpt-5-mini",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-mini-2025-08-07",
-      "name": "gpt-5-mini-2025-08-07"
+      "name": "gpt-5-mini-2025-08-07",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-nano",
-      "name": "gpt-5-nano"
+      "name": "gpt-5-nano",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "gpt-5-nano-2025-08-07",
-      "name": "gpt-5-nano-2025-08-07"
+      "name": "gpt-5-nano-2025-08-07",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
@@ -540,45 +953,517 @@
       "api": "openai",
       "id": "o3",
       "name": "o3",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ],
       "max_tokens": 200000
     },
     {
       "api": "openai",
       "id": "o3-2025-04-16",
       "name": "o3-2025-04-16",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ],
       "max_tokens": 200000
     },
     {
       "api": "openai",
       "id": "o3-deep-research",
-      "name": "o3-deep-research"
+      "name": "o3-deep-research",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "o3-deep-research-2025-06-26",
-      "name": "o3-deep-research-2025-06-26"
+      "name": "o3-deep-research-2025-06-26",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "o3-mini",
       "name": "o3-mini",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ],
       "max_tokens": 200000
     },
     {
       "api": "openai",
       "id": "o3-mini-2025-01-31",
       "name": "o3-mini-2025-01-31",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ],
       "max_tokens": 200000
     },
     {
       "api": "openai",
       "id": "o3-pro",
-      "name": "o3-pro"
+      "name": "o3-pro",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openai",
       "id": "o3-pro-2025-06-10",
-      "name": "o3-pro-2025-06-10"
+      "name": "o3-pro-2025-06-10",
+      "params": [
+        {
+          "id": "temperature",
+          "remove": true
+        },
+        {
+          "id": "top_p",
+          "remove": true
+        },
+        {
+          "id": "frequency_penalty",
+          "remove": true
+        },
+        {
+          "id": "presence_penalty",
+          "remove": true
+        },
+        {
+          "id": "reasoning_effort",
+          "key": "reasoning_effort",
+          "widget": "select",
+          "label": "Reasoning Effort",
+          "initial_value": "medium",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        },
+        {
+          "id": "stream",
+          "key": "stream",
+          "label": "Stream",
+          "widget": "select",
+          "options": [
+            {
+              "value": true,
+              "label": "Stream"
+            },
+            {
+              "value": false,
+              "label": "No stream"
+            }
+          ]
+        }
+      ]
     },
     {
       "api": "openrouter",
