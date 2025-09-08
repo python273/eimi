@@ -32,6 +32,7 @@ function createCrossTabs(key) {
 
 export const [notifyDbScripts, subDbScripts] = createCrossTabs('crosstabs_scripts')
 export const [notifySessionList, subSessionList] = createCrossTabs('crosstabs_sessionList')
+export const [notifyThemeChange, subThemeChange] = createCrossTabs('crosstabs_theme')
 
 
 export function merge(base, user) {

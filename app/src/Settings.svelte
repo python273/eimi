@@ -2,6 +2,7 @@
 import { db } from './db.js'
 import DEFAULT_CONFIG from "./default_config.json"
 import { refreshConfig } from './config.svelte.js'
+import { notifyThemeChange } from './utils.js'
 
 $effect(() => {
   document.title = `Settings - Eimi LLM UI`
@@ -16,6 +17,19 @@ let valid = $derived.by(() => {
   } catch {
     return false
   }
+})
+
+let lightTheme = $state(localStorage.getItem('cfg-theme-light') || 'light')
+let darkTheme = $state(localStorage.getItem('cfg-theme-dark') || 'dark')
+
+$effect(() => {
+  localStorage.setItem('cfg-theme-light', lightTheme)
+  notifyThemeChange()
+})
+
+$effect(() => {
+  localStorage.setItem('cfg-theme-dark', darkTheme)
+  notifyThemeChange()
 })
 $effect(() => {
   config
@@ -112,6 +126,24 @@ function importSessionsFromFile(e) {
       bind:value={config}
       class:invalid={!valid}
     ></textarea>
+  </div>
+  <hr/>
+  <div>
+    <h2>Theme</h2>
+    <div>
+      <label for="light-theme">Light Mode Theme:</label>
+      <select id="light-theme" bind:value={lightTheme}>
+        <option value="light">Light</option>
+        <option value="lavender">Lavender</option>
+      </select>
+    </div>
+    <div>
+      <label for="dark-theme">Dark Mode Theme:</label>
+      <select id="dark-theme" bind:value={darkTheme}>
+        <option value="dark">Dark</option>
+        <option value="smolder">Smolder</option>
+      </select>
+    </div>
   </div>
   <hr/>
   <div>

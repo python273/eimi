@@ -4,6 +4,7 @@ import Settings from './Settings.svelte'
 import WindowManager from './lib/WindowManager.svelte'
 import { genSessionId } from './utils.js'
 import { themeStore } from './themeStore.js'
+import Theme from './Theme.svelte'
 import Welcome from './Welcome.svelte'
 
 let hash = $state(window.location.hash.slice(1))
@@ -39,37 +40,7 @@ let {page, props} = $derived.by(() => {
 
 </script>
 
-{#if !$themeStore.isDark}
-<style>
-  :root {
-    --bg-color: #ecedee;
-    --text-color: #000;
-    --comment-bg-color: #fff;
-    --panel-bg-color: #f7f7f7;
-    --meta-color: rgb(94, 126, 142);
-    --code-bg-color: #eceef0;
-  }
-
-  html {
-    scrollbar-color: #000 transparent;
-  }
-</style>
-{:else}
-<style>
-  :root {
-    --bg-color: #181412;
-    --text-color: rgb(233, 225, 204);
-    --comment-bg-color: rgb(55, 45, 40);
-    --panel-bg-color: #241e1b;
-    --meta-color: rgb(179, 172, 152);
-    --code-bg-color: rgb(70, 56, 50);
-  }
-
-  html {
-    scrollbar-color: #fff transparent;
-  }
-</style>
-{/if}
+<Theme/>
 
 <div class="header">
   <!-- svelte-ignore a11y_invalid_attribute -->
