@@ -119,6 +119,10 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
 
       if ('text' in c) {
         yield c.text
+      } else if (c.delta?.tool_calls) {
+        for (const tool_call_delta of c.delta.tool_calls) {
+          yield {tool_call_delta}
+        }
       } else if (c.delta?.content) {
         yield c.delta.content
       } else if (c.delta?.reasoning) {  // OpenRouter

@@ -18,7 +18,7 @@ let valid = $derived.by(() => {
   }
 })
 $effect(() => {
-  config;
+  config
   if (valid) {
     localStorage["cfg-config-user"] = $state.snapshot(config)
     console.log('valid update')

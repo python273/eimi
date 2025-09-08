@@ -112,10 +112,16 @@ export function mergeOpenaiDiff(target, diff) {
   for (const key in diff) {
     if (!Object.prototype.hasOwnProperty.call(diff, key)) continue
 
+    if (diff[key] === null && target[key] !== undefined) continue
+
     if (target[key] === undefined) {
       target[key] = diff[key]
     } else if (typeof target[key] === 'string' && typeof diff[key] === 'string') {
-      target[key] += diff[key]
+      if (key === 'arguments' || key === 'content') {
+        target[key] += diff[key]
+      } else {
+        target[key] = diff[key]
+      }
     } else if (typeof target[key] === 'object' && target[key] !== null && typeof diff[key] === 'object' && diff[key] !== null && !Array.isArray(target[key]) && !Array.isArray(diff[key])) {
       mergeOpenaiDiff(target[key], diff[key])
     } else {

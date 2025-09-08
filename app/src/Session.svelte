@@ -3,8 +3,8 @@ import { tick, onDestroy, onMount } from 'svelte'
 import CustomInput from './lib/CustomInput.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
-  uniqueId, genSessionId, subDbScripts, notifySessionList, AsyncFunction,
-  relationalToLinear, omit, mergeOpenaiDiff
+  uniqueId, genSessionId, notifySessionList, relationalToLinear, omit,
+  mergeOpenaiDiff
 } from './utils.js'
 import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
@@ -14,6 +14,7 @@ import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import { favoriteModels } from './lib/favoriteModelsStore'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
+import SessionScripts from './SessionScripts.svelte'
 
 
 let props = $props()
@@ -83,6 +84,16 @@ onDestroy(async () => {
   for (const i of messages) {
     i.aborter?.abort()
   }
+  for (const instance of Object.values(scriptInstances)) {
+    if (instance.onDestroy) {
+      try {
+        await instance.onDestroy()
+      } catch (e) {
+        console.error('Script onDestroy error:', e)
+        alert(`Script onDestroy error:\n${e}`)
+      }
+    }
+  }
   await saveSession(sessionId)
   stopSaving = true
 })
@@ -116,7 +127,8 @@ async function loadSession() {
         temperature: 0,
         top_p: 1.0,
         frequency_penalty: 0,
-        presence_penalty: 0
+        presence_penalty: 0,
+        max_tokens: 0,
       }
     }
     messages = relationalToLinear([{
@@ -290,6 +302,7 @@ async function _genResponse(message, regenerate=false) {
   await tick()
 
   const request = {
+    createdAt: new Date(),
     runner: runLlmApi,
     signal: aborter.signal,
     proxy: apiData.proxy === false ? false : true,
@@ -297,7 +310,6 @@ async function _genResponse(message, regenerate=false) {
     token: apiData.token,
     model: sessionData.parameters.model,
     completion: modelInfo.completion,
-    postGenerationCallbacks: [],
     parameters: omit(sessionData.parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
     messages: getChain(message, regenerate).map((msg) => ({
       ...msg, content: [{type: 'text', text: msg.content}]
@@ -321,8 +333,10 @@ async function _genResponse(message, regenerate=false) {
   console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
   for (let script of orderedScriptsEnabled) {
     try {
-      const fn = new AsyncFunction('request', 'newMessage', 'messages', script.scriptChainProcess)
-      await fn(request, newMessage, messages)
+      const instance = scriptInstances[script.id]
+      if (instance?.onRequest) {
+        await instance.onRequest(request, newMessage, messages)
+      }
     } catch (e) {
       console.error(e)
       console.log('runLlmApi after script error:', request)
@@ -365,7 +379,7 @@ async function _genResponse(message, regenerate=false) {
           tcData.value = JSON.stringify(accumulated_tool_call, null, 2)
         }
       }
-      await tick();
+      await tick()
     }
   } catch (e) {
     if (e.name === 'AbortError') return
@@ -373,11 +387,17 @@ async function _genResponse(message, regenerate=false) {
     console.error(e)
   } finally {
     newMessage.generating = false
-    for (const fn of request.postGenerationCallbacks) {
-      try {
-        fn(newMessage)
-      } catch (e) {
-        console.error('Post-generation callback error:', e)
+    const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
+    for (const script of scripts) {
+      if (!scriptsEnabled.has(script.id)) continue
+      const instance = scriptInstances[script.id]
+      if (instance && instance.onPostRequest) {
+        try {
+          await instance.onPostRequest(request, newMessage)
+        } catch (e) {
+          console.error(`onPostRequest error for script '${script.name}':`, e)
+          alert(`onPostRequest error for script '${script.name}':\n${e}`)
+        }
       }
     }
   }
@@ -472,15 +492,7 @@ onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
 onDestroy(() => { window.updateLoadedPlugins = null })
 
 let scripts = $state([])
-async function loadScripts() {
-  const all = await (await db).getAll('scripts')
-  let newScripts = all
-    .filter(i => (!i.sessionId || i.sessionId === sessionId))
-    .sort((a, b) => (a.name.localeCompare(b.name)))
-  scripts = newScripts
-}
-loadScripts()
-subDbScripts(loadScripts)
+let scriptInstances = {}
 
 async function moveMessage(messageId, direction) {
   console.log('moving', messageId, direction)
@@ -527,6 +539,8 @@ async function moveMessage(messageId, direction) {
 
 {#if sessionLoaded}
 <SessionFaviconChanger {messages} />
+<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
+<SessionScripts {sessionId} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled}/>
 
 <Parameters
   {sessionId}
@@ -540,7 +554,6 @@ async function moveMessage(messageId, direction) {
   <button onclick={onDup} title="make a copy of this session">dup</button>
   <button onclick={onDelete} title="delete session (hold shift)">delete</button>
 </div>
-<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
 
 <div id="messages" class="messages">
 {#each messages as c, i (c.id)}

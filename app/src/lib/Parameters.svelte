@@ -189,11 +189,11 @@ function onModelQueryKeydown(e) {
         {:else if p.widget === 'select'}
           <select
             id={`param-${p.key}`}
-            value={paramState[p.key] ?? p.initial_value}
-            onchange={(e) => paramState[p.key] = e.currentTarget.value}
+            value={p.options.findIndex(i => i.value === (paramState[p.key] ?? p.initial_value))}
+            onchange={(e) => paramState[p.key] = p.options[+e.currentTarget.value].value}
           >
-            {#each p.options as opt}
-              <option value={opt.value}>{opt.label}</option>
+            {#each p.options as opt, optI}
+              <option value={optI}>{opt.label}</option>
             {/each}
           </select>
         {/if}

@@ -31,15 +31,15 @@ onMount(async () => {
 
 function convertToGlobal() {
   script.sessionId = ''
-  scheduleSave(0)
+  saveScript()
 }
 
 function toggleGlobalEnabled() {
   script.enabled = !script.enabled
-  scheduleSave(0)
+  saveScript()
 }
 
-async function _saveScript() {
+async function saveScript() {
   console.log('saving script', script.id)
   const tx = (await db).transaction('scripts', 'readwrite')
   const store = tx.objectStore('scripts')
@@ -52,19 +52,6 @@ async function _saveScript() {
   await tx.done
   notifyDbScripts()
 }
-let saveTimeoutId = null
-function scheduleSave(t=250) {
-  if (saveTimeoutId !== null) { clearTimeout(saveTimeoutId) }
-  saveTimeoutId = setTimeout(_saveScript, t)
-}
-$effect(() => {
-  if (isLoading) return
-  script.name
-  script.scriptChainProcess
-  script.sessionId
-  script.enabled
-  scheduleSave()
-})
 
 $effect(() => {
   const newTitle = getWindowTitle()
@@ -90,6 +77,7 @@ async function deleteScript(event) {
       bind:value={script.name}
       placeholder="Script Name"
     />
+    <button onclick={saveScript}>save</button>
     {#if script.sessionId}
       <button onclick={convertToGlobal} title="convert to global">make global</button>
     {/if}

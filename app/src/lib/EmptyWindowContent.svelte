@@ -1,15 +1,20 @@
 <script>
-  import { onMount, tick } from "svelte"
-  let {windowId, onReady} = $props()
+import { onMount, tick } from "svelte"
+import windowsStore from "./windowsStore"
+let {windowId, onReady} = $props()
 
-  let el
+let el
 
-  onMount(async () => {
-    await tick()
-    if (onReady) {
-      onReady(windowId, el)
-    }
-  })
+function close() {
+  windowsStore.close(windowId)
+}
+
+onMount(async () => {
+  await tick()
+  if (onReady) {
+    onReady(windowId, el, close)
+  }
+})
 </script>
 
 <div
