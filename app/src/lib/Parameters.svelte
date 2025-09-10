@@ -117,6 +117,32 @@ const visibleModels = $derived.by(() => {
   let re = new RegExp(modelQuery, "i")
   return modelsAvailable.filter(i => re.test(i.name))
 })
+
+// Drag and drop for favorite models
+let draggedModel = $state(null)
+
+function handleDragStart(m, event) {
+  draggedModel = m
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+function handleDragOver(event) {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+}
+
+function handleDrop(m, event) {
+  event.preventDefault()
+  if (draggedModel && draggedModel !== m) {
+    const currentIndex = $favoriteModels.findIndex(f => f.id === draggedModel.id && f.api === draggedModel.api)
+    const targetIndex = $favoriteModels.findIndex(f => f.id === m.id && f.api === m.api)
+    if (currentIndex !== -1 && targetIndex !== -1) {
+      favoriteModels.reorder(currentIndex, targetIndex)
+    }
+  }
+  draggedModel = null
+}
+
 function onModelQueryKeydown(e) {
   if (e.key === 'Enter' && visibleModels.length) {
     model = visibleModels[0]
@@ -159,8 +185,13 @@ function onModelQueryKeydown(e) {
       {#each $favoriteModels as m}
         <div>
           <button
+            draggable="true"
             style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
-            onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}>
+            onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}
+            ondragstart={(e) => handleDragStart(m, e)}
+            ondragover={handleDragOver}
+            ondrop={(e) => handleDrop(m, e)}
+          >
             {m.name}
           </button>
         </div>

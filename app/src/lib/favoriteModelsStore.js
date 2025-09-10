@@ -71,6 +71,14 @@ function createFavoriteModelsStore() {
           ? favorites.filter(f => !isSameModel(f, model))
           : [...favorites, model]
       })
+    },
+    reorder: (fromIndex, toIndex) => {
+      update(favorites => {
+        const newFavorites = [...favorites]
+        const [removed] = newFavorites.splice(fromIndex, 1)
+        newFavorites.splice(toIndex, 0, removed)
+        return newFavorites
+      })
     }
   }
 }
