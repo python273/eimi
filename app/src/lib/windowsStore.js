@@ -21,13 +21,6 @@ const windowsStore = {
       return windows
     })
   },
-  close: (wid) => {
-    update(windows => {
-      const index = windows.findIndex(w => w.id === wid)
-      if (index > -1) windows.splice(index, 1)
-      return windows
-    })
-  },
 }
 
 export default windowsStore

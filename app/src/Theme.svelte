@@ -63,10 +63,10 @@ $effect(() => {
 {:else if currentTheme === 'lavender'}
 <style>
   :root {
-    --bg-color: #f3e5f5;
+    --bg-color: #fceaff;
     --text-color: #4f109b;
-    --comment-bg-color: #f0c6f7;
-    --panel-bg-color: #efcbf5;
+    --comment-bg-color: #fadaff;
+    --panel-bg-color: #f5def9;
     --meta-color: #7b1fa2;
     --code-bg-color: #e1bee7;
     --brand-color: #9c27b0;

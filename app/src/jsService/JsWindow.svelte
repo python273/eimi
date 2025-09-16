@@ -1,10 +1,9 @@
 <script>
-import windowsStore from "../lib/windowsStore"
 import { getCode } from './jsService'
 import { themeStore } from '../themeStore'
 import { get } from 'svelte/store'
 
-let { windowId, windowHeight, comment } = $props()
+let { windowHeight, closeWindow, comment } = $props()
 
 let consoleLog = $state([])
 let showConsole = $state(false)
@@ -38,7 +37,7 @@ function iframeAction(node) {
   const handleMessage = (event) => {
     if (event.source !== contentWindow) return
     if (event.data === "close") {
-      windowsStore.close(windowId)
+      closeWindow()
     } else if (event.data?.type === 'console') {
       consoleLog.push({id: ++logId, text: event.data.message})
     }

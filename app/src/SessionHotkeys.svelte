@@ -56,6 +56,8 @@ async function onKeyDown(e) {
   // j - down
   // k - up
   // p - jump to parent
+  // Shift+j - jump to next sibling
+  // Shift+k - jump to prev sibling
   // R - regen
   // x / X - delete
   // Ctrl+k - move the message up
@@ -102,11 +104,19 @@ async function onKeyDown(e) {
   } else if (hot('ctrl+j') || hot('meta+j')) {
     e.preventDefault()
     moveMessage(item.id, 'down')
-  } else if (hot('j') || hot('k') || hot('p')) {
+  } else if (hot('j') || hot('k') || hot('p') || hot('shift+j') || hot('shift+k')) {
     e.preventDefault()
     let i
     if (e.code === 'KeyP') {
       i = messages.findIndex(i => i.id == item.parentId)
+    } else if (e.shiftKey && (e.code === 'KeyJ' || e.code === 'KeyK')) {
+      // Jump to next/prev sibling
+      const parentId = item.parentId
+      const siblings = messages.filter(m => m.parentId === parentId)
+      const currentIndex = siblings.findIndex(s => s.id === item.id)
+      const siblingIndex = currentIndex + (e.code === 'KeyJ' ? 1 : -1)
+      if (siblingIndex < 0 || siblingIndex >= siblings.length) return
+      i = messages.findIndex(m => m.id === siblings[siblingIndex].id)
     } else {
       i = messages.findIndex(i => i.id == item.id) + (e.code === 'KeyJ' ? 1 : -1)
     }
@@ -187,6 +197,8 @@ $effect(() => {
       <div><span class="key">j</span> Move to next message</div>
       <div><span class="key">k</span> Move to previous message</div>
       <div><span class="key">p</span> Jump to parent message</div>
+      <div><span class="key">Shift + J</span> Jump to next sibling</div>
+      <div><span class="key">Shift + K</span> Jump to previous sibling</div>
       <div><span class="key">Shift + R</span> Regenerate current message</div>
       <div><span class="key">x</span> or <span class="key">Shift + X</span> Delete message</div>
       <div><span class="key">Ctrl + k</span> Move the message up</div>

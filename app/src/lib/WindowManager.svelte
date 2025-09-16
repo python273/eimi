@@ -18,6 +18,14 @@ let windowLastZIndex = 9999
 const getElById = (i) => `window-${i}`
 
 function closeWindow(id) {
+  if (instances[id] && typeof instances[id].onWindowClose === 'function') {
+    try {
+      instances[id].onWindowClose()
+    } catch (e) {
+      console.error(`Error in onWindowClose for window ${id}:`, e)
+    }
+  }
+  
   if (resizeObservers[id]) {
     resizeObservers[id].disconnect()
     delete resizeObservers[id]
@@ -96,10 +104,10 @@ onMount(() => {
   document.addEventListener("mouseup", handleMouseUp)
 
   window._createEmptyWindow = (options = {}) => {
-    const { onReady, ...rest } = options
+    const { onReady, onWindowClose, ...rest } = options
     store.add({
       component: EmptyWindowContent,
-      data: { onReady },
+      data: { onReady, onWindowClose },
       ...rest
     })
   }
@@ -139,6 +147,7 @@ onMount(() => {
           windowId={w.id}
           windowWidth={w.width}
           windowHeight={w.height}
+          closeWindow={() => closeWindow(w.id)}
           {...w.data}
         />
       </div>

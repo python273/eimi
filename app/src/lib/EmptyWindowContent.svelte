@@ -1,12 +1,17 @@
 <script>
 import { onMount, tick } from "svelte"
-import windowsStore from "./windowsStore"
-let {windowId, onReady} = $props()
+let {windowId, closeWindow, onReady, onWindowClose: onWindowCloseProp} = $props()
 
 let el
 
 function close() {
-  windowsStore.close(windowId)
+  closeWindow()
+}
+
+export function onWindowClose() {
+  if (onWindowCloseProp) {
+    onWindowCloseProp()
+  }
 }
 
 onMount(async () => {

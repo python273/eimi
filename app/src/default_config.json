@@ -1509,7 +1509,19 @@
       "api": "openrouter",
       "id": "alfredpros/codellama-7b-instruct-solidity",
       "name": "alfredpros/codellama-7b-instruct-solidity AlfredPros: CodeLLaMa 7B Instruct Solidity",
-      "max_tokens": 8192
+      "max_tokens": 4096
+    },
+    {
+      "api": "openrouter",
+      "id": "allenai/molmo-7b-d",
+      "name": "allenai/molmo-7b-d AllenAI: Molmo 7B D",
+      "max_tokens": 4096
+    },
+    {
+      "api": "openrouter",
+      "id": "allenai/olmo-2-0325-32b-instruct",
+      "name": "allenai/olmo-2-0325-32b-instruct AllenAI: Olmo 2 32B Instruct",
+      "max_tokens": 4096
     },
     {
       "api": "openrouter",
@@ -1687,12 +1699,6 @@
     },
     {
       "api": "openrouter",
-      "id": "cognitivecomputations/dolphin-mixtral-8x22b",
-      "name": "cognitivecomputations/dolphin-mixtral-8x22b Dolphin 2.9.2 Mixtral 8x22B \ud83d\udc2c",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
       "id": "cognitivecomputations/dolphin3.0-mistral-24b",
       "name": "cognitivecomputations/dolphin3.0-mistral-24b Dolphin3.0 Mistral 24B"
     },
@@ -1720,7 +1726,8 @@
     {
       "api": "openrouter",
       "id": "cohere/command-a",
-      "name": "cohere/command-a Cohere: Command A"
+      "name": "cohere/command-a Cohere: Command A",
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -1851,12 +1858,7 @@
       "api": "openrouter",
       "id": "deepseek/deepseek-r1-distill-qwen-14b",
       "name": "deepseek/deepseek-r1-distill-qwen-14b DeepSeek: R1 Distill Qwen 14B",
-      "max_tokens": 32000
-    },
-    {
-      "api": "openrouter",
-      "id": "deepseek/deepseek-r1-distill-qwen-14b:free",
-      "name": "deepseek/deepseek-r1-distill-qwen-14b:free DeepSeek: R1 Distill Qwen 14B (free)"
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
@@ -1927,12 +1929,6 @@
       "id": "google/gemini-2.5-pro",
       "name": "google/gemini-2.5-pro Google: Gemini 2.5 Pro",
       "max_tokens": 65536
-    },
-    {
-      "api": "openrouter",
-      "id": "google/gemini-2.5-pro-exp-03-25",
-      "name": "google/gemini-2.5-pro-exp-03-25 Google: Gemini 2.5 Pro Experimental",
-      "max_tokens": 65535
     },
     {
       "api": "openrouter",
@@ -2052,12 +2048,6 @@
     },
     {
       "api": "openrouter",
-      "id": "infermatic/mn-inferor-12b",
-      "name": "infermatic/mn-inferor-12b Infermatic: Mistral Nemo Inferor 12B",
-      "max_tokens": 8192
-    },
-    {
-      "api": "openrouter",
       "id": "inflection/inflection-3-pi",
       "name": "inflection/inflection-3-pi Inflection: Inflection 3 Pi",
       "max_tokens": 1024
@@ -2083,6 +2073,12 @@
       "id": "mancer/weaver",
       "name": "mancer/weaver Mancer: Weaver (alpha)",
       "max_tokens": 2000
+    },
+    {
+      "api": "openrouter",
+      "id": "meituan/longcat-flash-chat",
+      "name": "meituan/longcat-flash-chat Meituan: LongCat Flash Chat",
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
@@ -2157,7 +2153,7 @@
       "api": "openrouter",
       "id": "meta-llama/llama-3.3-70b-instruct",
       "name": "meta-llama/llama-3.3-70b-instruct Meta: Llama 3.3 70B Instruct",
-      "max_tokens": 16384
+      "max_tokens": 8192
     },
     {
       "api": "openrouter",
@@ -2537,12 +2533,13 @@
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-405b",
       "name": "nousresearch/hermes-3-llama-3.1-405b Nous: Hermes 3 405B Instruct",
-      "max_tokens": 16384
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
       "id": "nousresearch/hermes-3-llama-3.1-70b",
-      "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct"
+      "name": "nousresearch/hermes-3-llama-3.1-70b Nous: Hermes 3 70B Instruct",
+      "max_tokens": 131072
     },
     {
       "api": "openrouter",
@@ -2567,13 +2564,13 @@
     },
     {
       "api": "openrouter",
-      "id": "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
-      "name": "nvidia/llama-3.1-nemotron-ultra-253b-v1:free NVIDIA: Llama 3.1 Nemotron Ultra 253B v1 (free)"
+      "id": "nvidia/nemotron-nano-9b-v2",
+      "name": "nvidia/nemotron-nano-9b-v2 NVIDIA: Nemotron Nano 9B V2"
     },
     {
       "api": "openrouter",
-      "id": "nvidia/llama-3.3-nemotron-super-49b-v1",
-      "name": "nvidia/llama-3.3-nemotron-super-49b-v1 NVIDIA: Llama 3.3 Nemotron Super 49B v1"
+      "id": "nvidia/nemotron-nano-9b-v2:free",
+      "name": "nvidia/nemotron-nano-9b-v2:free NVIDIA: Nemotron Nano 9B V2 (free)"
     },
     {
       "api": "openrouter",
@@ -2828,6 +2825,11 @@
     },
     {
       "api": "openrouter",
+      "id": "opengvlab/internvl3-78b",
+      "name": "opengvlab/internvl3-78b OpenGVLab: InternVL3 78B"
+    },
+    {
+      "api": "openrouter",
       "id": "openrouter/auto",
       "name": "openrouter/auto Auto Router"
     },
@@ -2874,12 +2876,6 @@
     },
     {
       "api": "openrouter",
-      "id": "pygmalionai/mythalion-13b",
-      "name": "pygmalionai/mythalion-13b Pygmalion: Mythalion 13B",
-      "max_tokens": 4096
-    },
-    {
-      "api": "openrouter",
       "id": "qwen/qwen-2.5-72b-instruct",
       "name": "qwen/qwen-2.5-72b-instruct Qwen2.5 72B Instruct"
     },
@@ -2896,7 +2892,8 @@
     {
       "api": "openrouter",
       "id": "qwen/qwen-2.5-coder-32b-instruct",
-      "name": "qwen/qwen-2.5-coder-32b-instruct Qwen2.5 Coder 32B Instruct"
+      "name": "qwen/qwen-2.5-coder-32b-instruct Qwen2.5 Coder 32B Instruct",
+      "max_tokens": 16384
     },
     {
       "api": "openrouter",
@@ -2919,6 +2916,18 @@
       "id": "qwen/qwen-plus",
       "name": "qwen/qwen-plus Qwen: Qwen-Plus",
       "max_tokens": 8192
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-plus-2025-07-28",
+      "name": "qwen/qwen-plus-2025-07-28 Qwen: Qwen Plus 0728",
+      "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen-plus-2025-07-28:thinking",
+      "name": "qwen/qwen-plus-2025-07-28:thinking Qwen: Qwen Plus 0728 (thinking)",
+      "max_tokens": 32768
     },
     {
       "api": "openrouter",
@@ -3041,7 +3050,8 @@
     {
       "api": "openrouter",
       "id": "qwen/qwen3-coder-30b-a3b-instruct",
-      "name": "qwen/qwen3-coder-30b-a3b-instruct Qwen: Qwen3 Coder 30B A3B Instruct"
+      "name": "qwen/qwen3-coder-30b-a3b-instruct Qwen: Qwen3 Coder 30B A3B Instruct",
+      "max_tokens": 262144
     },
     {
       "api": "openrouter",
@@ -3053,6 +3063,16 @@
       "id": "qwen/qwen3-max",
       "name": "qwen/qwen3-max Qwen: Qwen3 Max",
       "max_tokens": 32768
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-next-80b-a3b-instruct",
+      "name": "qwen/qwen3-next-80b-a3b-instruct Qwen: Qwen3 Next 80B A3B Instruct"
+    },
+    {
+      "api": "openrouter",
+      "id": "qwen/qwen3-next-80b-a3b-thinking",
+      "name": "qwen/qwen3-next-80b-a3b-thinking Qwen: Qwen3 Next 80B A3B Thinking"
     },
     {
       "api": "openrouter",
@@ -3113,12 +3133,6 @@
     },
     {
       "api": "openrouter",
-      "id": "sophosympatheia/midnight-rose-70b",
-      "name": "sophosympatheia/midnight-rose-70b Midnight Rose 70B",
-      "max_tokens": 2048
-    },
-    {
-      "api": "openrouter",
       "id": "stepfun-ai/step3",
       "name": "stepfun-ai/step3 StepFun: Step3",
       "max_tokens": 65536
@@ -3163,12 +3177,6 @@
       "api": "openrouter",
       "id": "thedrummer/unslopnemo-12b",
       "name": "thedrummer/unslopnemo-12b TheDrummer: UnslopNemo 12B"
-    },
-    {
-      "api": "openrouter",
-      "id": "thudm/glm-4-32b",
-      "name": "thudm/glm-4-32b THUDM: GLM 4 32B",
-      "max_tokens": 32000
     },
     {
       "api": "openrouter",

@@ -2,7 +2,17 @@
 import { db } from "./db"
 import { AsyncFunction, subDbScripts } from "./utils"
 
-let {sessionId, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled} = $props()
+let {sessionId, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse} = $props()
+
+let eimiApi = {
+  genResponse: ({messageId}) => apiGenResponse(messageId),
+  getSessionId: () => sessionId,
+  createEmptyWindow: (options = {}) => {
+    const { onReady, onWindowClose, ...rest } = options
+    const wrappedOnReady = onReady ? (windowId, element, close) => onReady({windowId, element, close}) : undefined
+    return window._createEmptyWindow({ onReady: wrappedOnReady, onWindowClose, ...rest })
+  },
+}
 
 let loadScriptsPromise = null
 let loadScriptsQueued = false
@@ -63,7 +73,7 @@ return EimiScriptLegacy;`
           }
         }
         try {
-          newInstances[scriptId] = new scriptClass()
+          newInstances[scriptId] = new scriptClass({eimiApi})
         } catch (e) {
           console.error(`Error instantiating script ${script.name}`, e)
           alert(`Error instantiating script ${script.name}:\n${e}`)

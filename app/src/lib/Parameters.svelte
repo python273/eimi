@@ -10,14 +10,27 @@ let {sessionId, parameters, scripts, onUpdate} = $props()
 
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
-let model = $state(MODELS.find(i => (i.api === parameters._api && i.id === parameters.model)) || $favoriteModels[0] || MODELS[0])
+
+function getDefaultModel() {
+  if (parameters._api && parameters.model) {
+    const paramModel = MODELS.find(i => i.api === parameters._api && i.id === parameters.model)
+    if (paramModel) return paramModel
+  }
+
+  if ($favoriteModels[0]) {
+    const favoriteModel = MODELS.find(i => i.api === $favoriteModels[0].api && i.id === $favoriteModels[0].id)
+    if (favoriteModel) return favoriteModel
+  }
+  return MODELS.find(i => CONFIG.apis[i.api]?.token) || MODELS[0]
+}
+
+let model = $state(getDefaultModel())
 
 $effect(() => {
   const handler = () => {
-    model = $favoriteModels[0] || MODELS.find(i => CONFIG.apis[i.api]?.token) || MODELS[0]
+    model = getDefaultModel()
   }
-  window.addEventListener('welcome-finished', handler)
-  return () => window.removeEventListener('welcome-finished', handler)
+  window.addEventListener('welcome-finished', handler, { once: true })
 })
 let modelMaxToken = $derived(model['max_tokens'] || 32768)
 
@@ -35,6 +48,16 @@ const paramInputs = $derived.by(() => {
       base.set(p.id, { ...base.get(p.id), ...p })
     })
   }
+  
+  if (CONFIG.user_params_initial_values) {
+    for (const [key, value] of Object.entries(CONFIG.user_params_initial_values)) {
+      const param = base.get(key)
+      if (param) {
+        param.initial_value = value
+      }
+    }
+  }
+  
   return Array.from(base.values()).filter(p => !p.remove)
 })
 

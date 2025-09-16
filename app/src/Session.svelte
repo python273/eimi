@@ -247,6 +247,12 @@ function getChain(message, regenerate = false) {
   return chain
 }
 
+function apiGenResponse(messageId) {
+  const message = messages.find(m => m.id === messageId)
+  if (message) {
+    return _genResponse(message)
+  }
+}
 async function genResponse(event, regenerate=false) {
   console.log('genResponse', event)
   event.preventDefault()
@@ -311,8 +317,8 @@ async function _genResponse(message, regenerate=false) {
     model: sessionData.parameters.model,
     completion: modelInfo.completion,
     parameters: omit(sessionData.parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
-    messages: getChain(message, regenerate).map((msg) => ({
-      ...msg, content: [{type: 'text', text: msg.content}]
+    messages: getChain(message, regenerate).map(({id, role, content}) => ({
+      _id: id, role, content: [{type: 'text', text: content}]
     })),
   }
   if (sessionData.parameters._api === 'anthropic' && sessionData.parameters.max_tokens === 0) {
@@ -345,7 +351,7 @@ async function _genResponse(message, regenerate=false) {
       return
     }
   }
-  request.messages = request.messages.map(({role, content}) => ({role, content}))
+  request.messages = request.messages.map(({_id, ...rest}) => rest)
   console.log('runLlmApi after scripts:', request)
 
   try {
@@ -401,6 +407,7 @@ async function _genResponse(message, regenerate=false) {
       }
     }
   }
+  return {newMessage, request}
 }
 
 async function onCreateMessage(event) {
@@ -429,6 +436,22 @@ async function onCreateMessage(event) {
 async function onRoleChange(event) {
   const msg = getMessageFromEvent(event)
   msg.role = event.target.value
+  scheduleSave()
+}
+
+function onCollapseToggle(event, message) {
+  const newState = !message.collapsed
+  message.collapsed = newState
+  if (event.shiftKey) {
+    function toggleChildren(msgId, childState) {
+      const children = messages.filter(i => i.parentId === msgId)
+      for (const child of children) {
+        child.collapsed = childState
+        toggleChildren(child.id, childState)
+      }
+    }
+    toggleChildren(message.id, newState)
+  }
   scheduleSave()
 }
 
@@ -540,7 +563,7 @@ async function moveMessage(messageId, direction) {
 {#if sessionLoaded}
 <SessionFaviconChanger {messages} />
 <SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
-<SessionScripts {sessionId} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled}/>
+<SessionScripts {sessionId} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled} {apiGenResponse}/>
 
 <Parameters
   {sessionId}
@@ -564,7 +587,7 @@ async function moveMessage(messageId, direction) {
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div class="message-content" class:generating="{c.generating}" tabindex="0">
           <div class="message-header">
-            <button class="mono" onclick={(e) => { c.collapsed = !c.collapsed }} title="collapse">
+            <button class="mono" onclick={(e) => { onCollapseToggle(e, c) }} title="collapse (shift+click to toggle all children)">
               {#if c.collapsed}[+]{:else}[-]{/if}
             </button>
             <select class="role" value={c.role} onchange={onRoleChange}>

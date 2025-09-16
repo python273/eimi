@@ -4,9 +4,10 @@ import { db } from '../db.js'
 import windowsStore from './windowsStore.js'
 import { notifyDbScripts } from '../utils.js'
 
-let { windowId, id } = $props()
+let { windowId, closeWindow, id } = $props()
 
 let script = $state()
+let originalScript = $state()
 let isLoading = $state(true)
 
 function getWindowTitle() {
@@ -19,6 +20,7 @@ async function loadScript() {
   const loadedScript = await (await db).get('scripts', id)
   if (loadedScript) {
     script = loadedScript
+    originalScript = structuredClone(loadedScript)
   } else {
     console.error('Script not found')
   }
@@ -50,7 +52,18 @@ async function saveScript() {
   loadedScript.enabled = script.enabled
   await store.put(loadedScript)
   await tx.done
+  originalScript = structuredClone($state.snapshot(script))
   notifyDbScripts()
+}
+
+function hasUnsavedChanges() {
+  if (!script || !originalScript) return false
+  return (
+    script.name !== originalScript.name ||
+    script.scriptChainProcess !== originalScript.scriptChainProcess ||
+    script.sessionId !== originalScript.sessionId ||
+    script.enabled !== originalScript.enabled
+  )
 }
 
 $effect(() => {
@@ -64,7 +77,7 @@ async function deleteScript(event) {
   if (!event.shiftKey && !confirm('Delete script?')) { return }
   await (await db).delete('scripts', id)
   notifyDbScripts()
-  windowsStore.close(windowId)
+  closeWindow()
 }
 </script>
 
@@ -77,7 +90,9 @@ async function deleteScript(event) {
       bind:value={script.name}
       placeholder="Script Name"
     />
-    <button onclick={saveScript}>save</button>
+    <button onclick={saveScript} class:unsaved={hasUnsavedChanges()}>
+      save
+    </button>
     {#if script.sessionId}
       <button onclick={convertToGlobal} title="convert to global">make global</button>
     {/if}
@@ -118,6 +133,9 @@ async function deleteScript(event) {
 }
 button {
   white-space: nowrap;
+}
+button.unsaved {
+  text-decoration: underline;
 }
 input, textarea {
   resize: none;
