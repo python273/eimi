@@ -1,12 +1,8 @@
 <script>
 import { onMount, tick } from "svelte"
-let {windowId, closeWindow, onReady, onWindowClose: onWindowCloseProp} = $props()
+let {onReady, onWindowClose: onWindowCloseProp, ...rest} = $props()
 
 let el
-
-function close() {
-  closeWindow()
-}
 
 export function onWindowClose() {
   if (onWindowCloseProp) {
@@ -17,7 +13,7 @@ export function onWindowClose() {
 onMount(async () => {
   await tick()
   if (onReady) {
-    onReady(windowId, el, close)
+    onReady({el, ...rest})
   }
 })
 </script>

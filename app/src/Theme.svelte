@@ -18,17 +18,9 @@ function getCurrentTheme() {
 
 let currentTheme = $state(getCurrentTheme())
 
-// Update theme when themeStore changes
 $effect(() => {
+  $subThemeChange
   currentTheme = getCurrentTheme()
-})
-
-// Listen for theme change notifications
-$effect(() => {
-  const unsubscribe = subThemeChange(() => {
-    currentTheme = getCurrentTheme()
-  })
-  return unsubscribe
 })
 </script>
 

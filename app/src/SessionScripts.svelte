@@ -7,11 +7,7 @@ let {sessionId, scripts = $bindable(), scriptInstances = $bindable(), scriptsEna
 let eimiApi = {
   genResponse: ({messageId}) => apiGenResponse(messageId),
   getSessionId: () => sessionId,
-  createEmptyWindow: (options = {}) => {
-    const { onReady, onWindowClose, ...rest } = options
-    const wrappedOnReady = onReady ? (windowId, element, close) => onReady({windowId, element, close}) : undefined
-    return window._createEmptyWindow({ onReady: wrappedOnReady, onWindowClose, ...rest })
-  },
+  createEmptyWindow: (options = {}) => window._createEmptyWindow(options),  // Read WindowManager.svelte
 }
 
 let loadScriptsPromise = null
@@ -110,12 +106,10 @@ return EimiScriptLegacy;`
     }
   }
 }
-loadScripts()
-subDbScripts(loadScripts)
 
 $effect(() => {
-  if (scriptsEnabled) {
-    loadScripts()
-  }
+  $subDbScripts
+  scriptsEnabled
+  loadScripts()
 })
 </script>

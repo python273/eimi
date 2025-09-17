@@ -22,8 +22,11 @@ async function loadSessionsList() {
   allMeta.sort((a, b) => b.id.localeCompare(a.id))
   sessions = allMeta
 }
-loadSessionsList()
-subSessionList(loadSessionsList)
+
+$effect(() => {
+  $subSessionList
+  loadSessionsList()
+})
 </script>
 
 <main>

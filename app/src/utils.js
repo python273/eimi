@@ -27,7 +27,7 @@ function createCrossTabs(key) {
     store.update(n => n + 1)
     localStorage.setItem(key, Date.now().toString())
   }
-  return [notify, store.subscribe]
+  return [notify, store]
 }
 
 export const [notifyDbScripts, subDbScripts] = createCrossTabs('crosstabs_scripts')
