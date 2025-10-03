@@ -7,6 +7,7 @@
  * @typedef {Object} EimiApi
  * @property {function({messageId: string}): Promise<{newMessage: Object, request: Object}>} genResponse - Generate a response for a specific message ID
  * @property {function(): string} getSessionId - Get the current session ID
+ * @property {function(): Array} getSessionMessages - Get all messages in the current session (includes multiple subtrees, filter accordingly)
  * @property {function(Object): void} createEmptyWindow - Create a new empty window with optional configuration
  * @param {Object} options - Configuration options for the new window
  * @param {function} [options.onReady] - Callback when the window content is ready, receives {el, closeWindow, ...} as parameter

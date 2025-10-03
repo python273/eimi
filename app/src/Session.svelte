@@ -563,7 +563,7 @@ async function moveMessage(messageId, direction) {
 {#if sessionLoaded}
 <SessionFaviconChanger {messages} />
 <SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
-<SessionScripts {sessionId} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled} {apiGenResponse}/>
+<SessionScripts {sessionId} {messages} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled} {apiGenResponse}/>
 
 <Parameters
   {sessionId}

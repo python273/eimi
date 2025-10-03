@@ -5,7 +5,7 @@ import { subThemeChange } from './utils.js'
 function getCurrentTheme() {
   const lightTheme = localStorage.getItem('cfg-theme-light') || 'light'
   const darkTheme = localStorage.getItem('cfg-theme-dark') || 'dark'
-  
+
   if ($themeStore.theme === 'light') {
     return lightTheme
   } else if ($themeStore.theme === 'dark') {
@@ -21,6 +21,16 @@ let currentTheme = $state(getCurrentTheme())
 $effect(() => {
   $subThemeChange
   currentTheme = getCurrentTheme()
+})
+
+$effect(() => {
+  if ($themeStore.isDark) {
+    document.body.classList.add('theme-dark')
+    document.body.classList.remove('theme-light')
+  } else {
+    document.body.classList.add('theme-light')
+    document.body.classList.remove('theme-dark')
+  }
 })
 </script>
 

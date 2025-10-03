@@ -2,11 +2,12 @@
 import { db } from "./db"
 import { AsyncFunction, subDbScripts } from "./utils"
 
-let {sessionId, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse} = $props()
+let {sessionId, messages, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse} = $props()
 
 let eimiApi = {
   genResponse: ({messageId}) => apiGenResponse(messageId),
   getSessionId: () => sessionId,
+  getSessionMessages: () => messages,
   createEmptyWindow: (options = {}) => window._createEmptyWindow(options),  // Read WindowManager.svelte
 }
 

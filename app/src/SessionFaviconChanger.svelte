@@ -22,7 +22,7 @@ $effect(() => {
   for (let i of messages) {
     i.generating
   }
-  const isGenerating = messages.some(m => m.generating) && !isTabVisible
+  const isGenerating = messages.some(m => m.generating) //&& !isTabVisible
   faviconEl.href = isGenerating ? favGenerating : '/favicon.png'
 })
 
