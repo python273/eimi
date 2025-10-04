@@ -1,6 +1,7 @@
 <script>
 import SessionPage from './SessionPage.svelte'
 import Settings from './Settings.svelte'
+import SearchPage from './SearchPage.svelte'
 import WindowManager from './lib/WindowManager.svelte'
 import { genSessionId } from './utils.js'
 import { themeStore } from './themeStore.js'
@@ -30,6 +31,9 @@ let {page, props} = $derived.by(() => {
   let params = Object.fromEntries(new URLSearchParams(hash.split('?')[1]))
   if (hash === 'settings') {
     page = 'settings'
+  } else if (hash.startsWith('search')) {
+    page = 'search'
+    props = {query: params.query}
   } else {
     page = 'session'
     props = {sessionId: hash.split('?')[0], autoReply: params.answer}
@@ -49,6 +53,11 @@ let {page, props} = $derived.by(() => {
   <div class="settings">
     <a
       class="settings-link no-vs"
+      href="#search"
+      title="search"
+    >search</a>
+    <a
+      class="settings-link no-vs"
       href="#settings"
       title="settings"
     >settings</a>
@@ -65,6 +74,9 @@ let {page, props} = $derived.by(() => {
 <div class="page">
 {#if page === "session" && props.sessionId}
   <SessionPage {...props}/>
+{/if}
+{#if page === "search"}
+  <SearchPage {...props}/>
 {/if}
 {#if page === "settings"}
   <Settings/>
