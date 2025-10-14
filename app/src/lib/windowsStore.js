@@ -7,12 +7,14 @@ const windowsStore = {
   subscribe,
   update,
   add: ({component, data, title='', left=8, top=8, width=512, height=512, buttons=[]}) => {
+    const newWindow = {
+      id: genTabUniqueIntId(), title, component, data, left, top, width, height, buttons
+    }
     update(windows => {
-      windows.push({
-        id: genTabUniqueIntId(), title, component, data, left, top, width, height, buttons
-      })
+      windows.push(newWindow)
       return windows
     })
+    return newWindow.id
   },
   updateById: (wid, newProperties) => {
     update(windows => {

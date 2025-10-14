@@ -22,7 +22,6 @@ services:
       - "traefik.http.middlewares.eimi-compress.compress.excludedcontenttypes=text/plain,text/event-stream"
       - "traefik.http.middlewares.eimi-secure-headers.headers.framedeny=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.sslredirect=true"
-      - "traefik.http.middlewares.eimi-secure-headers.headers.browserXssFilter=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.contentTypeNosniff=true"
       - "traefik.http.middlewares.eimi-secure-headers.headers.stsSeconds=2592000"
       - "traefik.http.middlewares.eimi-secure-headers.headers.stsPreload=true"

@@ -2,7 +2,7 @@
 import { onMount, untrack } from 'svelte'
 import { db } from '../db.js'
 import windowsStore from './windowsStore.js'
-import { notifyDbScripts } from '../utils.js'
+import { notifyDbScripts, AsyncFunction } from '../utils.js'
 
 let { windowId, closeWindow, id } = $props()
 
@@ -41,7 +41,22 @@ function toggleGlobalEnabled() {
   saveScript()
 }
 
+function validateScript(scriptCode) {
+  try {
+    new AsyncFunction(scriptCode)()
+    return { valid: true, error: null }
+  } catch (e) {
+    return { valid: false, error: e.message }
+  }
+}
+
 async function saveScript() {
+  const validation = validateScript(script.scriptChainProcess)
+  if (!validation.valid) {
+    alert(`Script syntax error:\n${validation.error}`)
+    return
+  }
+
   console.log('saving script', script.id)
   const tx = (await db).transaction('scripts', 'readwrite')
   const store = tx.objectStore('scripts')

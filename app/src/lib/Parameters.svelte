@@ -1,12 +1,12 @@
 <script>
 import { db } from "../db"
-import { notifyDbScripts, omit, uniqueId } from "../utils"
+import { notifyDbScripts, uniqueId } from "../utils"
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
 import windowsStore from "./windowsStore"
 import { CONFIG, configUpdated } from '../config.svelte'
 import { favoriteModels } from './favoriteModelsStore'
 
-let {sessionId, parameters, scripts, onUpdate} = $props()
+let {sessionId, parameters = $bindable(), scripts} = $props()
 
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
@@ -25,6 +25,7 @@ function getDefaultModel() {
 }
 
 let model = $state(getDefaultModel())
+let stashedParams = $state({})
 
 $effect(() => {
   const handler = () => {
@@ -41,7 +42,12 @@ const DEFAULT_PARAMS = [
   { id: 'presence_penalty', key: 'presence_penalty', widget: 'range', label: 'Presence Penalty', min: 0, max: 2, step: 0.01, initial_value: 0.0 },
   { id: 'max_tokens', key: 'max_tokens', widget: 'range', label: 'Max Tokens', min: 0, max: null, step: 1, initial_value: 0 }
 ]
-const paramInputs = $derived.by(() => {
+const NON_MODEL_PARAMS = new Set(['_api', 'model', 'scriptsEnabled'])
+
+let paramInputs = $state([])
+
+function updateParamsToModel() {
+  // Merge default params with model params
   const base = new Map(DEFAULT_PARAMS.map(p => [p.id, p]))
   if (model && model.params) {
     model.params.forEach(p => {
@@ -49,6 +55,7 @@ const paramInputs = $derived.by(() => {
     })
   }
   
+  // Override initial values from config
   if (CONFIG.user_params_initial_values) {
     for (const [key, value] of Object.entries(CONFIG.user_params_initial_values)) {
       const param = base.get(key)
@@ -58,53 +65,44 @@ const paramInputs = $derived.by(() => {
     }
   }
   
-  return Array.from(base.values()).filter(p => !p.remove)
-})
+  // New inputs (some default params can be removed)
+  paramInputs = Array.from(base.values()).filter(p => !p.remove)
 
-let paramState = $state(omit(parameters, ['_api', 'model', 'scriptsEnabled']))
-$effect(() => {
-  // Ensure each param has a value, falling back to its `initial_value` when undefined.
-  // This runs whenever `model` or `paramInputs` change, but only sets values that are missing.
+  if (parameters.max_tokens > modelMaxToken) {
+    parameters.max_tokens = modelMaxToken
+  }
+
+  parameters._api = model.api
+  parameters.model = model.id
+
+  // Set default values (stashed or initial)
   for (const p of paramInputs) {
-    if (paramState[p.key] === undefined) {
-      let defaultVal = p.initial_value
-      if (defaultVal === undefined && p.widget === 'select' && Array.isArray(p.options) && p.options.length) {
-        defaultVal = p.options[0].value
-      }
-      if (defaultVal !== undefined) {
-        paramState[p.key] = defaultVal
-      }
+    if (parameters[p.key] === undefined) {
+      parameters[p.key] = stashedParams[p.key] ?? p.initial_value ?? p.options?.[0]?.value
     }
   }
-})
 
-let scriptsEnabled = $state(parameters.scriptsEnabled || [])
-
-$effect(() => {
-  if (paramState.max_tokens > modelMaxToken) {
-    paramState.max_tokens = modelMaxToken
-  }
-
-  const updateObj = {
-    _api: model.api,
-    model: model.id,
-    scriptsEnabled,
-  }
-  for (const p of paramInputs) {
-    if (p.remove) {
-      updateObj[p.key] = undefined
-    } else {
-      updateObj[p.key] = paramState[p.key]
+  // Stash+delete values the model doesn't have
+  const currentParamKeys = new Set(paramInputs.map(p => p.key))
+  for (const key of Object.keys(parameters)) {
+    if (!currentParamKeys.has(key) && !NON_MODEL_PARAMS.has(key)) {
+      stashedParams[key] = stashedParams[key] || parameters[key]
+      delete parameters[key]
     }
   }
-  onUpdate(updateObj)
-})
+}
+updateParamsToModel()
+
+function onModelSelect(m) {
+  model = m
+  updateParamsToModel()
+}
 
 function toggleScript(id) {
-  if (scriptsEnabled.includes(id)) {
-    scriptsEnabled = scriptsEnabled.filter(i => i != id)
+  if (parameters.scriptsEnabled?.includes(id)) {
+    parameters.scriptsEnabled = parameters.scriptsEnabled.filter(i => i != id)
   } else {
-    scriptsEnabled = [...scriptsEnabled, id]
+    parameters.scriptsEnabled = [...(parameters.scriptsEnabled || []), id]
   }
 }
 
@@ -118,7 +116,7 @@ async function createScript(event) {
     scriptChainProcess: 'console.log(request);\n// request.messages = ...',
   }
   await (await db).put('scripts', newScript)
-  scriptsEnabled = [...scriptsEnabled, newScript.id]
+  parameters.scriptsEnabled = [...(parameters.scriptsEnabled || []), newScript.id]
   notifyDbScripts()
   let { clientX: left, clientY: top } = event
   top += 16
@@ -168,7 +166,7 @@ function handleDrop(m, event) {
 
 function onModelQueryKeydown(e) {
   if (e.key === 'Enter' && visibleModels.length) {
-    model = visibleModels[0]
+    onModelSelect(visibleModels[0])
   }
 }
 </script>
@@ -186,7 +184,7 @@ function onModelQueryKeydown(e) {
           id={`script_enabled_${i.id}`}
           type="checkbox"
           title="toggle in session"
-          checked={scriptsEnabled.includes(i.id)}
+          checked={parameters.scriptsEnabled?.includes(i.id)}
           onchange={() => { toggleScript(i.id) }}
         />
         <label for={`script_enabled_${i.id}`} class="script-name">{i.name}</label>
@@ -210,7 +208,7 @@ function onModelQueryKeydown(e) {
           <button
             draggable="true"
             style={(m.api === model.api && m.id === model.id) ? 'font-weight: bold;' : ''}
-            onclick={() => { model = MODELS.find(i => (i.api === m.api && i.id === m.id)) }}
+            onclick={() => { onModelSelect(MODELS.find(i => (i.api === m.api && i.id === m.id))) }}
             ondragstart={(e) => handleDragStart(m, e)}
             ondragover={handleDragOver}
             ondrop={(e) => handleDrop(m, e)}
@@ -222,7 +220,7 @@ function onModelQueryKeydown(e) {
     </div>
   </div>
   <div><hr/></div>
-  {#each paramInputs as p}
+  {#each paramInputs as p (p.key)}
     <div class="param">
       <label for={`param-${p.key}`}>{p.label}</label>
       <div>
@@ -233,18 +231,18 @@ function onModelQueryKeydown(e) {
             min={p.min}
             max={p.key === 'max_tokens' ? modelMaxToken : p.max}
             step={p.step}
-            bind:value={paramState[p.key]} />
+            bind:value={parameters[p.key]} />
           <input
             type="number"
-            bind:value={paramState[p.key]}
+            bind:value={parameters[p.key]}
             min={p.min}
             max={p.key === 'max_tokens' ? modelMaxToken : p.max}
             step={p.step} />
         {:else if p.widget === 'select'}
           <select
             id={`param-${p.key}`}
-            value={p.options.findIndex(i => i.value === (paramState[p.key] ?? p.initial_value))}
-            onchange={(e) => paramState[p.key] = p.options[+e.currentTarget.value].value}
+            value={p.options.findIndex(i => i.value === (parameters[p.key] ?? p.initial_value))}
+            onchange={(e) => parameters[p.key] = p.options[+e.currentTarget.value].value}
           >
             {#each p.options as opt, optI}
               <option value={optI}>{opt.label}</option>
@@ -277,7 +275,7 @@ function onModelQueryKeydown(e) {
   <div class="model-options-container">
     <div class="model-options">
       {#each visibleModels as m}
-        <button class:model-selected={model.api === m.api && model.id == m.id} onclick={() => {model = m}}>
+        <button class:model-selected={model.api === m.api && model.id == m.id} onclick={() => onModelSelect(m)}>
           {#if apisWithToken === 0 || apisWithToken > 1}
             <span class="model-api">{m.api}:&nbsp;</span>
           {/if}

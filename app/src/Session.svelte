@@ -220,6 +220,8 @@ $effect(() => {
   }
 })
 $effect(() => {
+  sessionData?.title
+  Object.keys(sessionData?.parameters || {})
   for (let i of messages) {  // TODO: is there a better way?
     i.role
     i.content
@@ -436,7 +438,6 @@ async function onCreateMessage(event) {
 async function onRoleChange(event) {
   const msg = getMessageFromEvent(event)
   msg.role = event.target.value
-  scheduleSave()
 }
 
 function onCollapseToggle(event, message) {
@@ -452,7 +453,6 @@ function onCollapseToggle(event, message) {
     }
     toggleChildren(message.id, newState)
   }
-  scheduleSave()
 }
 
 async function deleteMessage(event) {
@@ -477,12 +477,6 @@ async function deleteMessage(event) {
   scheduleSave(0)
 }
 
-function onParametersUpdate(newParameters) {
-  console.log('Params:', newParameters)
-  sessionData.parameters = newParameters
-  scheduleSave()
-}
-
 async function onTitleUpdate(event) {
   sessionData.title = event.target.value
   await (await db).put('sessionMeta', {
@@ -491,7 +485,6 @@ async function onTitleUpdate(event) {
     createdAt: sessionData.createdAt,
   })
   notifySessionList()
-  scheduleSave(200)
 }
 
 async function onDup(event) {
@@ -515,7 +508,7 @@ onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
 onDestroy(() => { window.updateLoadedPlugins = null })
 
 let scripts = $state([])
-let scriptInstances = {}
+let scriptInstances = $state({})
 
 async function moveMessage(messageId, direction) {
   console.log('moving', messageId, direction)
@@ -563,13 +556,20 @@ async function moveMessage(messageId, direction) {
 {#if sessionLoaded}
 <SessionFaviconChanger {messages} />
 <SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
-<SessionScripts {sessionId} {messages} bind:scripts={scripts} bind:scriptInstances={scriptInstances} scriptsEnabled={sessionData.parameters.scriptsEnabled} {apiGenResponse}/>
+<SessionScripts
+  {sessionId}
+  {messages}
+  bind:scripts={scripts}
+  bind:scriptInstances={scriptInstances}
+  scriptsEnabled={sessionData.parameters.scriptsEnabled}
+  {apiGenResponse}
+  {sessionData}
+/>
 
 <Parameters
   {sessionId}
-  parameters={sessionData.parameters}
+  bind:parameters={sessionData.parameters}
   {scripts}
-  onUpdate={onParametersUpdate}
 />
 
 <div>

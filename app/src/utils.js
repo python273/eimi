@@ -16,6 +16,10 @@ export function uniqueId() {
   return i
 }
 
+/**
+  * @param {string} key
+  * @returns {[() => void, import('svelte/store').Writable<number>]}
+  */
 function createCrossTabs(key) {
   const store = writable(0)
   window.addEventListener('storage', (event) => {

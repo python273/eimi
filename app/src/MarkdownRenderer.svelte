@@ -1,10 +1,10 @@
 <script>
 import { marked } from 'marked'
-import { onMount } from "svelte"
 
 let { content = "", generating = false } = $props()
-let element = $state()
+let ast = $state([])
 let currentContent = $state("")
+let copyButtonText = $state("Copy")
 
 marked.setOptions({
   gfm: true,
@@ -13,36 +13,127 @@ marked.setOptions({
 
 const renderer = new marked.Renderer()
 renderer.html = (html) => {
-  //console.log(html);
   return html.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 marked.use({ renderer })
 
-function renderContent() {
+function parseContent() {
   if (content === currentContent) return
-  element.innerHTML = marked.parse(content)
+  ast = marked.lexer(content)
   currentContent = content
 }
 
 $effect(() => {
-  if (element) {
-    renderContent()
-  }
+  parseContent()
 })
 
 $effect(() => {
-  if (!generating && element) {
-    renderContent()
+  if (!generating) {
+    parseContent()
   }
-})
-
-onMount(() => {
-  renderContent()
 })
 </script>
 
-<div class="markdown" bind:this={element}></div>
+{#snippet RenderTokens(tokens)}
+  {#each tokens as token}
+    {#if token.type === 'text'}
+      {#if token.tokens}
+        {@render RenderTokens(token.tokens)}
+      {:else}
+        {token.text}
+      {/if}
+    {:else if token.type === 'paragraph'}
+      <p>{@render RenderTokens(token.tokens || [])}</p>
+    {:else if token.type === 'strong'}
+      <strong>{@render RenderTokens(token.tokens || [])}</strong>
+    {:else if token.type === 'em'}
+      <em>{@render RenderTokens(token.tokens || [])}</em>
+    {:else if token.type === 'codespan'}
+      <code>{token.text}</code>
+    {:else if token.type === 'code'}
+      <div class="code-block">
+        <button class="copy-button" onclick={() => {
+          navigator.clipboard.writeText(token.text)
+            .then(() => { copyButtonText = 'Copied!' })
+            .catch(() => { copyButtonText = 'Failed' })
+            .finally(() => { setTimeout(() => { copyButtonText = 'Copy' }, 1000) })
+        }}>{copyButtonText}</button>
+        <pre><code>{token.text}</code></pre>
+      </div>
+    {:else if token.type === 'blockquote'}
+      <blockquote>{@render RenderTokens(token.tokens || [])}</blockquote>
+    {:else if token.type === 'heading'}
+      {#if token.depth === 1}
+        <h1>{@render RenderTokens(token.tokens || [])}</h1>
+      {:else if token.depth === 2}
+        <h2>{@render RenderTokens(token.tokens || [])}</h2>
+      {:else if token.depth === 3}
+        <h3>{@render RenderTokens(token.tokens || [])}</h3>
+      {:else if token.depth === 4}
+        <h4>{@render RenderTokens(token.tokens || [])}</h4>
+      {:else if token.depth === 5}
+        <h5>{@render RenderTokens(token.tokens || [])}</h5>
+      {:else if token.depth === 6}
+        <h6>{@render RenderTokens(token.tokens || [])}</h6>
+      {/if}
+    {:else if token.type === 'list'}
+      {#if token.ordered}
+        <ol start={token.start}>
+          {#each token.items || [] as item}<li>{@render RenderTokens(item.tokens || [])}</li>{/each}
+        </ol>
+      {:else}
+        <ul>{#each token.items || [] as item}<li>{@render RenderTokens(item.tokens || [])}</li>{/each}</ul>
+      {/if}
+    {:else if token.type === 'link'}
+      <a href={token.href}>{@render RenderTokens(token.tokens || [])}</a>
+    {:else if token.type === 'image'}
+      <img src={token.href} alt={token.text || ''} />
+    {:else if token.type === 'space'}
+      {' '}
+    {:else if token.type === 'br'}
+      <br />
+    {:else if token.type === 'hr'}
+      <hr />
+    {:else if token.type === 'table'}
+      <table>
+        <thead>
+          <tr>
+            {#each token.header || [] as cell}
+              <th align={cell.align}>{@render RenderTokens(cell.tokens || [])}</th>
+            {/each}
+          </tr>
+        </thead>
+        <tbody>
+          {#each token.rows || [] as row}
+            <tr>
+              {#each row || [] as cell}
+                <td align={cell.align}>{@render RenderTokens(cell.tokens || [])}</td>
+              {/each}
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {:else if token.type === 'del'}
+      <del>{@render RenderTokens(token.tokens || [])}</del>
+    {:else if token.type === 'escape'}
+      {token.text}
+    {:else if token.type === 'html'}
+      <!-- not rendering html -->
+      {token.text}
+    {:else if token.type === 'def'}
+    {:else if token.type === 'tag'}
+      <!-- not rendering html -->
+      {token.text}
+    {:else}
+      {@debug token}
+    {/if}
+  {/each}
+{/snippet}
+
+<div class="markdown">
+  {@render RenderTokens(ast)}
+</div>
 
 <style>
 div {
@@ -111,5 +202,22 @@ div {
   padding-left: 0.5em;
   font-weight: 500;
   margin: 0.5em 0;
+}
+:global(.markdown .code-block) {
+  position: relative;
+  margin: 1em 0;
+}
+:global(.markdown .copy-button) {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background-color: var(--code-bg-color);
+  border: 1px solid var(--text-color);
+  border-radius: 3px;
+  padding: 0.25em 0.5em;
+  font-size: 0.8em;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 </style>
