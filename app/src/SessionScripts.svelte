@@ -5,7 +5,7 @@ import { AsyncFunction, subDbScripts } from "./utils"
 let {sessionId, messages, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse, sessionData} = $props()
 
 let eimiApi = {
-  genResponse: ({messageId}) => apiGenResponse(messageId),
+  genResponse: ({messageId, params}) => apiGenResponse(messageId, params),
   getSessionId: () => sessionId,
   getSessionInfo: () => sessionData,
   getSessionMessages: () => messages,

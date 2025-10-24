@@ -46,9 +46,6 @@ async function* streamOpenai(apiConfig, modelParams) {
 
   // TODO: remove hacks
   if (url.startsWith('https://api.openai.com/v1/chat/completions')) {
-    if (jsonData.model.startsWith('o1') || jsonData.model.startsWith('o3')) {
-      delete jsonData['temperature']
-    }
     jsonData['max_completion_tokens'] = jsonData['max_tokens']
     delete jsonData['max_tokens']
   }
@@ -102,6 +99,7 @@ async function* streamOpenai(apiConfig, modelParams) {
 
 async function* openaiStreamResponse(apiConfig, modelParams) {
   for await (const chunk of streamOpenai(apiConfig, modelParams)) {
+    yield {rawChunk: chunk}
     if (chunk.error) {
       yield formatErrorChunk(chunk)
       continue
@@ -119,9 +117,9 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
 
       if ('text' in c) {
         yield c.text
-      } else if (c.delta?.tool_calls) {
-        for (const tool_call_delta of c.delta.tool_calls) {
-          yield {tool_call_delta}
+      } else if (c.delta?.tool_calls) { // no-stream compat
+        for (const [index, tool_call_delta] of c.delta.tool_calls.entries()) {
+          yield {tool_call_delta: {...tool_call_delta, index}}
         }
       } else if (c.delta?.content) {
         yield c.delta.content
@@ -153,7 +151,17 @@ async function* streamAnthropic(apiConfig, modelParams) {
     }
   }
 
-  const response = await fetch(proxy(apiConfig, 'https://api.anthropic.com/v1/messages'), {
+  let url
+  if (apiConfig.baseurl === 'anthropic://') {
+    url = 'https://api.anthropic.com/v1/messages'
+  } else if (apiConfig.baseurl?.startsWith('anthropic://')) {
+    const baseUrl = apiConfig.baseurl.replace('anthropic://', 'https://')
+    url = `${baseUrl}messages`
+  } else {
+    url = `${apiConfig.baseurl}messages`
+  }
+
+  const response = await fetch(proxy(apiConfig, url), {
     signal: apiConfig.signal,
     method: 'POST',
     headers: {
@@ -385,7 +393,7 @@ export function runLlmApi(data) {
     return googleStreamResponse(apiConfig, modelParams)
   }
 
-  if (apiConfig.baseurl === 'anthropic://') {
+  if (apiConfig.baseurl?.startsWith('anthropic://')) {
     return anthropicStreamResponse(apiConfig, modelParams)
   }
 

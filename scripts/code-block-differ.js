@@ -147,7 +147,7 @@ class EimiScriptCodeBlockDiffer {
     };
     
     const diff = Diff.diffLines(code1, code2);
-    let result = '<div style="font-family: monospace; white-space: pre-wrap; height: 100%; overflow: auto; font-size: 0.85em; background: #000; padding: 0.5em;">';
+    let result = '<div style="font-family: monospace; white-space: pre-wrap; word-break: break-all; height: 100%; overflow: auto; font-size: 0.85em; background: #000; padding: 0.5em;">';
     
     diff.forEach(part => {
       const color = part.added ? '#0f0' : part.removed ? '#ff6e04' : 'grey';

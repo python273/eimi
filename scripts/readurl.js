@@ -1,6 +1,7 @@
 class EimiScriptReadUrl {
   constructor({eimiApi}) {
     this.eimiApi = eimiApi;
+    this.requests = new Map();
   }
 
   findOriginalMessage(requestMessage, allMessages) {
@@ -9,7 +10,7 @@ class EimiScriptReadUrl {
     return original || requestMessage;
   }
 
-  async fetchUrlText(url, originalMessage) {
+  async _fetchUrlText(url, originalMessage) {
     const key = `readurl-${url}`;
     originalMessage.customData = originalMessage.customData || [];
     const existing = originalMessage.customData.find(i => i.key === key);
@@ -18,8 +19,22 @@ class EimiScriptReadUrl {
     const response = await fetch(`https://r.jina.ai/${encodeURIComponent(url)}`);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     const text = await response.text();
-    originalMessage.customData.push({ key, value: text });
+    
+    const recheck = originalMessage.customData.find(i => i.key === key);
+    if (!recheck) originalMessage.customData.push({ key, value: text });
     return text;
+  }
+
+  async fetchUrlText(url, originalMessage) {
+    if (this.requests.has(url)) return this.requests.get(url);
+
+    const promise = this._fetchUrlText(url, originalMessage);
+    this.requests.set(url, promise);
+    try {
+      return await promise;
+    } finally {
+      this.requests.delete(url);
+    }
   }
 
   async onRequest(request, newMessage, messages) {

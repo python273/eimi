@@ -94,6 +94,14 @@ async def serve_robots_txt():
 async def serve_service_worker():
     return FileResponse("app/dist/service-worker.js")
 
+@app.get("/manifest.json")
+async def serve_manifest():
+    return FileResponse("app/dist/manifest.json")
+
+@app.get("/icon.svg")
+async def serve_icon():
+    return FileResponse("app/dist/icon.svg")
+
 app.mount("/assets", StaticFiles(directory="app/dist/assets"), name="assets")
 
 @app.get("/{full_path:path}")

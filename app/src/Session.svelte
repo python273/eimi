@@ -78,7 +78,6 @@ async function saveSession(sessionId) {
     notifySessionList()
   }
   isNewSession = false
-  console.log('saved', sessionId)
 }
 onDestroy(async () => {
   for (const i of messages) {
@@ -110,7 +109,6 @@ async function deleteSession() {
   }
   await tx.done
   notifySessionList()
-  console.log('deleted', sessionId)
 }
 
 async function loadSession() {
@@ -249,31 +247,27 @@ function getChain(message, regenerate = false) {
   return chain
 }
 
-function apiGenResponse(messageId) {
+function apiGenResponse(messageId, paramsReplace) {
   const message = messages.find(m => m.id === messageId)
   if (message) {
-    return _genResponse(message)
+    return _genResponse(message, false, paramsReplace)
   }
 }
 async function genResponse(event, regenerate=false) {
-  console.log('genResponse', event)
   event.preventDefault()
   const message = getMessageFromEvent(event)
   _genResponse(message, regenerate)
 }
-async function _genResponse(message, regenerate=false) {
-  console.log('_genResponse', message)
-  console.log(
-    'genResponse', $state.snapshot(message), regenerate,
-    $state.snapshot(sessionData.parameters))
-  const apiData = CONFIG.apis[sessionData.parameters._api]
+async function _genResponse(message, regenerate=false, paramsReplace) {
+  const params = paramsReplace || $state.snapshot(sessionData.parameters)
+  console.log('_genResponse', $state.snapshot(message), regenerate, params)
+
+  const apiData = CONFIG.apis[params._api]
   if (!apiData.token) {
-    alert(`Add token in settings for "${sessionData.parameters._api}"`)
+    alert(`Add token in settings for "${params._api}"`)
     throw Error('no token')
   }
-  const modelInfo = CONFIG.models.find(i => (
-    i.api === sessionData.parameters._api
-    && i.id === sessionData.parameters.model))
+  const modelInfo = CONFIG.models.find(i => (i.api === params._api && i.id === params.model))
 
   if (location.hostname === 'eimi.cns.wtf') {
     fetch('https://ut.cns.wtf/api/record/ei'+' mi_gen'.trim())
@@ -290,7 +284,7 @@ async function _genResponse(message, regenerate=false) {
       thinking: '',
       generating: true,
       markdown: true,
-      parameters: {...sessionData.parameters},
+      parameters: {...params},
       customData: [],
     })
     newMessage = messages[0]  // get msg with Svelte proxy
@@ -302,7 +296,7 @@ async function _genResponse(message, regenerate=false) {
     newMessage.generating = true
     newMessage.promptTokens = undefined
     newMessage.completionTokens = undefined
-    newMessage.parameters = {...sessionData.parameters}
+    newMessage.parameters = {...params}
   }
   newMessage.aborter?.abort()
   const aborter = new AbortController()
@@ -316,17 +310,18 @@ async function _genResponse(message, regenerate=false) {
     proxy: apiData.proxy === false ? false : true,
     baseurl: apiData.baseurl,
     token: apiData.token,
-    model: sessionData.parameters.model,
+    model: params.model,
     completion: modelInfo.completion,
-    parameters: omit(sessionData.parameters, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
+    sessionParameters: params,
+    parameters: omit(params, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
     messages: getChain(message, regenerate).map(({id, role, content}) => ({
       _id: id, role, content: [{type: 'text', text: content}]
     })),
   }
-  if (sessionData.parameters._api === 'anthropic' && sessionData.parameters.max_tokens === 0) {
+  if (params._api === 'anthropic' && params.max_tokens === 0) {
     request.parameters.max_tokens = modelInfo.max_tokens
-  } else if (sessionData.parameters.max_tokens !== 0) {
-    request.parameters.max_tokens = sessionData.parameters.max_tokens
+  } else if (params.max_tokens !== 0) {
+    request.parameters.max_tokens = params.max_tokens
   }
 
   console.log('runLlmApi before scripts:', {
@@ -335,7 +330,7 @@ async function _genResponse(message, regenerate=false) {
     messages: JSON.parse(JSON.stringify(request.messages)),
   })
 
-  const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
+  const scriptsEnabled = new Set(params.scriptsEnabled || [])
   const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id))
 
   console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
@@ -511,7 +506,6 @@ let scripts = $state([])
 let scriptInstances = $state({})
 
 async function moveMessage(messageId, direction) {
-  console.log('moving', messageId, direction)
   const currentIndex = messages.findIndex(m => m.id === messageId)
   const current = messages[currentIndex]
 
@@ -578,114 +572,119 @@ async function moveMessage(messageId, direction) {
   <button onclick={onDelete} title="delete session (hold shift)">delete</button>
 </div>
 
+{#snippet renderMessage(c, i)}
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div class="message-content" class:generating="{c.generating}" tabindex="0">
+    <div class="message-header">
+      <button class="mono" onclick={(e) => { onCollapseToggle(e, c) }} title="collapse (shift+click to toggle all children)">
+        {#if c.collapsed}[+]{:else}[-]{/if}
+      </button>
+      <select class="role" value={c.role} onchange={onRoleChange}>
+        <option value={ASSISTANT}>{ASSISTANT}</option>
+        <option value={USER}>{USER}</option>
+        <option value={SYSTEM}>{SYSTEM}</option>
+      </select>
+      {#if c.markdown}
+        <button onclick={() => { c.markdown = false }}>edit</button>
+      {:else}
+        <button onclick={() => { c.markdown = true }} title="Markdown">md</button>
+      {/if}
+      {#if c.parameters?.model}
+        <div class="meta-gray mono pre meta-model">{c.parameters?.model}</div>
+      {/if}
+      {#if c.promptTokens !== undefined}
+        <div class="meta-gray mono pre" title="Prompt tokens">{String(c.promptTokens).padStart(5, ' ')}</div>
+      {/if}
+      {#if c.completionTokens !== undefined}
+        <div class="meta-gray mono pre" title="Completion tokens">{String(c.completionTokens).padStart(5, ' ')}</div>
+      {/if}
+      <div class="ml-auto"></div>
+
+      {#each loadedPlugins as plugin}
+        <button onclick={async (e) => { plugin.onClick(e, c) }}>{plugin.name}</button>
+      {/each}
+
+      {#if hasCodeBlocks(c.content)}
+        <button
+          onclick={(e) => {
+            e.preventDefault()
+            createJsWindow(c)
+          }}
+          title="run HTML / JavaScript">JS</button>
+      {/if}
+      <button onclick={deleteMessage} title="delete this message and replies (hold shift)" aria-label="Delete">
+        x
+      </button>
+      {#if c.role === ASSISTANT}
+        <button onclick={(e) => genResponse(e, true)} title="regenerate this message">regen</button>
+      {/if}
+      <button onclick={genResponse} title="generate a response (ctrl+enter)">gen</button>
+      <button onclick={onCreateMessage} title="create an empty reply (message focus+n)">&#10149;&#xFE0E;</button>
+    </div>
+    {#if !c.collapsed}
+      {#if c.thinking}
+        <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
+          <summary>Thinking</summary>
+          <CustomInput
+            generating={c.generating}
+            value={c.thinking}
+            bind:message={messages[i]}
+            attr='thinking'
+            style="border: 1px solid var(--text-color);"
+          />
+        </details>
+      {/if}
+      {#if c.markdown}
+        <MarkdownRenderer generating={c.generating} content={c.content}/>
+      {:else}
+        <CustomInput
+          generating={c.generating}
+          value={c.content}
+          bind:message={messages[i]}
+        />
+      {/if}
+      {#if c.customData}
+        {#each c.customData as item, index (item)}
+          <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
+            <summary>
+              {item.key}
+              <button
+                onclick={(e) => {
+                  e.preventDefault()
+                  c.customData.splice(index, 1)
+                }}
+                title="Remove field"
+              >x</button>
+            </summary>
+            <CustomInput
+              generating={c.generating}
+              value={item.value}
+              bind:message={c.customData[index]}
+              attr='value'
+              style="border: 1px solid var(--text-color);"
+            />
+          </details>
+        {/each}
+      {/if}
+    {/if}
+  </div>
+{/snippet}
+
 <div id="messages" class="messages">
 {#each messages as c, i (c.id)}
   <div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
     <div class="flex">
       {#each {length: c.ddepth} as _}<div class='pad'></div>{/each}
       <div>
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <div class="message-content" class:generating="{c.generating}" tabindex="0">
-          <div class="message-header">
-            <button class="mono" onclick={(e) => { onCollapseToggle(e, c) }} title="collapse (shift+click to toggle all children)">
-              {#if c.collapsed}[+]{:else}[-]{/if}
-            </button>
-            <select class="role" value={c.role} onchange={onRoleChange}>
-              <option value={ASSISTANT}>{ASSISTANT}</option>
-              <option value={USER}>{USER}</option>
-              <option value={SYSTEM}>{SYSTEM}</option>
-            </select>
-            {#if c.markdown}
-              <button onclick={() => { c.markdown = false }}>edit</button>
-            {:else}
-              <button onclick={() => { c.markdown = true }} title="Markdown">md</button>
-            {/if}
-            {#if c.parameters?.model}
-              <div class="meta-gray mono pre meta-model">{c.parameters?.model}</div>
-            {/if}
-            {#if c.promptTokens !== undefined}
-              <div class="meta-gray mono pre" title="Prompt tokens">{String(c.promptTokens).padStart(5, ' ')}</div>
-            {/if}
-            {#if c.completionTokens !== undefined}
-              <div class="meta-gray mono pre" title="Completion tokens">{String(c.completionTokens).padStart(5, ' ')}</div>
-            {/if}
-            <div class="ml-auto"></div>
-
-            {#each loadedPlugins as plugin}
-              <button onclick={async (e) => { plugin.onClick(e, c) }}>{plugin.name}</button>
-            {/each}
-
-            {#if hasCodeBlocks(c.content)}
-              <button
-                onclick={(e) => {
-                  e.preventDefault()
-                  createJsWindow(c)
-                }}
-                title="run HTML / JavaScript">JS</button>
-            {/if}
-            <button onclick={deleteMessage} title="delete this message and replies (hold shift)" aria-label="Delete">
-              x
-            </button>
-            {#if c.role === ASSISTANT}
-              <button onclick={(e) => genResponse(e, true)} title="regenerate this message">regen</button>
-            {/if}
-            <button onclick={genResponse} title="generate a response (ctrl+enter)">gen</button>
-            <button onclick={onCreateMessage} title="create an empty reply (message focus+n)">&#10149;&#xFE0E;</button>
-          </div>
-          {#if !c.collapsed}
-            {#if c.thinking}
-              <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
-                <summary>Thinking</summary>
-                <CustomInput
-                  generating={c.generating}
-                  value={c.thinking}
-                  bind:message={messages[i]}
-                  attr='thinking'
-                  style="border: 1px solid var(--text-color);"
-                />
-              </details>
-            {/if}
-            {#if c.markdown}
-              <MarkdownRenderer generating={c.generating} content={c.content}/>
-            {:else}
-              <CustomInput
-                generating={c.generating}
-                value={c.content}
-                bind:message={messages[i]}
-              />
-            {/if}
-            {#if c.customData}
-              {#each c.customData as item, index (item)}
-                <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
-                  <summary>
-                    {item.key}
-                    <button
-                      onclick={(e) => {
-                        e.preventDefault()
-                        c.customData.splice(index, 1)
-                      }}
-                      title="Remove field"
-                    >x</button>
-                  </summary>
-                  <CustomInput
-                    generating={c.generating}
-                    value={item.value}
-                    bind:message={c.customData[index]}
-                    attr='value'
-                    style="border: 1px solid var(--text-color);"
-                  />
-                </details>
-              {/each}
-            {/if}
-          {/if}
-        </div>
+        {@render renderMessage(c, i)}
         {#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
-        {#if c.lastInChain}<div class="linear-pad1"></div>{/if}
+        {#if c.lastInChain}<div class="pad-chain-end"></div>{/if}
       </div>
     </div>
   </div>
 {/each}
 </div>
+
 <button
   class="create-top-msg-btn"
   onclick={onCreateMessage}
@@ -726,7 +725,7 @@ async function moveMessage(messageId, direction) {
   background-color: var(--text-color);
 }
 
-.linear-pad1 {
+.pad-chain-end {
   margin-top: 1.5em;
   content: '';
 }
@@ -742,6 +741,15 @@ async function moveMessage(messageId, direction) {
 
 .message-content:focus, .message-content:focus-visible {
   outline: 1px auto;
+}
+
+.message-content.full-width {
+  width: 100%;
+  height: 100%;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  border-radius: 0;
 }
 
 .generating {
