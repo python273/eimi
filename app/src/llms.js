@@ -40,7 +40,11 @@ async function* streamOpenai(apiConfig, modelParams) {
     url = 'https://api.openai.com/v1/chat/completions'
   }
 
-  if (url.startsWith('https://api.openai.com/v1/') && jsonData.stream) {
+  const needIncludeUsage = jsonData.stream && (
+    url.startsWith('https://api.openai.com/v1/')
+    || url.startsWith('https://api.minimax.io/v1/')
+  )
+  if (needIncludeUsage) {
     (jsonData['stream_options'] = jsonData['stream_options'] || {})['include_usage'] = true
   }
 
@@ -69,7 +73,8 @@ async function* streamOpenai(apiConfig, modelParams) {
     const result = await response.json()
     yield {
       choices: [{
-        delta: result.choices[0].message
+        delta: result.choices[0].message,
+        finish_reason: result.choices[0].finish_reason,
       }],
       usage: result.usage
     }
@@ -112,14 +117,14 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
       }}
     }
     try {
-      const c = chunk?.choices[0]
+      const c = chunk?.choices?.[0]
       if (!c) continue
 
       if ('text' in c) {
         yield c.text
       } else if (c.delta?.tool_calls) { // no-stream compat
         for (const [index, tool_call_delta] of c.delta.tool_calls.entries()) {
-          yield {tool_call_delta: {...tool_call_delta, index}}
+          yield {tool_call_delta: {...tool_call_delta, index: tool_call_delta.index || index}}
         }
       } else if (c.delta?.content) {
         yield c.delta.content
@@ -127,6 +132,12 @@ async function* openaiStreamResponse(apiConfig, modelParams) {
         yield {thinking: c.delta.reasoning}
       } else if (c.delta?.reasoning_content) {  // DeepSeek
         yield {thinking: c.delta.reasoning_content}
+      } else if (c.delta?.reasoning_details && c.delta?.reasoning_details[0]?.text) { // MiniMax
+        yield {thinking: c.delta.reasoning_details[0].text}
+      }
+      
+      if (c.finish_reason) {
+        yield {finishReason: c.finish_reason}
       }
     } catch (error) {
       yield 'Err: ' + JSON.stringify(chunk)
@@ -303,6 +314,17 @@ async function* googleStreamResponse(apiConfig, modelParams) {
     ],
   }
 
+  // Convert OpenAI tools to Google functionDeclarations format
+  if (modelParams.tools) {
+    convertedData.tools = [{
+      functionDeclarations: modelParams.tools.map(tool => ({
+        name: tool.function.name,
+        description: tool.function.description,
+        parameters: tool.function.parameters
+      }))
+    }]
+  }
+
   let messages = modelParams.messages
   const systemMsgs = messages.filter(m => m.role === 'system')
 
@@ -339,10 +361,63 @@ async function* googleStreamResponse(apiConfig, modelParams) {
       }
     }
 
-    convertedData.contents.push({
-      role: msg.role === 'assistant' ? 'model' : msg.role,
-      parts,
-    })
+    if (msg.role === 'tool') {
+      let functionName = 'unknown_function'
+      
+      // Look back in original messages to find the tool call with matching ID
+      for (let i = messages.indexOf(msg) - 1; i >= 0; i--) {
+        const prevMsg = messages[i]
+        if (prevMsg.role === 'assistant' && prevMsg.tool_calls) {
+          const matchingCall = prevMsg.tool_calls.find(call => call.id === msg.tool_call_id)
+          if (matchingCall && matchingCall.function && matchingCall.function.name) {
+            functionName = matchingCall.function.name
+            break
+          }
+        }
+      }
+      
+      // Handle content that might be an array or string
+      let content = msg.content
+      if (Array.isArray(content)) {
+        const textItem = content.find(item => item.type === 'text')
+        content = textItem ? textItem.text : content
+      }
+
+      let toolResponse
+      try {
+        toolResponse = JSON.parse(content)
+      } catch (e) {
+        toolResponse = {result: content}  // str
+      }
+      
+      convertedData.contents.push({
+        role: 'user',
+        parts: [{
+          functionResponse: {
+            name: functionName,
+            response: toolResponse
+          }
+        }]
+      })
+    } else {
+      if (msg.role === 'assistant' && msg.tool_calls) {
+        for (const toolCall of msg.tool_calls) {
+          if (toolCall.type === 'function' && toolCall.function) {
+            parts.push({
+              functionCall: {
+                name: toolCall.function.name,
+                args: JSON.parse(toolCall.function.arguments)
+              }
+            })
+          }
+        }
+      }
+      
+      convertedData.contents.push({
+        role: msg.role === 'assistant' ? 'model' : msg.role,
+        parts,
+      })
+    }
   }
 
   if (modelParams.temperature != null) {
@@ -352,6 +427,7 @@ async function* googleStreamResponse(apiConfig, modelParams) {
     convertedData.generationConfig.maxOutputTokens = modelParams.max_tokens
   }
 
+  let toolCallIndex = 0
   for await (const chunk of streamGoogle(apiConfig, convertedData)) {
     if (chunk.error) {
       yield formatErrorChunk(chunk)
@@ -361,8 +437,58 @@ async function* googleStreamResponse(apiConfig, modelParams) {
       prompt_tokens: chunk.usageMetadata.promptTokenCount,
       completion_tokens: chunk.usageMetadata.candidatesTokenCount,
     }}
-    yield chunk.candidates[0].content.parts?.[0]?.text || ""
+    
+    // Handle function calls in the response
+    const candidate = chunk.candidates?.[0]
+    if (candidate?.content?.parts) {
+      for (const part of candidate.content.parts) {
+        if (part.functionCall) {
+          // Convert Google functionCall to OpenAI tool_call format
+          const functionCall = part.functionCall
+          const toolCall = {
+            id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            type: 'function',
+            function: {
+              name: functionCall.name,
+              arguments: JSON.stringify(functionCall.args || {})
+            }
+          }
+          
+          // Emit OpenAI-compatible tool call delta events
+          yield {
+            tool_call_delta: {
+              index: toolCallIndex,
+              ...toolCall
+            }
+          }
+          toolCallIndex++
+        } else if (part.text) {
+          yield part.text
+        }
+      }
+    }
   }
+}
+
+function preprocessMessages(messages, apiConfig) {
+  if (apiConfig.baseurl === 'https://api.minimax.io/v1/') {
+    return messages.map((message, index) => {
+      if (!(message.role === 'assistant' && message._thinking)) return message
+      return {
+        ...message,
+        reasoning_details: [
+          {
+            type: 'reasoning.text',
+            id: `reasoning-text-1`,
+            format: 'MiniMax-response-v1',
+            index: 0,
+            text: message._thinking,
+          },
+        ]
+      }
+    })
+  }
+  return messages
 }
 
 export function runLlmApi(data) {
@@ -378,13 +504,22 @@ export function runLlmApi(data) {
   const modelParams = {...data.parameters}
 
   if (apiConfig.completion) {
-    modelParams.prompt = data.messages.map(m => m.content).join('')
+    modelParams.prompt = data.messages.map(m => {
+      if (typeof m.content === 'string') return m.content
+      if (Array.isArray(m.content)) {
+        return m.content.map(item => item.type === 'text' ? item.text : '').join('')
+      }
+      return ''
+    }).join('')
   } else {
-    modelParams.messages = data.messages.map(message => {
-      if (!Array.isArray(message.content)) return message
-      if (!message.content.every(item => item.type === 'text')) return message
+    const processedMessages = preprocessMessages(data.messages, apiConfig)
+    modelParams.messages = processedMessages.map(message => {
+      // eslint-disable-next-line no-unused-vars
+      let {_id, _thinking, ...m} = message
+      if (!Array.isArray(m.content)) return m
+      if (!m.content.every(item => item.type === 'text')) return m
       return {  // DeepSeek compat
-        ...message, content: message.content.map(item => item.text).join('')
+        ...m, content: m.content.map(item => item.text).join('')
       }
     })
   }

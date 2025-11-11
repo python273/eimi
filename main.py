@@ -34,6 +34,8 @@ ALLOWED_BASEURLS = [
     "https://api.groq.com/openai/v1/",
     "https://api.x.ai/v1/",
     "https://generativelanguage.googleapis.com/v1beta/",
+    "https://api.minimax.io/v1",
+    "https://api.minimax.io/anthropic/v1/",
 
     #
     "https://api.anthropic.com/v1/messages",

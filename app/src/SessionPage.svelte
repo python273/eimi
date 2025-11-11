@@ -2,6 +2,7 @@
 import { db } from './db.js'
 import { escapeRegExp, subSessionList } from './utils.js'
 import Session from './Session.svelte'
+import VirtualList from './VirtualList.svelte'
 
 let { sessionId, autoReply } = $props()
 if (!sessionId) { throw new Error('sessionId is required') }
@@ -36,20 +37,30 @@ $effect(() => {
     placeholder="Search..."
     bind:value={searchQuery}
   />
-  <div class="sessions-list">
-    {#each filteredSessions as s (s.id)}
-      <a href={`#${s.id}`} class:session-active={s.id === sessionId}>{s.title}</a>
-    {:else}
+
+  {#if filteredSessions.length > 0}
+    <VirtualList
+      class="sessions-list"
+      items={filteredSessions}
+      overscan={4}
+      getKey={(s) => s.id}
+    >
+      {#snippet row({ item })}
+        <a href={`#${item.id}`} class:session-active={item.id === sessionId}>{item.title}</a>
+      {/snippet}
+    </VirtualList>
+  {:else}
+    <div class="sessions-list">
       <span style="filter: opacity(30%); margin: 10px;">Sessions will be here.</span>
-    {/each}
-  </div>
+    </div>
+  {/if}
 </div>
 
 {#key sessionId}
   <Session {sessionId} {autoReply} />
 {/key}
 
-<div style="height: max(60vh);"></div>
+<div style="height: max(90vh);"></div>
 </main>
 
 <style>
@@ -68,27 +79,29 @@ $effect(() => {
   display: flex;
   flex-direction: column;
 }
-.sessions-list {
-  max-width: 100%;
-  overflow-y: auto;
-}
-.sessions-list a {
-  min-height: 1.2em;
-  padding: 0 5px;
-  margin: 0 5px;
-  color: var(--color-text);
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: 2px;
-}
-.sessions-list a:hover {
-  background: #0000000f;
-}
-.sessions-list .session-active {
-  color: #fff;
-  background: var(--brand-color) !important;
+:global {
+  .sessions-list {
+    max-width: 100%;
+    overflow-y: auto;
+  }
+  .sessions-list a {
+    min-height: 1.2em;
+    padding: 0 5px;
+    margin: 0 5px;
+    color: var(--color-text);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 2px;
+  }
+  .sessions-list a:hover {
+    background: #0000000f;
+  }
+  .sessions-list .session-active {
+    color: #fff;
+    background: var(--brand-color) !important;
+  }
 }
 main {
   width: 100%;

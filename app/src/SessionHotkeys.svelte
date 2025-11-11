@@ -30,6 +30,14 @@ function isPressed(e, combo) {
     e.metaKey === wants.meta
 }
 
+function scrollToIfOffview(el) {
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight
+  if (isPartiallyOffscreen) el.scrollIntoView(true)
+  el.focus({preventScroll: true, focusVisible: true})
+}
+
 const HELP_DISMISSED_KEY = 'cfg-hotkeys-shown'
 let show = $state(false)
 let showHelpTip = $state(localStorage.getItem(HELP_DISMISSED_KEY) !== '1')
@@ -100,10 +108,14 @@ async function onKeyDown(e) {
       ?.focus({focusVisible: true})
   } else if (hot('ctrl+k') || hot('meta+k')) {
     e.preventDefault()
-    moveMessage(item.id, 'up')
+    await moveMessage(item.id, 'up')
+    scrollToIfOffview(document.getElementById(`m_${item.id}`)
+      ?.querySelector('.message-content'))
   } else if (hot('ctrl+j') || hot('meta+j')) {
     e.preventDefault()
-    moveMessage(item.id, 'down')
+    await moveMessage(item.id, 'down')
+    scrollToIfOffview(document.getElementById(`m_${item.id}`)
+      ?.querySelector('.message-content'))
   } else if (hot('j') || hot('k') || hot('p') || hot('shift+j') || hot('shift+k')) {
     e.preventDefault()
     let i
@@ -121,14 +133,8 @@ async function onKeyDown(e) {
       i = messages.findIndex(i => i.id == item.id) + (e.code === 'KeyJ' ? 1 : -1)
     }
     if (i < 0 || i >= messages.length) return
-    const el = document.getElementById(`m_${messages[i].id}`)
-      ?.querySelector('.message-content')
-    if (!el) return
-
-    const rect = el.getBoundingClientRect()
-    const isPartiallyOffscreen = rect.top < 0 || rect.bottom > window.innerHeight
-    if (isPartiallyOffscreen) el.scrollIntoView(true)
-    el.focus({preventScroll: true, focusVisible: true})
+    scrollToIfOffview(document.getElementById(`m_${messages[i].id}`)
+      ?.querySelector('.message-content'))
   } else if (hot('shift+a')) {
     e.preventDefault()
     item.markdown = false

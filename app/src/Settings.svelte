@@ -57,11 +57,15 @@ async function exportSessionsToFile() {
   
   await tx.done
   const json = JSON.stringify(data)
-  const blob = new Blob([json], {type: "application/json"})
-  const url = URL.createObjectURL(blob)
+  const jsonBlob = new Blob([json], {type: "application/json"})
+  
+  const compressedStream = jsonBlob.stream().pipeThrough(new CompressionStream("gzip"))
+  const compressedBlob = await new Response(compressedStream).blob()
+  
+  const url = URL.createObjectURL(compressedBlob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `eimi-llm-ui-sessions-${location.hostname}.json`
+  a.download = `eimi-llm-ui-sessions-${location.hostname}.json.gz`
   document.body.appendChild(a)
   a.click()
   setTimeout(function() {
@@ -69,42 +73,59 @@ async function exportSessionsToFile() {
     window.URL.revokeObjectURL(url)
   }, 0)
 }
-function importSessionsFromFile(e) {
+
+async function importSessionsFromFile(e) {
   e.preventDefault()
   const file = importFileInput.files[0]
   if (!file) {
     alert("No file selected")
     return
   }
-  const reader = new FileReader()
-  reader.onload = async function(e) {
-    let data = JSON.parse(e.target.result)
-    data = 'sessions' in data ? data : {sessions: data}
-    const tx = (await db).transaction(['sessions', 'sessionMeta', 'scripts'], 'readwrite')
-    await tx.objectStore('sessions').clear()
-    await tx.objectStore('sessionMeta').clear()
-    await tx.objectStore('scripts').clear()
-
-    for (const [id, session] of Object.entries(data.sessions)) {
-      await tx.objectStore('sessions').put(session, id)
-      await tx.objectStore('sessionMeta').put({
-        id,
-        title: session.title,
-        createdAt: session.createdAt,
-      })
+  
+  if (file.name.endsWith('.gz')) {
+    const ds = new DecompressionStream("gzip")
+    const decompressedStream = file.stream().pipeThrough(ds)
+    const decompressedBlob = await new Response(decompressedStream).blob()
+    const text = await decompressedBlob.text()
+    const data = JSON.parse(text)
+    await processImportData(data)
+  } else {
+    const reader = new FileReader()
+    reader.onload = async function(e) {
+      const result = e.target.result
+      const text = typeof result === 'string' ? result : new TextDecoder().decode(result)
+      const data = JSON.parse(text)
+      await processImportData(data)
     }
-
-    if (data.scripts) {
-      for (const script of data.scripts) {
-        await tx.objectStore('scripts').put(script)
-      }
-    }
-    
-    await tx.done
-    importFileInput.value = ''
-    alert("Sessions imported")
+    reader.readAsText(file)
   }
-  reader.readAsText(file)
+}
+
+async function processImportData(data) {
+  data = 'sessions' in data ? data : {sessions: data}
+  const tx = (await db).transaction(['sessions', 'sessionMeta', 'scripts'], 'readwrite')
+  await tx.objectStore('sessions').clear()
+  await tx.objectStore('sessionMeta').clear()
+  await tx.objectStore('scripts').clear()
+
+  for (const [id, session] of Object.entries(data.sessions)) {
+    await tx.objectStore('sessions').put(session, id)
+    await tx.objectStore('sessionMeta').put({
+      id,
+      title: session.title,
+      createdAt: session.createdAt,
+    })
+  }
+
+  if (data.scripts) {
+    for (const script of data.scripts) {
+      await tx.objectStore('scripts').put(script)
+    }
+  }
+  
+  await tx.done
+  importFileInput.value = ''
+  alert("Sessions imported")
 }
 </script>
 
@@ -156,7 +177,7 @@ function importSessionsFromFile(e) {
   </div>
   <div>
     <label for="import-sessions-file">Import sessions from a file (deletes existing data)</label><br/>
-    <input bind:this={importFileInput} id="import-sessions-file" type="file" accept=".json"/>
+    <input bind:this={importFileInput} id="import-sessions-file" type="file" accept=".json,.json.gz"/>
     <button onclick={importSessionsFromFile}>Import</button>
   </div>
   <hr/>

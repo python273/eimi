@@ -4,7 +4,7 @@ import { marked } from 'marked'
 let { content = "", generating = false } = $props()
 let ast = $state([])
 let currentContent = $state("")
-let copyButtonText = $state("Copy")
+let copyButtonText = $state("")
 
 marked.setOptions({
   gfm: true,
@@ -57,8 +57,8 @@ $effect(() => {
           navigator.clipboard.writeText(token.text)
             .then(() => { copyButtonText = 'Copied!' })
             .catch(() => { copyButtonText = 'Failed' })
-            .finally(() => { setTimeout(() => { copyButtonText = 'Copy' }, 1000) })
-        }}>{copyButtonText}</button>
+            .finally(() => { setTimeout(() => { copyButtonText = '' }, 500) })
+        }}>{copyButtonText} <span class="heroicons-solid--clipboard-copy"></span></button>
         <pre><code>{token.text}</code></pre>
       </div>
     {:else if token.type === 'blockquote'}
@@ -209,15 +209,10 @@ div {
 }
 :global(.markdown .copy-button) {
   position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  background-color: var(--code-bg-color);
-  border: 1px solid var(--text-color);
-  border-radius: 3px;
-  padding: 0.25em 0.5em;
-  font-size: 0.8em;
+  top: 0.1em;
+  right: 0;
+  padding: 0 .2em;
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  opacity: .7;
 }
 </style>

@@ -37,6 +37,12 @@ function updateZIndex(id) {
   windowZIndices[id] = windowLastZIndex++
 }
 
+$effect(() => {
+  $store.forEach(w => {
+    if (!windowZIndices[w.id]) updateZIndex(w.id)
+  })
+})
+
 function handleMouseDown(event, id) {
   if (event.target !== event.currentTarget) return
   isDragging = true

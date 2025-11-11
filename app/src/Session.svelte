@@ -12,7 +12,6 @@ import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
 import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
-import { favoriteModels } from './lib/favoriteModelsStore'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
 import SessionScripts from './SessionScripts.svelte'
 
@@ -47,6 +46,7 @@ let sessionData = $state()
  *   generating?: boolean,
  *   promptTokens?: number,
  *   completionTokens?: number,
+ *   finishReason?: string,
  *   aborter?: AbortController,
  * }>}
  */
@@ -129,29 +129,12 @@ async function loadSession() {
         max_tokens: 0,
       }
     }
-    messages = relationalToLinear([{
-      id: uniqueId(),
-      createdAt: new Date().valueOf(),
-      parentId: null,
-      role: USER,
-      content: '',
-      customData: [],
-    }])
+    createMessage()
     sessionLoaded = true
+    await tick()
 
     if (autoReply) {
-      const modelsFav = $favoriteModels[0] || CONFIG.models[0]
-      const modelDefault = CONFIG.models.filter(
-        i => (i.api === modelsFav.api && i.id === modelsFav.id)
-      )[0]
-
       messages[0].content = autoReply
-      sessionData.parameters = {
-        ...sessionData.parameters,
-        _api: modelDefault.api,
-        model: modelDefault.id,
-        max_tokens: modelDefault.max_tokens,
-      }
       autoReply = undefined
       _genResponse(messages[0])
     }
@@ -164,6 +147,9 @@ async function loadSession() {
   obj.createdAt = meta.createdAt
   if (!obj.parameters) { obj.parameters = {} }
   const {messages: loadedMessages, ...rest} = obj
+  for (let m of loadedMessages) {
+    if (!m.customData) m.customData = []
+  }
   sessionData = rest
   messages = relationalToLinear(loadedMessages)
   sessionLoaded = true
@@ -247,6 +233,27 @@ function getChain(message, regenerate = false) {
   return chain
 }
 
+function createMessage(values, index = 0) {
+  const newMessage = {
+    id: uniqueId(),
+    createdAt: new Date().valueOf(),
+    parentId: null,
+    role: USER,
+    content: '',
+    thinking: '',
+    generating: false,
+    markdown: false,
+    customData: [],
+    ...values
+  }
+  
+  const insertIndex = index === -1 ? messages.length : index
+  messages.splice(insertIndex, 0, newMessage)
+  const messageWithProxy = messages[insertIndex]
+  messages = relationalToLinear(messages)
+  return messageWithProxy
+}
+
 function apiGenResponse(messageId, paramsReplace) {
   const message = messages.find(m => m.id === messageId)
   if (message) {
@@ -275,20 +282,13 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
 
   let newMessage
   if (!regenerate) {
-    messages.unshift({
-      id: uniqueId(),
-      createdAt: new Date().valueOf(),
+    newMessage = createMessage({
       parentId: message.id,
       role: ASSISTANT,
-      content: '',
-      thinking: '',
       generating: true,
       markdown: true,
       parameters: {...params},
-      customData: [],
     })
-    newMessage = messages[0]  // get msg with Svelte proxy
-    messages = relationalToLinear(messages)
   } else {
     newMessage = message
     newMessage.content = ''
@@ -314,8 +314,8 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
     completion: modelInfo.completion,
     sessionParameters: params,
     parameters: omit(params, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
-    messages: getChain(message, regenerate).map(({id, role, content}) => ({
-      _id: id, role, content: [{type: 'text', text: content}]
+    messages: getChain(message, regenerate).map(({id, role, thinking, content}) => ({
+      _id: id, role, _thinking: thinking, content: [{type: 'text', text: content}]
     })),
   }
   if (params._api === 'anthropic' && params.max_tokens === 0) {
@@ -348,7 +348,6 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
       return
     }
   }
-  request.messages = request.messages.map(({_id, ...rest}) => rest)
   console.log('runLlmApi after scripts:', request)
 
   try {
@@ -381,13 +380,14 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
           }
           tcData.value = JSON.stringify(accumulated_tool_call, null, 2)
         }
+        if (chunk?.finishReason) newMessage.finishReason = chunk.finishReason
       }
       await tick()
     }
   } catch (e) {
     if (e.name === 'AbortError') return
-    alert(`Request error:\n${e}`)
     console.error(e)
+    alert(`Request error:\n${e}`)
   } finally {
     newMessage.generating = false
     const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
@@ -411,20 +411,10 @@ async function onCreateMessage(event) {
   event.preventDefault()
   const parentMsg = getMessageFromEvent(event)
 
-  const newMessage = {
-    id: uniqueId(),
-    createdAt: new Date().valueOf(),
+  const newMessage = createMessage({
     parentId: parentMsg ? parentMsg.id : null,
     role: parentMsg ? (parentMsg.role === USER ? ASSISTANT : USER) : USER,
-    content: '',
-    customData: [],
-  }
-  if (parentMsg) {
-    messages.unshift(newMessage)
-  } else {
-    messages.push(newMessage)
-  }
-  messages = relationalToLinear(messages)
+  }, parentMsg ? 0 : -1)
   await tick()
   const newEl = document.getElementById(`m_${newMessage.id}`)
   newEl.querySelector('textarea').focus()
@@ -456,6 +446,7 @@ async function deleteMessage(event) {
   if (!event.shiftKey && !confirm('Delete message?')) return
 
   msg.aborter?.abort()
+  await tick()
 
   const idsToDelete = [msg.id]
   function _addChildren(msg) {
@@ -558,6 +549,7 @@ async function moveMessage(messageId, direction) {
   scriptsEnabled={sessionData.parameters.scriptsEnabled}
   {apiGenResponse}
   {sessionData}
+  {createMessage}
 />
 
 <Parameters
@@ -672,16 +664,13 @@ async function moveMessage(messageId, direction) {
 
 <div id="messages" class="messages">
 {#each messages as c, i (c.id)}
-  <div id={`m_${c.id}`} class="message" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}">
-    <div class="flex">
-      {#each {length: c.ddepth} as _}<div class='pad'></div>{/each}
-      <div>
-        {@render renderMessage(c, i)}
-        {#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
-        {#if c.lastInChain}<div class="pad-chain-end"></div>{/if}
-      </div>
-    </div>
+  <div id={`m_${c.id}`} class="message message-pad" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}" style="--depth: {c.ddepth}">
+    {@render renderMessage(c, i)}
+    {#if c.linear && !c.lastInChain}<div class="linear-pad"></div>{/if}
   </div>
+  {#if c.lastInChain /* outside of message so anti layout shift works */}
+    <div class="pad-chain-end message-pad" style="--depth: {c.ddepth}"></div>
+  {/if}
 {/each}
 </div>
 
@@ -708,25 +697,36 @@ async function moveMessage(messageId, direction) {
   color: var(--brand-hover-color);
 }
 
-.pad {
-  margin-right: 6px;
-  width: 4px;
-  max-width: 4px;
-  min-width: 4px;
+.message {
+  position: relative;
+  padding-left: calc(var(--depth) * 10px);
+}
+
+.message-pad::before {
   content: '';
-  background-color: var(--text-color);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: -1px;
+  width: calc(var(--depth) * 10px);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--text-color) 0px 4px,
+    transparent 4px 10px
+  );
 }
 
 .linear-pad {
   width: 5px;
   height: 4px;
-  margin-left: 16px;
+  margin-left: 14px;
   content: '';
   background-color: var(--text-color);
 }
 
 .pad-chain-end {
-  margin-top: 1.5em;
+  position: relative;
+  height: 1.5em;
   content: '';
 }
 

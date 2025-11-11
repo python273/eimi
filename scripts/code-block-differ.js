@@ -9,6 +9,7 @@ class EimiScriptCodeBlockDiffer {
     this.eimiApi.createEmptyWindow({
       title: "Code Block Diff",
       height: window.innerHeight * 0.98,
+      left: 50,
       onReady: (arg) => {
         this.windowArgs = arg;
         arg.el.innerHTML = `

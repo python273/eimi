@@ -208,7 +208,7 @@ function highlightText(text, query) {
   </div>
 </div>
 
-<div style="height: max(60vh);"></div>
+<div style="height: max(90vh);"></div>
 </main>
 
 <style>

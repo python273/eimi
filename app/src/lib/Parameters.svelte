@@ -5,6 +5,7 @@ import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
 import windowsStore from "./windowsStore"
 import { CONFIG, configUpdated } from '../config.svelte'
 import { favoriteModels } from './favoriteModelsStore'
+import VirtualList from '../VirtualList.svelte'
 
 let {sessionId, parameters = $bindable(), scripts} = $props()
 
@@ -190,13 +191,13 @@ function onModelQueryKeydown(e) {
         <label for={`script_enabled_${i.id}`} class="script-name">{i.name}</label>
         <div class="ml-auto"></div>
         {#if i.sessionId}<span>⛓&#xFE0E;</span>{/if}
-        <button onclick={(event) => {
+        <button title="edit" onclick={(event) => {
           event.preventDefault()
           let { clientX: left, clientY: top } = event
           top += 16
           left -= 512
           windowsStore.add({component: ScriptEditorWindow, data: { id: i.id }, left, top})
-        }}>edit</button>
+        }}><span class="ic--baseline-mode-edit"></span></button>
       </div>
     {/each}
   </div>
@@ -272,17 +273,23 @@ function onModelQueryKeydown(e) {
       {model.id}
     </div>
   </div>
+
   <div class="model-options-container">
-    <div class="model-options">
-      {#each visibleModels as m}
-        <button class:model-selected={model.api === m.api && model.id == m.id} onclick={() => onModelSelect(m)}>
+    <VirtualList
+      class="model-options"
+      items={visibleModels}
+      overscan={4}
+      getKey={(m) => `${m.api}:${m.id}`}
+    >
+      {#snippet row({ item, index })}
+        <button class:model-selected={model.api === item.api && model.id == item.id} onclick={() => onModelSelect(item)}>
           {#if apisWithToken === 0 || apisWithToken > 1}
-            <span class="model-api">{m.api}:&nbsp;</span>
+            <span class="model-api">{item.api}:&nbsp;</span>
           {/if}
-          {m.name}
+          {item.name}
         </button>
-      {/each}
-    </div>
+      {/snippet}
+    </VirtualList>
   </div>
 </div>
 
@@ -300,30 +307,31 @@ function onModelQueryKeydown(e) {
   text-align: left;
   white-space: nowrap;
 }
-.model-options-container {
-  min-height: 12em;
-  overflow: auto;
-  scrollbar-width: thin;
-  border: 1px solid var(--bg-color);
-  border-radius: 3px;
-  border: 1px solid var(--text-color);
-}
-.model-options {
-  display: flex;
-  flex-direction: column;
-  width: max-content;
-  font-size: 0.75em;
-  min-width: 100%;
-}
-.model-options button {
-  display: block;
-  white-space: nowrap;
-  padding: 0 0.3em;
-  color: var(--text-color);
-  text-align: left;
-}
-.model-options button:nth-child(even) {
-  background-color: var(--bg-color);
+:global {
+  .model-options-container {
+    flex: 1;
+    font-size: 0.75em;
+    min-height: 300px;
+    overflow-x: scroll;
+    scrollbar-width: thin;
+    border-radius: 3px;
+    border: 1px solid var(--text-color);
+    white-space: nowrap;
+    display: flex;
+  }
+  .model-options {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+    min-width: fit-content;
+  }
+  .model-options button {
+    display: block;
+    padding: 0 0.3em;
+    color: var(--text-color);
+    text-align: left;
+  }
 }
 .model-api {
   opacity: 0.6;

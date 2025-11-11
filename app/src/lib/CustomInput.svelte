@@ -4,7 +4,7 @@
 - Updating value preserves cursor and selection position
     (e.g. to copy while generating)
 */
-import { onMount, tick } from 'svelte'
+import { tick } from 'svelte'
 const inputId = Math.random().toString(36)
 
 let {
@@ -13,13 +13,6 @@ let {
 
 let el = $state()
 let elParent = $state()
-
-onMount(() => {
-  elParent.style.height = `${el.offsetHeight}px`
-  el.style.height = 0
-  el.style.height = `${el.scrollHeight}px`
-  elParent.style.height = 'auto'
-})
 
 async function valueChanged() {
   if (!el) await tick()

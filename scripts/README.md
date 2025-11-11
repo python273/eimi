@@ -12,6 +12,13 @@
  * @param {Object} options - Configuration options for the new window
  * @param {function} [options.onReady] - Callback when the window content is ready, receives {el, closeWindow, ...} as parameter
  * @param {function} [options.onWindowClose] - Callback when the window is closed
+ * @property {function(Object): Object} createMessage - Create a new message with provided values, patches defaults
+ * @param {Object} values - Message properties to override defaults (more in Session.svelte)
+ * @param {string} [values.parentId] - Parent message ID
+ * @param {string} [values.role] - Message role ('user', 'assistant', 'system')
+ * @param {string} [values.content] - Message content
+ * @param {Array} [values.customData] - Custom data fields for the message
+ * @returns {Object} The created message object
  */
 
 class EimiScriptMyExample {  // Must start with `class EimiScript`
@@ -27,6 +34,7 @@ class EimiScriptMyExample {  // Must start with `class EimiScript`
   async onRequest(request, newMessage, messages) {
     // `request` search for `const request = {` in Session.svelte to see full request structure.
     // `request.messages` is OpenAI-like chain of messages sent to LLM, `.content` is always a list.
+    //   * note to get original session message you need to take id from  `_id` and search in eimiApi.getSessionMessages()
     // `newMessage` is going to contain LLM output.
     // `messages` is a full list of messages in a session, including unrelated subtrees.
 

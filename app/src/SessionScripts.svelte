@@ -2,7 +2,7 @@
 import { db } from "./db"
 import { AsyncFunction, subDbScripts } from "./utils"
 
-let {sessionId, messages, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse, sessionData} = $props()
+let {sessionId, messages, scripts = $bindable(), scriptInstances = $bindable(), scriptsEnabled, apiGenResponse, sessionData, createMessage} = $props()
 
 let eimiApi = {
   genResponse: ({messageId, params}) => apiGenResponse(messageId, params),
@@ -10,6 +10,36 @@ let eimiApi = {
   getSessionInfo: () => sessionData,
   getSessionMessages: () => messages,
   createEmptyWindow: (options = {}) => window._createEmptyWindow(options),  // Read WindowManager.svelte
+  createMessage: createMessage,
+  customDataGetAll: (msgid) => {
+    const message = messages.find(m => m.id === msgid)
+    if (!message) return
+    return message.customData
+  },
+  customDataGet: (msgid, key) => {
+    const message = messages.find(m => m.id === msgid)
+    if (!message) return
+    return message.customData.find(d => d.key === key)
+  },
+  customDataSet: (msgid, key, value) => {
+    const message = messages.find(m => m.id === msgid)
+    if (!message) return
+    let item = message.customData.find(d => d.key === key)
+    if (item) {
+      item.value = value
+    } else {
+      message.customData.push({key, value})
+      item = message.customData.at(-1)
+    }
+    return item
+  },
+  customDataRemove: (msgid, key) => {
+    const message = messages.find(m => m.id === msgid)
+    if (!message) return
+    const index = message.customData.findIndex(d => d.key === key)
+    if (index === -1) return
+    return message.customData.splice(index, 1)[0]
+  },
 }
 window.eimiApi = eimiApi
 
