@@ -4,7 +4,7 @@ import CustomInput from './lib/CustomInput.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
   uniqueId, genSessionId, notifySessionList, relationalToLinear, omit,
-  mergeOpenaiDiff
+  mergeOpenaiDiff, openEmptySession
 } from './utils.js'
 import { db } from './db.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
@@ -12,6 +12,7 @@ import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
 import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
+import Collapsible from './lib/Collapsible.svelte'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
 import SessionScripts from './SessionScripts.svelte'
 
@@ -483,7 +484,7 @@ async function onDelete(event) {
   event.preventDefault()
   if (!event.shiftKey && !confirm('Delete session?')) { return }
   await deleteSession()
-  window.location.hash = ''
+  openEmptySession()
 }
 
 let loadedPlugins = $state(window.eimiPlugins || [])
@@ -615,8 +616,8 @@ async function moveMessage(messageId, direction) {
     </div>
     {#if !c.collapsed}
       {#if c.thinking}
-        <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
-          <summary>Thinking</summary>
+        <Collapsible class="details-style">
+          {#snippet summary()}Thinking{/snippet}
           <CustomInput
             generating={c.generating}
             value={c.thinking}
@@ -624,7 +625,7 @@ async function moveMessage(messageId, direction) {
             attr='thinking'
             style="border: 1px solid var(--text-color);"
           />
-        </details>
+        </Collapsible>
       {/if}
       {#if c.markdown}
         <MarkdownRenderer generating={c.generating} content={c.content}/>
@@ -637,8 +638,8 @@ async function moveMessage(messageId, direction) {
       {/if}
       {#if c.customData}
         {#each c.customData as item, index (item)}
-          <details style="margin: 0 0.6em 5px 0.6em;border-radius: 5px;">
-            <summary>
+          <Collapsible class="details-style">
+            {#snippet summary()}
               {item.key}
               <button
                 onclick={(e) => {
@@ -647,7 +648,7 @@ async function moveMessage(messageId, direction) {
                 }}
                 title="Remove field"
               >x</button>
-            </summary>
+            {/snippet}
             <CustomInput
               generating={c.generating}
               value={item.value}
@@ -655,7 +656,7 @@ async function moveMessage(messageId, direction) {
               attr='value'
               style="border: 1px solid var(--text-color);"
             />
-          </details>
+          </Collapsible>
         {/each}
       {/if}
     {/if}
@@ -785,5 +786,9 @@ async function moveMessage(messageId, direction) {
   color: var(--text-color);
   opacity: 0.4;
   border-radius: 5px;
+}
+
+:global(.details-style) {
+  margin: 0 0.6em 5px 0.6em;
 }
 </style>

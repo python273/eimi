@@ -135,3 +135,12 @@ export function mergeOpenaiDiff(target, diff) {
   }
   return target
 }
+
+export function openEmptySession(replace = false) {
+  const newSessionId = genSessionId()
+  if (replace) {
+    history.replaceState(null, '', `#${newSessionId}`)
+  } else {
+    window.location.hash = `#${newSessionId}`
+  }
+}

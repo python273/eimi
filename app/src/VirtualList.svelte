@@ -50,12 +50,10 @@ function update() {
   bottomH = Math.max(0, (extraCount - (e + 1)) * itemHeight)
 }
 
-function reset() {
-  start = 0; end = -1; topH = 0; bottomH = 0
+$effect(() => {
+  items
   queueMicrotask(() => { measure(); update() })
-}
-
-$effect(() => { items; reset() })
+})
 
 $effect(() => {
   const onResize = () => update()

@@ -36,6 +36,7 @@ ALLOWED_BASEURLS = [
     "https://generativelanguage.googleapis.com/v1beta/",
     "https://api.minimax.io/v1",
     "https://api.minimax.io/anthropic/v1/",
+    "https://api.kimi.com/coding/v1/",
 
     #
     "https://api.anthropic.com/v1/messages",

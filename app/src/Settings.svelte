@@ -3,6 +3,7 @@ import { db } from './db.js'
 import DEFAULT_CONFIG from "./default_config.json"
 import { refreshConfig } from './config.svelte.js'
 import { notifyThemeChange } from './utils.js'
+import Collapsible from './lib/Collapsible.svelte'
 
 $effect(() => {
   document.title = `Settings - Eimi LLM UI`
@@ -132,12 +133,12 @@ async function processImportData(data) {
 <main>
   <div><h1>Settings</h1></div>
   <div>
-    <details>
-      <summary>Config Base</summary>
+    <Collapsible>
+      {#snippet summary()}Config Base{/snippet}
       <textarea
         id="config-base"
         value={JSON.stringify(DEFAULT_CONFIG, undefined, 2)} disabled></textarea>
-    </details>
+    </Collapsible>
   </div>
   <hr/>
   <div>

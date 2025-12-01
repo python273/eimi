@@ -2,6 +2,7 @@
 import { onMount } from 'svelte'
 import { db } from './db.js'
 import { escapeRegExp } from './utils.js'
+import Collapsible from './lib/Collapsible.svelte'
 
 let { query } = $props()
 
@@ -176,8 +177,8 @@ function highlightText(text, query) {
           <div class="session-date">{formatDate(result.createdAt)}</div>
         </div>
 
-        <details class="messages-details">
-          <summary>Messages ({result.messages.length} matching)</summary>
+        <Collapsible>
+          {#snippet summary()}Messages ({result.messages.length} matching){/snippet}
           <div class="messages-list">
             {#each result.messages as message (message.id)}
               <div class="message-result">
@@ -198,7 +199,7 @@ function highlightText(text, query) {
               </div>
             {/each}
           </div>
-        </details>
+        </Collapsible>
       </div>
     {:else}
       {#if hasSearched && searchQuery.trim() !== '' && !searching}

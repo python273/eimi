@@ -95,8 +95,8 @@ async function* streamOpenai(apiConfig, modelParams) {
 
     for (const line of lines) {
       if (line.startsWith('data: [DONE]')) return
-      if (line.startsWith('data: ')) {
-        yield JSON.parse(line.slice(6))
+      if (line.startsWith('data:')) {
+        yield JSON.parse(line.slice(5))
       }
     }
   }
@@ -202,8 +202,8 @@ async function* streamAnthropic(apiConfig, modelParams) {
     buffer = lines.pop()
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        yield JSON.parse(line.slice(6))
+      if (line.startsWith('data:')) {
+        yield JSON.parse(line.slice(5))
       }
     }
   }
@@ -240,6 +240,7 @@ async function* anthropicStreamResponse(apiConfig, modelParams) {
   })
 
   for await (const chunk of streamAnthropic(apiConfig, params)) {
+    yield {rawChunk: chunk}
     if (chunk.type === 'error') {
       yield 'API error:\n' + JSON.stringify(chunk, undefined, 2)
       continue
@@ -292,8 +293,8 @@ async function* streamGoogle(apiConfig, modelParams) {
     buffer = lines.pop()
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        yield JSON.parse(line.slice(6))
+      if (line.startsWith('data:')) {
+        yield JSON.parse(line.slice(5))
       }
     }
   }
@@ -429,6 +430,7 @@ async function* googleStreamResponse(apiConfig, modelParams) {
 
   let toolCallIndex = 0
   for await (const chunk of streamGoogle(apiConfig, convertedData)) {
+    yield {rawChunk: chunk}
     if (chunk.error) {
       yield formatErrorChunk(chunk)
       continue
@@ -488,6 +490,17 @@ function preprocessMessages(messages, apiConfig) {
       }
     })
   }
+  
+  if (apiConfig.baseurl === 'https://api.deepseek.com/v1/') {
+    return messages.map((message, index) => {
+      if (!(message.role === 'assistant' && message._thinking)) return message
+      return {
+        ...message,
+        reasoning_content: message._thinking,
+      }
+    })
+  }
+  
   return messages
 }
 
