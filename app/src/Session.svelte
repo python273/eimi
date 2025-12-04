@@ -319,7 +319,7 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
       _id: id, role, _thinking: thinking, content: [{type: 'text', text: content}]
     })),
   }
-  if (params._api === 'anthropic' && params.max_tokens === 0) {
+  if (request.baseurl.startsWith('anthropic') && params.max_tokens === 0) {
     request.parameters.max_tokens = modelInfo.max_tokens
   } else if (params.max_tokens !== 0) {
     request.parameters.max_tokens = params.max_tokens

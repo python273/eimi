@@ -102,8 +102,12 @@ async function* streamOpenai(apiConfig, modelParams) {
   }
 }
 
-async function* openaiStreamResponse(apiConfig, modelParams) {
-  for await (const chunk of streamOpenai(apiConfig, modelParams)) {
+export async function* openaiStreamResponse(apiConfig, modelParams, {streamProvider} = {}) {
+  const stream = streamProvider
+    ? streamProvider(apiConfig, modelParams)
+    : streamOpenai(apiConfig, modelParams)
+
+  for await (const chunk of stream) {
     yield {rawChunk: chunk}
     if (chunk.error) {
       yield formatErrorChunk(chunk)
@@ -151,6 +155,116 @@ const ANTHROPIC_API_PARAMS = [
   'system', 'temperature', 'thinking', 'tool_choice', 'tools', 'top_k', 'top_p',
 ]
 
+function convertOpenAIToolsToAnthropic(tools) {
+  if (!tools) return undefined
+  return tools.map(tool => {
+    if (tool.type === 'function') {
+      return {
+        name: tool.function.name,
+        description: tool.function.description,
+        input_schema: tool.function.parameters
+      }
+    }
+    // Pass through other types (maybe Anthropic-specific server tools)
+    return tool
+  })
+}
+
+function convertOpenAIToolChoiceToAnthropic(toolChoice) {
+  if (toolChoice === undefined) return undefined
+  if (toolChoice === 'none') return 'none'
+  if (toolChoice === 'auto') return 'auto'
+  if (toolChoice === 'required') return 'any'
+  if (typeof toolChoice === 'object' && toolChoice.type === 'function') {
+    return { type: 'tool', name: toolChoice.function.name }
+  }
+  // fallback
+  return toolChoice
+}
+
+function mapStopReason(stopReason) {
+  if (stopReason === 'end_turn') return 'stop'
+  if (stopReason === 'max_tokens') return 'length'
+  if (stopReason === 'tool_use') return 'tool_calls'
+  return stopReason
+}
+
+function convertOpenAIMessageToAnthropic(message) {
+  const { role, content, tool_calls, tool_call_id } = message
+  const newContent = []
+
+  // Handle tool messages (role 'tool')
+  if (role === 'tool' && tool_call_id) {
+    let resultContent = ''
+    if (typeof content === 'string') {
+      resultContent = content
+    } else if (Array.isArray(content)) {
+      const textItem = content.find(item => item && item.type === 'text')
+      if (textItem) resultContent = textItem.text
+    }
+    newContent.push({
+      type: 'tool_result',
+      tool_use_id: tool_call_id,
+      content: resultContent
+    })
+    return { role: 'user', content: newContent }
+  }
+
+  // Non-tool messages
+  if (typeof content === 'string') {
+    newContent.push({ type: 'text', text: content })
+  } else if (Array.isArray(content)) {
+    for (const item of content) {
+      if (item.type === 'text') {
+        newContent.push({ type: 'text', text: item.text })
+      } else if (item.type === 'image_url') {
+        const imageUrl = item.image_url.url
+        if (imageUrl.match(/^https?:/i)) {
+          newContent.push({ type: 'image', source: { type: 'url', url: imageUrl } })
+        } else {
+          let mediaType = 'image/jpeg'
+          let data = imageUrl
+          const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/)
+          if (match) {
+            mediaType = match[1]
+            data = match[2]
+          }
+          newContent.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data } })
+        }
+      }
+      // ignore other types for now
+    }
+  }
+
+  // Handle tool_calls for assistant messages
+  if (role === 'assistant' && tool_calls) {
+    for (const toolCall of tool_calls) {
+      if (toolCall.type === 'function' && toolCall.function) {
+        let input = {}
+        const args = toolCall.function.arguments
+        if (typeof args === 'string') {
+          input = JSON.parse(args)
+        } else if (args && typeof args === 'object') {
+          input = args
+        }
+        newContent.push({
+          type: 'tool_use',
+          id: toolCall.id || `call_${Date.now()}_${Math.random()}`,
+          name: toolCall.function.name,
+          input
+        })
+      }
+    }
+  }
+
+  // Ensure at least one content block
+  if (newContent.length === 0) {
+    newContent.push({ type: 'text', text: '' })
+  }
+
+  return { role, content: newContent }
+}
+
 async function* streamAnthropic(apiConfig, modelParams) {
   const jsonData = {
     stream: true,
@@ -163,13 +277,20 @@ async function* streamAnthropic(apiConfig, modelParams) {
   }
 
   let url
-  if (apiConfig.baseurl === 'anthropic://') {
+  const baseurl = apiConfig.baseurl
+  if (baseurl === 'anthropic://') {
     url = 'https://api.anthropic.com/v1/messages'
-  } else if (apiConfig.baseurl?.startsWith('anthropic://')) {
-    const baseUrl = apiConfig.baseurl.replace('anthropic://', 'https://')
-    url = `${baseUrl}messages`
   } else {
-    url = `${apiConfig.baseurl}messages`
+    let baseUrl
+    if (baseurl.startsWith('anthropic://')) {
+      baseUrl = baseurl.replace('anthropic://', 'https://')
+    } else if (baseurl.startsWith('anthropic+')) {
+      baseUrl = baseurl.replace('anthropic+', '')
+    } else {
+      baseUrl = baseurl
+    }
+    if (!baseUrl.endsWith('/')) baseUrl += '/'
+    url = baseUrl + 'messages'
   }
 
   const response = await fetch(proxy(apiConfig, url), {
@@ -211,33 +332,24 @@ async function* streamAnthropic(apiConfig, modelParams) {
 
 async function* anthropicStreamResponse(apiConfig, modelParams) {
   const params = {...modelParams}
+
+  if (params.tools) {
+    params.tools = convertOpenAIToolsToAnthropic(params.tools)
+  }
+  if (params.tool_choice !== undefined) {
+    params.tool_choice = convertOpenAIToolChoiceToAnthropic(params.tool_choice)
+  }
+
   const systemMsgs = params.messages.filter(m => m.role === 'system')
-  
   if (systemMsgs.length) {
     params.system = systemMsgs[0].content
     params.messages = params.messages.filter(m => m.role !== 'system')
   }
 
-  params.messages = params.messages.map(message => {
-    if (!Array.isArray(message.content)) return message
+  params.messages = params.messages.map(convertOpenAIMessageToAnthropic)
 
-    return {...message, content: message.content.map(item => {
-      if (item.type !== 'image_url') { return item }
-      const imageUrl = item.image_url.url
-      if (imageUrl.match(/^https?:/i)) {
-        return {type: 'image', source: {type: 'url', url: imageUrl}}
-      } else {
-        let mediaType = 'image/jpeg'
-        let data = imageUrl
-        const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/)
-        if (match) {
-          mediaType = match[1]
-          data = match[2]
-        }
-        return {type: 'image', source: {type: 'base64', media_type: mediaType, data: data}}
-      }
-    })}
-  })
+  // Track active tool calls (id and name)
+  const toolCalls = {}
 
   for await (const chunk of streamAnthropic(apiConfig, params)) {
     yield {rawChunk: chunk}
@@ -253,8 +365,40 @@ async function* anthropicStreamResponse(apiConfig, modelParams) {
       yield {usage: {prompt_tokens: chunk.message.usage.input_tokens}}
     }
     if (chunk.type === 'message_delta') {
-      yield {usage: {completion_tokens: chunk?.usage?.output_tokens}}
+      if (chunk.delta.stop_reason) {
+        const finishReason = mapStopReason(chunk.delta.stop_reason)
+        yield { finishReason }
+      }
+      if (chunk?.usage?.output_tokens) {
+        yield {usage: {completion_tokens: chunk.usage.output_tokens}}
+      }
     }
+    
+    // Handle tool use streaming
+    if (chunk.type === 'content_block_start' && chunk.content_block.type === 'tool_use') {
+      const { id, name } = chunk.content_block
+      toolCalls[chunk.index] = { id, name }
+    }
+    
+    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'input_json_delta') {
+      const tool = toolCalls[chunk.index]
+      yield {
+        tool_call_delta: {
+          index: chunk.index,
+          id: tool.id,
+          type: 'function',
+          function: {
+            name: tool.name,
+            arguments: chunk.delta.partial_json
+          }
+        }
+      }
+    }
+    
+    if (chunk.type === 'content_block_stop') {
+      delete toolCalls[chunk.index]
+    }
+    
     if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
       yield chunk.delta.text
     }
@@ -493,10 +637,10 @@ function preprocessMessages(messages, apiConfig) {
   
   if (apiConfig.baseurl === 'https://api.deepseek.com/v1/') {
     return messages.map((message, index) => {
-      if (!(message.role === 'assistant' && message._thinking)) return message
+      if (message.role !== 'assistant' || !(message.tool_calls && message.tool_calls.length > 0)) return message
       return {
         ...message,
-        reasoning_content: message._thinking,
+        reasoning_content: message._thinking || '',
       }
     })
   }
@@ -541,7 +685,7 @@ export function runLlmApi(data) {
     return googleStreamResponse(apiConfig, modelParams)
   }
 
-  if (apiConfig.baseurl?.startsWith('anthropic://')) {
+  if (apiConfig.baseurl.startsWith('anthropic://') || apiConfig.baseurl.startsWith('anthropic+')) {
     return anthropicStreamResponse(apiConfig, modelParams)
   }
 

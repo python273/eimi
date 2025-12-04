@@ -40,15 +40,9 @@ let eimiApi = {
     if (index === -1) return
     return message.customData.splice(index, 1)[0]
   },
+  getSessionScriptInstances: () => scriptInstances,
 }
 window.eimiApi = eimiApi
-
-$effect(() => {
-  window.eimiSessionScriptInstances = scriptInstances
-  return () => {
-    window.eimiSessionScriptInstances = []
-  }
-})
 
 let loadScriptsPromise = null
 let loadScriptsQueued = false
