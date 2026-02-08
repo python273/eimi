@@ -2,6 +2,11 @@
 **/__pycache__
 openai_token.txt
 sync.sh
+prod-rebuild.sh
 NOTES.md
 secrets.env
 .aider*
+
+scripts-private/
+notes/
+PROMPT-*.md

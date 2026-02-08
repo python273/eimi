@@ -67,6 +67,7 @@ async def post_proxy(request: Request, url: str):
         req_headers['authorization'] = request.headers['authorization']
 
     for k, v in request.headers.items():
+        if k.startswith('x-forwarded') or k == 'x-real-ip': continue
         if k.startswith('x-') or k.startswith('anthropic-'):
             req_headers[k] = v
 

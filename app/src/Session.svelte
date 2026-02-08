@@ -39,11 +39,11 @@ let sessionData = $state()
  *   markdown?: Boolean,
  *   collapsed?: Boolean,
  *   parameters?: object,
- *   customData?: Array<{key: string, value: string}>,
- *   depth?: number,
- *   ddepth?: number,
- *   linear?: boolean,
- *   lastInChain?: boolean,
+ *   customData: Array<{key: string, value: string}>,
+ *   depth: number,
+ *   ddepth: number,
+ *   linear: boolean,
+ *   lastInChain: boolean,
  *   generating?: boolean,
  *   promptTokens?: number,
  *   completionTokens?: number,
@@ -52,9 +52,22 @@ let sessionData = $state()
  * }>}
  */
 let messages = $state([])
+let messageStats = $derived.by(() => {
+  const cnt = messages.length
+  let roots = 0
+  let leafs = 0
+  const hasChild = new Set()
+  for (const m of messages) if (m.parentId) hasChild.add(m.parentId)
+  for (const m of messages) {
+    if (!m.parentId) roots++
+    if (!hasChild.has(m.id)) leafs++
+  }
+  return {cnt, roots, leafs}
+})
 
-let stopSaving = false
+let stopSaving = false  // post destroy / session delete
 let isNewSession = false
+let isSessionTitleChanged = false
 async function saveSession(sessionId) {
   if (stopSaving) return
   if (!sessionLoaded) return
@@ -75,10 +88,11 @@ async function saveSession(sessionId) {
     createdAt: obj.createdAt,
   })
   await (await db).put('sessions', obj, sessionId)
-  if (isNewSession) {
+  if (isNewSession || isSessionTitleChanged) {
     notifySessionList()
+    isNewSession = false
+    isSessionTitleChanged = false
   }
-  isNewSession = false
 }
 onDestroy(async () => {
   for (const i of messages) {
@@ -205,6 +219,11 @@ $effect(() => {
   }
 })
 $effect(() => {
+  sessionData?.title;
+  isSessionTitleChanged = true;
+})
+$effect(() => {  // Autosave
+  // Touch all fields for reactivity
   sessionData?.title
   Object.keys(sessionData?.parameters || {})
   for (let i of messages) {  // TODO: is there a better way?
@@ -212,7 +231,7 @@ $effect(() => {
     i.content
     i.markdown
     i.collapsed
-    i.customData?.forEach(d => d.value)
+    i.customData.forEach(d => d.value)
   }
   window._sessionMessages = messages
   scheduleSave()
@@ -564,6 +583,12 @@ async function moveMessage(messageId, direction) {
   <button onclick={onDup} title="make a copy of this session">dup</button>
   <button onclick={onDelete} title="delete session (hold shift)">delete</button>
 </div>
+<div class="meta-gray">
+  {new Date(sessionData.createdAt).toLocaleString()}
+  | messages: {messageStats.cnt}
+  | roots: {messageStats.roots}
+  | leafs: {messageStats.leafs}
+</div>
 
 {#snippet renderMessage(c, i)}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -636,29 +661,27 @@ async function moveMessage(messageId, direction) {
           bind:message={messages[i]}
         />
       {/if}
-      {#if c.customData}
-        {#each c.customData as item, index (item)}
-          <Collapsible class="details-style">
-            {#snippet summary()}
-              {item.key}
-              <button
-                onclick={(e) => {
-                  e.preventDefault()
-                  c.customData.splice(index, 1)
-                }}
-                title="Remove field"
-              >x</button>
-            {/snippet}
-            <CustomInput
-              generating={c.generating}
-              value={item.value}
-              bind:message={c.customData[index]}
-              attr='value'
-              style="border: 1px solid var(--text-color);"
-            />
-          </Collapsible>
-        {/each}
-      {/if}
+      {#each c.customData as item, index (item)}
+        <Collapsible class="details-style">
+          {#snippet summary()}
+            {item.key}
+            <button
+              onclick={(e) => {
+                e.preventDefault()
+                c.customData.splice(index, 1)
+              }}
+              title="Remove field"
+            >x</button>
+          {/snippet}
+          <CustomInput
+            generating={c.generating}
+            value={item.value}
+            bind:message={c.customData[index]}
+            attr='value'
+            style="border: 1px solid var(--text-color);"
+          />
+        </Collapsible>
+      {/each}
     {/if}
   </div>
 {/snippet}
@@ -742,15 +765,6 @@ async function moveMessage(messageId, direction) {
 
 .message-content:focus, .message-content:focus-visible {
   outline: 1px auto;
-}
-
-.message-content.full-width {
-  width: 100%;
-  height: 100%;
-  border: none;
-  box-shadow: none;
-  margin: 0;
-  border-radius: 0;
 }
 
 .generating {

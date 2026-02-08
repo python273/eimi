@@ -13,7 +13,7 @@ let isLoading = $state(true)
 function getWindowTitle() {
   if (!script) return ''
   let g = script.sessionId ? ` (session ${script.sessionId})` : ' (global)'
-  return `Script "${script.name}"${g}`
+  return `Script "${script.name}" #${script.id}${g}`
 }
 
 async function loadScript() {

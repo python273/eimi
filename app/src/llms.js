@@ -645,6 +645,17 @@ function preprocessMessages(messages, apiConfig) {
     })
   }
   
+  if (apiConfig.baseurl === 'https://api.z.ai/api/paas/v4/' ||
+      apiConfig.baseurl === 'https://api.z.ai/api/coding/paas/v4/') {
+    return messages.map(message => {
+      if (message.role !== 'assistant' || !message._thinking) return message
+      return {
+        ...message,
+        reasoning_content: message._thinking,
+      }
+    })
+  }
+  
   return messages
 }
 

@@ -100,10 +100,12 @@ async function onKeyDown(e) {
     return genResponse(e, true)
   } else if (hot('x') || hot('shift+x')) {
     e.preventDefault()
-    let i = messages.findIndex(i => i.id == item.id) - 1
-    deleteMessage(e)
-    if (i < 0) return
-    document.getElementById(`m_${messages[i].id}`)
+    const i = messages.findIndex(i => i.id == item.id)
+    await deleteMessage(e)
+    // pick same index message after delete or prev
+    const target = messages[i] ?? messages[i - 1]
+    if (!target) return
+    document.getElementById(`m_${target.id}`)
       ?.querySelector('.message-content')
       ?.focus({focusVisible: true})
   } else if (hot('ctrl+k') || hot('meta+k')) {

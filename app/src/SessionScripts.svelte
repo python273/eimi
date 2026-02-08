@@ -41,8 +41,9 @@ let eimiApi = {
     return message.customData.splice(index, 1)[0]
   },
   getSessionScriptInstances: () => scriptInstances,
+  getSessionScripts: () => scripts,
 }
-window.eimiApi = eimiApi
+window._eimiApi = eimiApi
 
 let loadScriptsPromise = null
 let loadScriptsQueued = false
@@ -103,7 +104,7 @@ return EimiScriptLegacy;`
           }
         }
         try {
-          newInstances[scriptId] = new scriptClass({eimiApi})
+          newInstances[scriptId] = new scriptClass({scriptId, eimiApi})
         } catch (e) {
           console.error(`Error instantiating script ${script.name}`, e)
           alert(`Error instantiating script ${script.name}:\n${e}`)

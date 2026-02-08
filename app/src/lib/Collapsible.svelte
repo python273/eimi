@@ -1,17 +1,16 @@
 <script>
-let { open = false, children, summary, class: className = '', ...restProps } = $props()
-let isOpen = $state(open)
+let { open = $bindable(false), children, summary, class: className = '', ...restProps } = $props()
 
 function toggle() {
-  isOpen = !isOpen
+  open = !open
 }
 </script>
 
-<button class="summary {className}" onclick={toggle} aria-expanded={isOpen} type="button" {...restProps}>
-  <span class="indicator" class:open={isOpen}></span>
+<button class="summary {className}" onclick={toggle} aria-expanded={open} type="button" {...restProps}>
+  <span class="indicator" class:open={open}></span>
   {@render summary()}
 </button>
-{#if isOpen}
+{#if open}
   {@render children()}
 {/if}
 

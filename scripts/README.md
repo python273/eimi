@@ -1,12 +1,25 @@
 # Eimi Scripts
 
+- Eimi is an LLM UI with tree comments design.
+  * `eimiApi.getSessionMessages` returns *all* messages in current session, not just one chain.
+  * But `request.messages` is the ancestor path, root to request message.
+
+- Eimi Script is addon-like JS script.
+  * Can be added by user in UI.
+  * Ran in `Session.svelte` page context.
+  * Have access to `eimiApi` functions.
+  * Ran in order of user specified script name (convention is `01 ..`, `02 ..`), which can be important if multiple scripts interact.
+  * Can store data using `customData` in a message.
+  * Can create windows with custom UI.
+
 ### Example Script Structure
 
 ```javascript
 /**
  * @typedef {Object} EimiApi
- * @property {function({messageId: string}): Promise<{newMessage: Object, request: Object}>} genResponse - Generate a response for a specific message ID
+ * @property {function({messageId: string, params?: Object}): Promise<{newMessage: Object, request: Object}>} genResponse - Generate a response for a specific message ID with optional request params
  * @property {function(): string} getSessionId - Get the current session ID
+ * @property {function(): Object} getSessionInfo - Get current session data, reactive to field changes like `title` or `parameters`
  * @property {function(): Array} getSessionMessages - Get all messages in the current session (includes multiple subtrees, filter accordingly)
  * @property {function(Object): void} createEmptyWindow - Create a new empty window with optional configuration
  * @param {Object} options - Configuration options for the new window
@@ -19,6 +32,12 @@
  * @param {string} [values.content] - Message content
  * @param {Array} [values.customData] - Custom data fields for the message
  * @returns {Object} The created message object
+ * @property {function(string): Array} customDataGetAll - Get all custom data entries for a message
+ * @property {function(string, string): Object} customDataGet - Get a custom data entry by key
+ * @property {function(string, string, any): Object} customDataSet - Set a custom data entry value by key
+ * @property {function(string, string): Object} customDataRemove - Remove a custom data entry by key
+ * @property {function(): Object} getSessionScriptInstances - Get script instances map by script id
+ * @property {function(): Array} getSessionScripts - Get loaded scripts
  */
 
 class EimiScriptMyExample {  // Must start with `class EimiScript`

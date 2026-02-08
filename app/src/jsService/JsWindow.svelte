@@ -39,7 +39,7 @@ function iframeAction(node) {
     if (event.data === "close") {
       closeWindow()
     } else if (event.data?.type === 'console') {
-      consoleLog.push({id: ++logId, text: event.data.message})
+      consoleLog.push({id: ++logId, method: event.data.method, text: event.data.message})
     }
   }
   $effect(() => {
@@ -72,12 +72,12 @@ window.close = () => { window.top.postMessage('close', '*') };
 
 window.addEventListener('error', (event) => {
   const message = \`Uncaught Error: \${event.message}\n\${event.error?.stack || ''}\`;
-  window.top.postMessage({ type: 'console', message: \`[error] \${message}\` }, '*');
+  window.top.postMessage({ type: 'console', method: 'error', message }, '*');
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   const message = \`Unhandled Rejection: \${event.reason}\`;
-  window.top.postMessage({ type: 'console', message: \`[error] \${message}\` }, '*');
+  window.top.postMessage({ type: 'console', method: 'error', message }, '*');
 });
 
 const originalConsole = {};
@@ -95,7 +95,7 @@ methods.forEach(method => {
         return '[Unserializable Object]';
       }
     }).join(' ');
-    window.top.postMessage({ type: 'console', message: \`[\${method}] \${message}\` }, '*');
+    window.top.postMessage({ type: 'console', method, message }, '*');
   };
 });
 
@@ -171,7 +171,7 @@ export function toggleConsole() {
     <button class="clear-btn" onclick={() => consoleLog.length = 0}>clear</button>
     <div class="messages">
       {#each consoleLog as i (i.id)}
-        <pre class:error={i.text.startsWith('[error]')}>{i.text}</pre>
+        <pre class:error={i.method === 'error'}>{i.text}</pre>
       {/each}
     </div>
   </div>
