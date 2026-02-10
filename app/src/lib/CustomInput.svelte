@@ -8,10 +8,9 @@ import { tick } from 'svelte'
 const inputId = Math.random().toString(36)
 
 let {
-  value = '', message = $bindable(), generating, attr = 'content', ...inputProps
+  value = '', message = $bindable(), generating, attr = 'content', el = $bindable(), ...inputProps
 } = $props()
 
-let el = $state()
 let elParent = $state()
 
 async function valueChanged() {

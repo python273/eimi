@@ -1,6 +1,7 @@
 <script>
 import { tick, onDestroy, onMount } from 'svelte'
 import CustomInput from './lib/CustomInput.svelte'
+import CustomInputPopover from './lib/CustomInputPopover.svelte'
 import Parameters from './lib/Parameters.svelte'
 import {
   uniqueId, genSessionId, notifySessionList, relationalToLinear, omit,
@@ -14,7 +15,7 @@ import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import Collapsible from './lib/Collapsible.svelte'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
-import SessionScripts from './SessionScripts.svelte'
+import { SessionScripts } from './SessionScripts.svelte.js'
 
 
 let props = $props()
@@ -31,6 +32,7 @@ let sessionData = $state()
 /**
  * @type {Array<{
  *   id: string,
+ *   inputEl?: Element,
  *   createdAt?: number,
  *   parentId: string|null,
  *   role: string,
@@ -63,6 +65,14 @@ let messageStats = $derived.by(() => {
     if (!hasChild.has(m.id)) leafs++
   }
   return {cnt, roots, leafs}
+})
+
+const sessionScripts = new SessionScripts({
+  sessionId,
+  getMessages: () => messages,
+  getSessionData: () => sessionData,
+  apiGenResponse,
+  createMessage,
 })
 
 let stopSaving = false  // post destroy / session delete
@@ -98,16 +108,7 @@ onDestroy(async () => {
   for (const i of messages) {
     i.aborter?.abort()
   }
-  for (const instance of Object.values(scriptInstances)) {
-    if (instance.onDestroy) {
-      try {
-        await instance.onDestroy()
-      } catch (e) {
-        console.error('Script onDestroy error:', e)
-        alert(`Script onDestroy error:\n${e}`)
-      }
-    }
-  }
+  sessionScripts.destroy()
   await saveSession(sessionId)
   stopSaving = true
 })
@@ -244,6 +245,52 @@ function getMessageFromEvent(event) {
   return messages.find(i => i.id === id)
 }
 
+function getCommandLineInfoFromEl(el, message) {
+  if (!el || el.tagName !== 'TEXTAREA') return
+  const text = el.value ?? message?.content ?? ''
+  const cursor = typeof el.selectionStart === 'number' ? el.selectionStart : text.length
+  const lineStart = text.lastIndexOf('\n', cursor - 1) + 1
+  let lineEnd = text.indexOf('\n', cursor)
+  if (lineEnd === -1) lineEnd = text.length
+  const line = text.slice(lineStart, lineEnd)
+  return {line, lineStart, lineEnd, cursor, text}
+}
+
+function setCmdError(message, text) {
+  if (message._cmdErrTimer) clearTimeout(message._cmdErrTimer)
+  message.cmdError = text
+  if (!text) return
+  message._cmdErrTimer = setTimeout(() => {
+    if (message.cmdError === text) message.cmdError = ''
+    message._cmdErrTimer = null
+  }, 500)
+}
+
+function updateCommandAssist(message) {
+  const lineInfo = getCommandLineInfoFromEl(message.inputEl, message)
+  if (!lineInfo || !lineInfo.line.startsWith('/')) {
+    message.cmdMatches = []
+    return
+  }
+  const token = lineInfo.line.slice(1).split(/\s/)[0]
+  message.cmdMatches = sessionScripts.availableCommands.filter(c => !token || c.startsWith(token))
+}
+
+$effect(() => {
+  sessionScripts.availableCommands
+  for (const m of messages) if (m.inputEl) updateCommandAssist(m)
+})
+
+async function runCommandFromEvent(event, message) {
+  const lineInfo = getCommandLineInfoFromEl(event?.target, message)
+  if (!lineInfo) return
+  const match = lineInfo.line.match(/^\/([a-zA-Z0-9]+)(?:\s|$)/)
+  if (!match) return
+
+  const args = lineInfo.line.slice(match[0].length).replace(/^\s+/, '')
+  return sessionScripts.runCommand({command: match[1], args, message, lineInfo})
+}
+
 function getChain(message, regenerate = false) {
   const chain = regenerate ? [] : [message]
   // eslint-disable-next-line no-cond-assign
@@ -283,9 +330,21 @@ function apiGenResponse(messageId, paramsReplace) {
 async function genResponse(event, regenerate=false) {
   event.preventDefault()
   const message = getMessageFromEvent(event)
-  _genResponse(message, regenerate)
+  if (!message) return
+  if (!regenerate) {
+    // TODO: decouple from genResponse! checks for textarea focus currently
+    const cmdResult = await runCommandFromEvent(event, message)
+    if (cmdResult) {
+      if (cmdResult.noMatch) setCmdError(message, '(No cmd matched)')
+      if (cmdResult.next === 'gen') {
+        return _genResponse(message, regenerate, undefined, cmdResult.scriptsData)
+      }
+      return
+    }
+  }
+  return _genResponse(message, regenerate)
 }
-async function _genResponse(message, regenerate=false, paramsReplace) {
+async function _genResponse(message, regenerate=false, paramsReplace, scriptsData) {
   const params = paramsReplace || $state.snapshot(sessionData.parameters)
   console.log('_genResponse', $state.snapshot(message), regenerate, params)
 
@@ -334,6 +393,7 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
     completion: modelInfo.completion,
     sessionParameters: params,
     parameters: omit(params, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
+    scriptsData: scriptsData || {},
     messages: getChain(message, regenerate).map(({id, role, thinking, content}) => ({
       _id: id, role, _thinking: thinking, content: [{type: 'text', text: content}]
     })),
@@ -350,25 +410,13 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
     messages: JSON.parse(JSON.stringify(request.messages)),
   })
 
-  const scriptsEnabled = new Set(params.scriptsEnabled || [])
-  const orderedScriptsEnabled = scripts.filter(s => scriptsEnabled.has(s.id))
-
-  console.log('Running scripts:', orderedScriptsEnabled.map(i => i.name))
-  for (let script of orderedScriptsEnabled) {
-    try {
-      const instance = scriptInstances[script.id]
-      if (instance?.onRequest) {
-        await instance.onRequest(request, newMessage, messages)
-      }
-    } catch (e) {
-      console.error(e)
-      console.log('runLlmApi after script error:', request)
-      alert(`Script '${script.name}' error:\n${e}`)
-      newMessage.generating = false
-      return
-    }
+  const scriptsOk = await sessionScripts.runOnRequest(
+    request, newMessage, messages, params.scriptsEnabled
+  )
+  if (!scriptsOk) {
+    newMessage.generating = false
+    return
   }
-  console.log('runLlmApi after scripts:', request)
 
   try {
     const tool_calls = []
@@ -410,19 +458,7 @@ async function _genResponse(message, regenerate=false, paramsReplace) {
     alert(`Request error:\n${e}`)
   } finally {
     newMessage.generating = false
-    const scriptsEnabled = new Set(sessionData.parameters.scriptsEnabled || [])
-    for (const script of scripts) {
-      if (!scriptsEnabled.has(script.id)) continue
-      const instance = scriptInstances[script.id]
-      if (instance && instance.onPostRequest) {
-        try {
-          await instance.onPostRequest(request, newMessage)
-        } catch (e) {
-          console.error(`onPostRequest error for script '${script.name}':`, e)
-          alert(`onPostRequest error for script '${script.name}':\n${e}`)
-        }
-      }
-    }
+    await sessionScripts.runPostRequest(request, newMessage)
   }
   return {newMessage, request}
 }
@@ -513,9 +549,6 @@ function updateLoadedPlugins() {
 onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
 onDestroy(() => { window.updateLoadedPlugins = null })
 
-let scripts = $state([])
-let scriptInstances = $state({})
-
 async function moveMessage(messageId, direction) {
   const currentIndex = messages.findIndex(m => m.id === messageId)
   const current = messages[currentIndex]
@@ -561,21 +594,10 @@ async function moveMessage(messageId, direction) {
 {#if sessionLoaded}
 <SessionFaviconChanger {messages} />
 <SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
-<SessionScripts
-  {sessionId}
-  {messages}
-  bind:scripts={scripts}
-  bind:scriptInstances={scriptInstances}
-  scriptsEnabled={sessionData.parameters.scriptsEnabled}
-  {apiGenResponse}
-  {sessionData}
-  {createMessage}
-/>
-
 <Parameters
   {sessionId}
   bind:parameters={sessionData.parameters}
-  {scripts}
+  scripts={sessionScripts.scripts}
 />
 
 <div>
@@ -659,7 +681,20 @@ async function moveMessage(messageId, direction) {
           generating={c.generating}
           value={c.content}
           bind:message={messages[i]}
+          bind:el={messages[i].inputEl}
+          onkeyup={() => updateCommandAssist(messages[i])}
+          onclick={() => updateCommandAssist(messages[i])}
         />
+        <CustomInputPopover target={messages[i].inputEl} show={c.cmdError || c.cmdMatches?.length}>
+          {#snippet popover()}
+            {#if c.cmdError}
+              <div class="meta-gray mono">{c.cmdError}</div>
+            {/if}
+            {#if c.cmdMatches?.length}
+              <div class="meta-gray mono">/{c.cmdMatches.join(' /')}</div>
+            {/if}
+          {/snippet}
+        </CustomInputPopover>
       {/if}
       {#each c.customData as item, index (item)}
         <Collapsible class="details-style">
