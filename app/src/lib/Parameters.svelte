@@ -34,6 +34,15 @@ $effect(() => {
   }
   window.addEventListener('welcome-finished', handler, { once: true })
 })
+
+$effect(() => {
+  const api = parameters?._api
+  const id = parameters?.model
+  if (!api || !id) return
+  if (model?.api === api && model?.id === id) return
+  const next = MODELS.find(i => i.api === api && i.id === id)
+  if (next) model = next
+})
 let modelMaxToken = $derived(model['max_tokens'] || 32768)
 
 const DEFAULT_PARAMS = [

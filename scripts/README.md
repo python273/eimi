@@ -9,8 +9,34 @@
   * Ran in `Session.svelte` page context.
   * Have access to `eimiApi` functions.
   * Ran in order of user specified script name (convention is `01 ..`, `02 ..`), which can be important if multiple scripts interact.
+  * Can expose slash commands via `static commands` for in-input actions.
   * Can store data using `customData` in a message.
   * Can create windows with custom UI.
+  * A script can be a companion to another script, so not necessary using hooks, but have methods for other scripts to use. E.g. tool call script -> scans script instances -> collects tools from other scripts.
+
+### Commands
+
+- Define `static commands = [{ name, run() }]` on the script class.
+- Commands are typed as `/name ...` in the input line; matching is per enabled scripts order.
+- `run` can mutate the message and return `{next: 'gen'}` to trigger generation.
+- `run` can return `{replaceLine: '...'}` to replace the current command line.
+- `run` args: `{command, args, message, line, lineStart, lineEnd, cursor, text}`
+
+```javascript
+class EimiScriptMyCmd {
+  static commands = [{
+    name: 'tldr',
+    run: async function({args, message, line, lineStart, lineEnd, text}) {
+      // note `this` still works
+      const match = line?.match(/^\/tldr\s+(https?:\/\/[^\s]+)/) || (`/tldr ${args}`.trim()).match(/^\/tldr\s+(https?:\/\/[^\s]+)/)
+      if (!match) throw Error('Usage: /tldr <url>')
+      const prompt = `%%readurl(${match[1]})\n\n------\n\nWrite a summary.`
+      return {next: 'gen', replaceLine: prompt}
+    }
+  }]
+}
+return EimiScriptMyCmd
+```
 
 ### Example Script Structure
 
@@ -45,7 +71,7 @@ class EimiScriptMyExample {  // Must start with `class EimiScript`
     /**
      * @type {EimiApi}
      */
-    this.eimiApi = eimiApi;
+    this.eimiApi = eimiApi
 
     // Script instantiated per session, handling multiple callback calls
   }
@@ -69,5 +95,5 @@ class EimiScriptMyExample {  // Must start with `class EimiScript`
   }
 }
 
-return EimiScriptMyExample;  // Must return the class
+return EimiScriptMyExample  // Must return the class
 ```

@@ -1,5 +1,14 @@
+import { tick } from "svelte"
 import { db } from "./db"
 import { AsyncFunction, subDbScripts } from "./utils"
+
+class MessageNotFoundError extends Error {
+  constructor(msgid) {
+    super(`Message not found: ${msgid}`)
+    this.name = "MessageNotFoundError"
+    this.msgid = msgid
+  }
+}
 
 export class SessionScripts {
   scripts = $state([])
@@ -8,13 +17,16 @@ export class SessionScripts {
   loadScriptsQueued = false
   unsubscribeDbScripts = null
 
-  constructor({ sessionId, getMessages, getSessionData, apiGenResponse, createMessage }) {
+  constructor({ sessionId, getMessages, getSessionData, apiGenResponse, createMessage, updateTree }) {
     this.sessionId = sessionId
     this.getMessages = getMessages
     this.getSessionData = getSessionData
     this.apiGenResponse = apiGenResponse
     this.createMessage = createMessage
+    this.updateTree = updateTree
     this.eimiApi = {
+      _tick: tick,
+      _updateTree: updateTree,  // TODO: fix reactivity for parentId?
       genResponse: ({messageId, params}) => apiGenResponse(messageId, params),
       getSessionId: () => sessionId,
       getSessionInfo: () => getSessionData(),
@@ -22,30 +34,27 @@ export class SessionScripts {
       createEmptyWindow: (options = {}) => window._createEmptyWindow(options),
       createMessage,
       customDataGetAll: (msgid) => {
-        const message = getMessages().find(m => m.id === msgid)
-        if (!message) return
+        const message = this.getMessageOrThrow(msgid)
         return message.customData
       },
       customDataGet: (msgid, key) => {
-        const message = getMessages().find(m => m.id === msgid)
-        if (!message) return
+        const message = this.getMessageOrThrow(msgid)
         return message.customData.find(d => d.key === key)
       },
-      customDataSet: (msgid, key, value) => {
-        const message = getMessages().find(m => m.id === msgid)
-        if (!message) return
+      customDataSet: (msgid, key, value, options = {}) => {
+        const message = this.getMessageOrThrow(msgid)
         let item = message.customData.find(d => d.key === key)
         if (item) {
           item.value = value
+          if (options.renderer !== undefined) item.renderer = options.renderer
         } else {
-          message.customData.push({key, value})
+          message.customData.push({key, value, ...options})
           item = message.customData.at(-1)
         }
         return item
       },
       customDataRemove: (msgid, key) => {
-        const message = getMessages().find(m => m.id === msgid)
-        if (!message) return
+        const message = this.getMessageOrThrow(msgid)
         const index = message.customData.findIndex(d => d.key === key)
         if (index === -1) return
         return message.customData.splice(index, 1)[0]
@@ -72,13 +81,19 @@ export class SessionScripts {
     })
 
     $effect(() => {
-      this.getSessionData()?.parameters?.scriptsEnabled
+      this.getSessionData()?.parameters?.scriptsEnabled?.map(i => i)
       this.loadScripts()
     })
   }
 
   getScriptsEnabledList = (scriptsEnabled) =>
     scriptsEnabled || this.getSessionData()?.parameters?.scriptsEnabled || []
+
+  getMessageOrThrow = (msgid) => {
+    const message = this.getMessages().find(m => m.id === msgid)
+    if (!message) throw new MessageNotFoundError(msgid)
+    return message
+  }
 
   getOrderedScriptsEnabled = (scriptsEnabled) => {
     const enabled = new Set(this.getScriptsEnabledList(scriptsEnabled))
@@ -97,18 +112,22 @@ export class SessionScripts {
         const result = await cmd.run.call(instance, {
           command, args, message, ...lineInfo,
         })
+        if (result?.replaceLine !== undefined) {
+          const {text, lineStart, lineEnd} = lineInfo
+          message.content = text.slice(0, lineStart) + result.replaceLine + text.slice(lineEnd)
+        }
         const scriptsData = {}
         if (result?.data !== undefined) {
           scriptsData[script.id] = result.data
         }
-        return {next: result?.next, scriptsData, commandLine: true}
+        return {next: result?.next, scriptsData}
       } catch (e) {
         console.error(e)
         alert(`Command '/${command}' error:\n${e}`)
-        return {next: undefined, scriptsData: {}, commandLine: true}
+        return {next: undefined, scriptsData: {}}
       }
     }
-    return {next: undefined, scriptsData: {}, commandLine: true, noMatch: true}
+    return {next: undefined, scriptsData: {}, noMatch: true}
   }
 
   runPostRequest = async (request, newMessage) => {

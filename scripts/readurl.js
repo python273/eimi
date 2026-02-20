@@ -1,7 +1,19 @@
 class EimiScriptReadUrl {
+  static commands = [{
+    name: 'tldr',
+    run: async function({args, line}) {
+      const match = line.match(this.summarizeRegex)
+      if (!match) throw Error('Usage: /tldr <url>')
+      const replacedLine = line.replace(this.summarizeRegex, this.prompt)
+      return {next: 'gen', replaceLine: replacedLine}
+    }
+  }]
+
   constructor({eimiApi}) {
     this.eimiApi = eimiApi;
     this.requests = new Map();
+    this.summarizeRegex = /^\/tldr\s+(https?:\/\/[^\s]+)/;
+    this.prompt = `%%readurl($1)\n\n------\n\nWrite a summary.`
   }
 
   findOriginalMessage(requestMessage, allMessages) {

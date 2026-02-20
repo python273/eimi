@@ -41,7 +41,7 @@ let sessionData = $state()
  *   markdown?: Boolean,
  *   collapsed?: Boolean,
  *   parameters?: object,
- *   customData: Array<{key: string, value: string}>,
+ *   customData: Array<{key: string, value: string, renderer?: string}>,
  *   depth: number,
  *   ddepth: number,
  *   linear: boolean,
@@ -67,12 +67,19 @@ let messageStats = $derived.by(() => {
   return {cnt, roots, leafs}
 })
 
+async function updateTree() {
+  await tick()
+  messages = relationalToLinear(messages)
+  await tick()
+}
+
 const sessionScripts = new SessionScripts({
   sessionId,
   getMessages: () => messages,
   getSessionData: () => sessionData,
   apiGenResponse,
   createMessage,
+  updateTree,
 })
 
 let stopSaving = false  // post destroy / session delete
@@ -228,11 +235,12 @@ $effect(() => {  // Autosave
   sessionData?.title
   Object.keys(sessionData?.parameters || {})
   for (let i of messages) {  // TODO: is there a better way?
+    i.parentId
     i.role
     i.content
     i.markdown
     i.collapsed
-    i.customData.forEach(d => d.value)
+    i.customData.forEach(d => { d.value; d.renderer })
   }
   window._sessionMessages = messages
   scheduleSave()
@@ -697,25 +705,41 @@ async function moveMessage(messageId, direction) {
         </CustomInputPopover>
       {/if}
       {#each c.customData as item, index (item)}
-        <Collapsible class="details-style">
-          {#snippet summary()}
-            {item.key}
-            <button
-              onclick={(e) => {
-                e.preventDefault()
-                c.customData.splice(index, 1)
-              }}
-              title="Remove field"
-            >x</button>
-          {/snippet}
-          <CustomInput
-            generating={c.generating}
-            value={item.value}
-            bind:message={c.customData[index]}
-            attr='value'
-            style="border: 1px solid var(--text-color);"
-          />
-        </Collapsible>
+        {#if item.renderer === 'image'}
+          <Collapsible class="details-style" open={true}>
+            {#snippet summary()}
+              {item.key}
+              <button
+                onclick={(e) => {
+                  e.preventDefault()
+                  c.customData.splice(index, 1)
+                }}
+                title="Remove field"
+              >x</button>
+            {/snippet}
+            <img class="custom-data-image" src={item.value} alt='' />
+          </Collapsible>
+        {:else}
+          <Collapsible class="details-style">
+            {#snippet summary()}
+              {item.key}
+              <button
+                onclick={(e) => {
+                  e.preventDefault()
+                  c.customData.splice(index, 1)
+                }}
+                title="Remove field"
+              >x</button>
+            {/snippet}
+            <CustomInput
+              generating={c.generating}
+              value={item.value}
+              bind:message={c.customData[index]}
+              attr='value'
+              style="border: 1px solid var(--text-color);"
+            />
+          </Collapsible>
+        {/if}
       {/each}
     {/if}
   </div>
@@ -758,7 +782,7 @@ async function moveMessage(messageId, direction) {
 
 .message {
   position: relative;
-  padding-left: calc(var(--depth) * 10px);
+  padding-left: calc(var(--depth) * 8px);
 }
 
 .message-pad::before {
@@ -767,11 +791,11 @@ async function moveMessage(messageId, direction) {
   left: 0;
   top: 0;
   bottom: -1px;
-  width: calc(var(--depth) * 10px);
+  width: calc(var(--depth) * 8px);
   background: repeating-linear-gradient(
     90deg,
-    var(--text-color) 0px 4px,
-    transparent 4px 10px
+    var(--comment-bg-color) 0px 4px,
+    transparent 4px 8px
   );
 }
 
@@ -839,5 +863,12 @@ async function moveMessage(messageId, direction) {
 
 :global(.details-style) {
   margin: 0 0.6em 5px 0.6em;
+}
+
+.custom-data-image {
+  max-width: 100%;
+  max-height: 512px;
+  width: 100%;
+  object-fit: contain;
 }
 </style>
