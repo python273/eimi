@@ -261,7 +261,7 @@ function getCommandLineInfoFromEl(el, message) {
   let lineEnd = text.indexOf('\n', cursor)
   if (lineEnd === -1) lineEnd = text.length
   const line = text.slice(lineStart, lineEnd)
-  return {line, lineStart, lineEnd, cursor, text}
+  return {line, lineStart, lineEnd, cursor, text, inputEl: el}
 }
 
 function setCmdError(message, text) {
@@ -292,7 +292,7 @@ $effect(() => {
 async function runCommandFromEvent(event, message) {
   const lineInfo = getCommandLineInfoFromEl(event?.target, message)
   if (!lineInfo) return
-  const match = lineInfo.line.match(/^\/([a-zA-Z0-9]+)(?:\s|$)/)
+  const match = lineInfo.line.match(/^\/([a-zA-Z0-9-]+)(?:\s|$)/)
   if (!match) return
 
   const args = lineInfo.line.slice(match[0].length).replace(/^\s+/, '')

@@ -120,6 +120,8 @@ export class SessionScripts {
         if (result?.data !== undefined) {
           scriptsData[script.id] = result.data
         }
+        const pos = Math.min(lineInfo.lineStart, message.content.length)
+        lineInfo.inputEl.setSelectionRange(pos, pos)
         return {next: result?.next, scriptsData}
       } catch (e) {
         console.error(e)
