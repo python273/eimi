@@ -3,57 +3,25 @@ import { tick, onDestroy, onMount } from 'svelte'
 import CustomInput from './lib/CustomInput.svelte'
 import CustomInputPopover from './lib/CustomInputPopover.svelte'
 import Parameters from './lib/Parameters.svelte'
-import {
-  uniqueId, genSessionId, notifySessionList, relationalToLinear, omit,
-  mergeOpenaiDiff, openEmptySession
-} from './utils.js'
-import { db } from './db.js'
+import { genSessionId, openEmptySession } from './utils.js'
 import { hasCodeBlocks, createJsWindow } from './jsService/jsService'
-import { runLlmApi } from './llms.js'
 import MarkdownRenderer from './MarkdownRenderer.svelte'
-import { CONFIG } from './config.svelte'
 import SessionHotkeys from './SessionHotkeys.svelte'
 import Collapsible from './lib/Collapsible.svelte'
 import SessionFaviconChanger from './SessionFaviconChanger.svelte'
-import { SessionScripts } from './SessionScripts.svelte.js'
+import { SessionState, USER, ASSISTANT, SYSTEM } from './SessionState.svelte.js'
 
 
 let props = $props()
 const sessionId = props.sessionId  // https://github.com/sveltejs/svelte/issues/15697
-let autoReply = props.autoReply
+const autoReply = props.autoReply
 if (!sessionId) { throw new Error('sessionId is required') }
 
-const USER = 'user'
-const ASSISTANT = 'assistant'
-const SYSTEM = 'system'
-
-let sessionLoaded = $state(false)
-let sessionData = $state()
-/**
- * @type {Array<{
- *   id: string,
- *   inputEl?: Element,
- *   createdAt?: number,
- *   parentId: string|null,
- *   role: string,
- *   content: string,
- *   thinking?: string,
- *   markdown?: Boolean,
- *   collapsed?: Boolean,
- *   parameters?: object,
- *   customData: Array<{key: string, value: string, renderer?: string}>,
- *   depth: number,
- *   ddepth: number,
- *   linear: boolean,
- *   lastInChain: boolean,
- *   generating?: boolean,
- *   promptTokens?: number,
- *   completionTokens?: number,
- *   finishReason?: string,
- *   aborter?: AbortController,
- * }>}
- */
-let messages = $state([])
+const sessionState = new SessionState({ sessionId, autoReply })
+const sessionScripts = sessionState.sessionScripts
+let sessionLoaded = $derived(sessionState.sessionLoaded)
+let sessionData = $derived(sessionState.sessionData)
+let messages = $derived(sessionState.messages)
 let messageStats = $derived.by(() => {
   const cnt = messages.length
   let roots = 0
@@ -67,123 +35,16 @@ let messageStats = $derived.by(() => {
   return {cnt, roots, leafs}
 })
 
-async function updateTree() {
-  await tick()
-  messages = relationalToLinear(messages)
-  await tick()
-}
-
-const sessionScripts = new SessionScripts({
-  sessionId,
-  getMessages: () => messages,
-  getSessionData: () => sessionData,
-  apiGenResponse,
-  createMessage,
-  updateTree,
-})
-
-let stopSaving = false  // post destroy / session delete
-let isNewSession = false
-let isSessionTitleChanged = false
-async function saveSession(sessionId) {
-  if (stopSaving) return
-  if (!sessionLoaded) return
-  if (isNewSession && messages.length === 1 && messages[0].content === '') {
-    return
-  }
-  const obj = {...$state.snapshot(sessionData), messages: messages.map(
-    ({id, createdAt, parentId,  markdown, role, content, thinking, customData, parameters, collapsed}) => ({
-      id, createdAt, parentId,  markdown, role, content, thinking,
-      customData: $state.snapshot(customData),
-      parameters: $state.snapshot(parameters),
-      collapsed,
-    })
-  )}
-  await (await db).put('sessionMeta', {
-    id: sessionId,
-    title: obj.title,
-    createdAt: obj.createdAt,
-  })
-  await (await db).put('sessions', obj, sessionId)
-  if (isNewSession || isSessionTitleChanged) {
-    notifySessionList()
-    isNewSession = false
-    isSessionTitleChanged = false
-  }
-}
-onDestroy(async () => {
-  for (const i of messages) {
-    i.aborter?.abort()
-  }
-  sessionScripts.destroy()
-  await saveSession(sessionId)
-  stopSaving = true
-})
-async function deleteSession() {
-  stopSaving = true
-  const tx = (await db).transaction(['sessions', 'sessionMeta', 'scripts'], 'readwrite')
-  await tx.objectStore('sessions').delete(sessionId)
-  await tx.objectStore('sessionMeta').delete(sessionId)
-  const allScripts = await tx.objectStore('scripts').getAll()
-  for (const script of allScripts) {
-    if (script.sessionId === sessionId) {
-      await tx.objectStore('scripts').delete(script.id)
-    }
-  }
-  await tx.done
-  notifySessionList()
-}
-
-async function loadSession() {
-  let obj = await (await db).get('sessions', sessionId)
-  if (obj === undefined) {
-    isNewSession = true
-    sessionData = {
-      title: (new Date()).toLocaleString(),
-      createdAt: new Date().valueOf(),
-      parameters: {
-        scriptsEnabled: (await (await db).getAll('scripts'))
-          .filter(script => script.enabled)
-          .map(script => script.id),
-        temperature: 0,
-        top_p: 1.0,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        max_tokens: 0,
-      }
-    }
-    createMessage()
-    sessionLoaded = true
-    await tick()
-
-    if (autoReply) {
-      messages[0].content = autoReply
-      autoReply = undefined
-      _genResponse(messages[0])
-    }
-    await tick()
-    document.getElementById(`m_${messages[0].id}`)?.querySelector('textarea')?.focus()
-    return
-  }
-  const meta = await (await db).get('sessionMeta', sessionId)
-  obj.title = meta.title
-  obj.createdAt = meta.createdAt
-  if (!obj.parameters) { obj.parameters = {} }
-  const {messages: loadedMessages, ...rest} = obj
-  for (let m of loadedMessages) {
-    if (!m.customData) m.customData = []
-  }
-  sessionData = rest
-  messages = relationalToLinear(loadedMessages)
-  sessionLoaded = true
-}
-
 onMount(async () => {
-  await loadSession()
+  await sessionState.loadSession()
   const savedScrollY = sessionStorage.getItem(`scroll-${sessionId}`)
   if (savedScrollY) {
     await tick()
     window.scrollTo(0, parseInt(savedScrollY, 10))
+  }
+  if (sessionState.isNewSession && messages[0]) {
+    await tick()
+    document.getElementById(`m_${messages[0].id}`)?.querySelector('textarea')?.focus()
   }
 })
 
@@ -206,44 +67,12 @@ onMount(() => {
   }
 })
 
-let saveTimeoutId = null
-let lastSaveTime = Date.now()
-async function _saveSession() {
-  await saveSession(sessionId)
-  lastSaveTime = Date.now()
-}
-function scheduleSave(t = 500) {
-  if (saveTimeoutId !== null) clearTimeout(saveTimeoutId)
-  if ((Date.now() - lastSaveTime) >= 2000) {
-    t = 0
-  }
-  saveTimeoutId = setTimeout(_saveSession, t)
-}
+onDestroy(async () => {
+  await sessionState.destroy()
+})
 
 $effect(() => {
-  window._sessionInfo = sessionData
-  if (sessionData) {
-    document.title = `${sessionData.title} - Eimi LLM UI`
-  }
-})
-$effect(() => {
-  sessionData?.title;
-  isSessionTitleChanged = true;
-})
-$effect(() => {  // Autosave
-  // Touch all fields for reactivity
-  sessionData?.title
-  Object.keys(sessionData?.parameters || {})
-  for (let i of messages) {  // TODO: is there a better way?
-    i.parentId
-    i.role
-    i.content
-    i.markdown
-    i.collapsed
-    i.customData.forEach(d => { d.value; d.renderer })
-  }
-  window._sessionMessages = messages
-  scheduleSave()
+  if (sessionData) document.title = `${sessionData.title} - Eimi LLM UI`
 })
 
 function getMessageFromEvent(event) {
@@ -300,41 +129,9 @@ async function runCommandFromEvent(event, message) {
 }
 
 function getChain(message, regenerate = false) {
-  const chain = regenerate ? [] : [message]
-  // eslint-disable-next-line no-cond-assign
-  while (message = messages.find(p => p.id === message.parentId)) {
-    chain.unshift(message)
-  }
-  return chain
+  return sessionState.getChain(message, regenerate)
 }
 
-function createMessage(values, index = 0) {
-  const newMessage = {
-    id: uniqueId(),
-    createdAt: new Date().valueOf(),
-    parentId: null,
-    role: USER,
-    content: '',
-    thinking: '',
-    generating: false,
-    markdown: false,
-    customData: [],
-    ...values
-  }
-  
-  const insertIndex = index === -1 ? messages.length : index
-  messages.splice(insertIndex, 0, newMessage)
-  const messageWithProxy = messages[insertIndex]
-  messages = relationalToLinear(messages)
-  return messageWithProxy
-}
-
-function apiGenResponse(messageId, paramsReplace) {
-  const message = messages.find(m => m.id === messageId)
-  if (message) {
-    return _genResponse(message, false, paramsReplace)
-  }
-}
 async function genResponse(event, regenerate=false) {
   event.preventDefault()
   const message = getMessageFromEvent(event)
@@ -345,130 +142,12 @@ async function genResponse(event, regenerate=false) {
     if (cmdResult) {
       if (cmdResult.noMatch) setCmdError(message, '(No cmd matched)')
       if (cmdResult.next === 'gen') {
-        return _genResponse(message, regenerate, undefined, cmdResult.scriptsData)
+        return sessionState.genResponse(message, regenerate, undefined, cmdResult.scriptsData)
       }
       return
     }
   }
-  return _genResponse(message, regenerate)
-}
-async function _genResponse(message, regenerate=false, paramsReplace, scriptsData) {
-  const params = paramsReplace || $state.snapshot(sessionData.parameters)
-  console.log('_genResponse', $state.snapshot(message), regenerate, params)
-
-  const apiData = CONFIG.apis[params._api]
-  if (!apiData.token) {
-    alert(`Add token in settings for "${params._api}"`)
-    throw Error('no token')
-  }
-  const modelInfo = CONFIG.models.find(i => (i.api === params._api && i.id === params.model))
-
-  if (location.hostname === 'eimi.cns.wtf') {
-    fetch('https://ut.cns.wtf/api/record/ei'+' mi_gen'.trim())
-  }
-
-  let newMessage
-  if (!regenerate) {
-    newMessage = createMessage({
-      parentId: message.id,
-      role: ASSISTANT,
-      generating: true,
-      markdown: true,
-      parameters: {...params},
-    })
-  } else {
-    newMessage = message
-    newMessage.content = ''
-    newMessage.thinking = ''
-    newMessage.generating = true
-    newMessage.promptTokens = undefined
-    newMessage.completionTokens = undefined
-    newMessage.parameters = {...params}
-  }
-  newMessage.aborter?.abort()
-  const aborter = new AbortController()
-  newMessage.aborter = aborter
-  await tick()
-
-  const request = {
-    createdAt: new Date(),
-    runner: runLlmApi,
-    signal: aborter.signal,
-    proxy: apiData.proxy === false ? false : true,
-    baseurl: apiData.baseurl,
-    token: apiData.token,
-    model: params.model,
-    completion: modelInfo.completion,
-    sessionParameters: params,
-    parameters: omit(params, ['_api', 'model', 'scriptsEnabled', 'max_tokens']),
-    scriptsData: scriptsData || {},
-    messages: getChain(message, regenerate).map(({id, role, thinking, content}) => ({
-      _id: id, role, _thinking: thinking, content: [{type: 'text', text: content}]
-    })),
-  }
-  if (request.baseurl.startsWith('anthropic') && params.max_tokens === 0) {
-    request.parameters.max_tokens = modelInfo.max_tokens
-  } else if (params.max_tokens !== 0) {
-    request.parameters.max_tokens = params.max_tokens
-  }
-
-  console.log('runLlmApi before scripts:', {
-    ...request,
-    parameters: JSON.parse(JSON.stringify(request.parameters)),
-    messages: JSON.parse(JSON.stringify(request.messages)),
-  })
-
-  const scriptsOk = await sessionScripts.runOnRequest(
-    request, newMessage, messages, params.scriptsEnabled
-  )
-  if (!scriptsOk) {
-    newMessage.generating = false
-    return
-  }
-
-  try {
-    const tool_calls = []
-    newMessage.content = ''
-    for await (const chunk of request.runner(request)) {
-      if (typeof(chunk) === "string") {
-        newMessage.content += chunk
-      } else {
-        if (chunk?.usage?.prompt_tokens) {
-          newMessage.promptTokens = chunk.usage.prompt_tokens
-        }
-        if (chunk?.usage?.completion_tokens) {
-          newMessage.completionTokens = chunk.usage.completion_tokens
-        }
-        if (chunk?.thinking) {
-          newMessage.thinking += chunk.thinking
-        }
-        if (chunk?.tool_call_delta) {
-          const { index, ...diff } = chunk.tool_call_delta
-          if (tool_calls[index] === undefined) tool_calls[index] = {}
-          const accumulated_tool_call = tool_calls[index]
-          mergeOpenaiDiff(accumulated_tool_call, diff)
-
-          const key = `toolcall_${index}`
-          let tcData = newMessage.customData.find(d => d.key === key)
-          if (!tcData) {
-            tcData = {key: key, value: ''}
-            newMessage.customData.push(tcData)
-          }
-          tcData.value = JSON.stringify(accumulated_tool_call, null, 2)
-        }
-        if (chunk?.finishReason) newMessage.finishReason = chunk.finishReason
-      }
-      await tick()
-    }
-  } catch (e) {
-    if (e.name === 'AbortError') return
-    console.error(e)
-    alert(`Request error:\n${e}`)
-  } finally {
-    newMessage.generating = false
-    await sessionScripts.runPostRequest(request, newMessage)
-  }
-  return {newMessage, request}
+  return sessionState.genResponse(message, regenerate)
 }
 
 async function onCreateMessage(event) {
@@ -507,46 +186,25 @@ function onCollapseToggle(event, message) {
 async function deleteMessage(event) {
   event.preventDefault()
   const msg = getMessageFromEvent(event)
+  if (!msg) return
   if (!event.shiftKey && !confirm('Delete message?')) return
-
-  msg.aborter?.abort()
-  await tick()
-
-  const idsToDelete = [msg.id]
-  function _addChildren(msg) {
-    const children = messages.filter(i => i.parentId === msg.id)
-    for (const child of children) {
-      child.aborter?.abort()
-      idsToDelete.push(child.id)
-      _addChildren(child)
-    }
-  }
-  _addChildren(msg)
-
-  messages = relationalToLinear(messages.filter(i => !idsToDelete.includes(i.id)))
-  scheduleSave(0)
+  await sessionState.deleteMessageTree(msg.id)
 }
 
 async function onTitleUpdate(event) {
-  sessionData.title = event.target.value
-  await (await db).put('sessionMeta', {
-    id: sessionId,
-    title: sessionData.title,
-    createdAt: sessionData.createdAt,
-  })
-  notifySessionList()
+  await sessionState.setTitle(event.target.value)
 }
 
 async function onDup(event) {
   event.preventDefault()
   const newId = genSessionId()
-  await saveSession(newId)
+  await sessionState.saveSession(newId)
   window.location.hash = `#${newId}`
 }
 async function onDelete(event) {
   event.preventDefault()
   if (!event.shiftKey && !confirm('Delete session?')) { return }
-  await deleteSession()
+  await sessionState.deleteSession()
   openEmptySession()
 }
 
@@ -558,44 +216,16 @@ onMount(() => { window.updateLoadedPlugins = updateLoadedPlugins })
 onDestroy(() => { window.updateLoadedPlugins = null })
 
 async function moveMessage(messageId, direction) {
-  const currentIndex = messages.findIndex(m => m.id === messageId)
-  const current = messages[currentIndex]
-
-  if (direction === 'up') {
-    if (currentIndex === 0) return
-    const up = messages[currentIndex - 1]
-    if (up.id === current.parentId) {
-      // Case 1: up is shallower (is parent), becoming sibling and moving higher
-      current.parentId = up.parentId
-      messages[currentIndex - 1] = current
-      messages[currentIndex] = up
-    } else {
-      // Case 2: up is same depth, set as parent
-      // Case 3: up is deeper, drill up till same depth
-      let i = currentIndex - 1
-      while (i >= 0 && messages[i].depth > current.depth) i--
-      current.parentId = messages[i].id
-    }
-  } else if (direction === 'down') {
-    // Drilling past children
-    let i = currentIndex + 1
-    while (i < messages.length && messages[i].depth > current.depth) i++
-    const down = messages[i]
-    if (down?.depth === current.depth) {
-      // Case 4: down is same depth, set as parent
-      current.parentId = down.id
-    } else {
-      // Case 5: down is shallower OR end of messages, set parent to .parent.parent
-      const parent = messages.find(m => m.id === current.parentId)
-      current.parentId = parent ? parent.parentId : null
-    }
-  }
-
-  messages = relationalToLinear(messages)
+  const movedId = await sessionState.moveMessage(messageId, direction)
+  if (!movedId) return
   await tick()
-  document.getElementById(`m_${current.id}`)
+  document.getElementById(`m_${movedId}`)
     ?.querySelector('.message-content')
     ?.focus({focusVisible: true})
+}
+
+function createMessage(values, index = 0) {
+  return sessionState.createMessage(values, index)
 }
 </script>
 
