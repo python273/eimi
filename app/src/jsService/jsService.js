@@ -1,4 +1,3 @@
-import windowsStore from "../lib/windowsStore"
 import JsWindow from "./JsWindow.svelte"
 
 const jsRegex = /```(javascript|js)\n(.*?\n)```/s
@@ -32,7 +31,7 @@ export function createJsWindow(comment) {
   const buttons = [{methodName: 'refresh', label: 'refresh'}]
   if (mode === 'js') buttons.push({methodName: 'toggleConsole', label: 'console'})
   if (window._pasteHtml) buttons.push({methodName: 'pasteHtml', label: 'publish'})
-  windowsStore.add({
+  window._windowSystem?.addWindow({
     component: JsWindow,
     data: {comment},
     title: 'HTML/JS exec',

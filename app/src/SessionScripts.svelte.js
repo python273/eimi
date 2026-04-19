@@ -31,7 +31,11 @@ export class SessionScripts {
       getSessionId: () => sessionId,
       getSessionInfo: () => getSessionData(),
       getSessionMessages: () => getMessages(),
-      createEmptyWindow: (options = {}) => window._createEmptyWindow(options),
+      createEmptyWindow: (options = {}) => window._windowSystem?.createEmptyWindow(options),
+      dockWindow: (windowId, targetId = 'session', options = {}) => {
+        return window._windowSystem?.dockWindow(windowId, targetId, options)
+      },
+      floatWindow: (windowId, extra = {}) => window._windowSystem?.floatWindow(windowId, extra),
       createMessage,
       customDataGetAll: (msgid) => {
         const message = this.getMessageOrThrow(msgid)

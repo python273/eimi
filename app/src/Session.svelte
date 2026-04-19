@@ -15,6 +15,7 @@ import { SessionState, USER, ASSISTANT, SYSTEM } from './SessionState.svelte.js'
 let props = $props()
 const sessionId = props.sessionId  // https://github.com/sveltejs/svelte/issues/15697
 const autoReply = props.autoReply
+const windowState = props.state
 if (!sessionId) { throw new Error('sessionId is required') }
 
 const sessionState = new SessionState({ sessionId, autoReply })
@@ -22,6 +23,7 @@ const sessionScripts = sessionState.sessionScripts
 let sessionLoaded = $derived(sessionState.sessionLoaded)
 let sessionData = $derived(sessionState.sessionData)
 let messages = $derived(sessionState.messages)
+let layoutLoaded = $state(false)
 let messageStats = $derived.by(() => {
   const cnt = messages.length
   let roots = 0
@@ -37,6 +39,8 @@ let messageStats = $derived.by(() => {
 
 onMount(async () => {
   await sessionState.loadSession()
+  windowState?.loadSessionLayout(sessionState.sessionData?.windowLayout)
+  layoutLoaded = true
   const savedScrollY = sessionStorage.getItem(`scroll-${sessionId}`)
   if (savedScrollY) {
     await tick()
@@ -68,11 +72,17 @@ onMount(() => {
 })
 
 onDestroy(async () => {
+  if (sessionState.sessionData) sessionState.sessionData.windowLayout = windowState?.getSessionLayout()
   await sessionState.destroy()
 })
 
 $effect(() => {
   if (sessionData) document.title = `${sessionData.title} - Eimi LLM UI`
+})
+
+$effect(() => {
+  if (!layoutLoaded || !sessionLoaded || !sessionData || !windowState) return
+  sessionData.windowLayout = windowState.getSessionLayout()
 })
 
 function getMessageFromEvent(event) {
@@ -229,27 +239,6 @@ function createMessage(values, index = 0) {
 }
 </script>
 
-{#if sessionLoaded}
-<SessionFaviconChanger {messages} />
-<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
-<Parameters
-  {sessionId}
-  bind:parameters={sessionData.parameters}
-  scripts={sessionScripts.scripts}
-/>
-
-<div>
-  <input class="title-input" value={sessionData.title} oninput={onTitleUpdate} />
-  <button onclick={onDup} title="make a copy of this session">dup</button>
-  <button onclick={onDelete} title="delete session (hold shift)">delete</button>
-</div>
-<div class="meta-gray">
-  {new Date(sessionData.createdAt).toLocaleString()}
-  | messages: {messageStats.cnt}
-  | roots: {messageStats.roots}
-  | leafs: {messageStats.leafs}
-</div>
-
 {#snippet renderMessage(c, i)}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div class="message-content" class:generating="{c.generating}" tabindex="0">
@@ -375,6 +364,29 @@ function createMessage(values, index = 0) {
   </div>
 {/snippet}
 
+<div class="session-view">
+{#if sessionLoaded}
+<SessionFaviconChanger {messages} />
+<SessionHotkeys {messages} {genResponse} {onCreateMessage} {getMessageFromEvent} {deleteMessage} {moveMessage}/>
+<Parameters
+  state={windowState}
+  {sessionId}
+  bind:parameters={sessionData.parameters}
+  scripts={sessionScripts.scripts}
+/>
+
+<div>
+  <input class="title-input" value={sessionData.title} oninput={onTitleUpdate} />
+  <button onclick={onDup} title="make a copy of this session">dup</button>
+  <button onclick={onDelete} title="delete session (hold shift)">delete</button>
+</div>
+<div class="meta-gray">
+  {new Date(sessionData.createdAt).toLocaleString()}
+  | messages: {messageStats.cnt}
+  | roots: {messageStats.roots}
+  | leafs: {messageStats.leafs}
+</div>
+
 <div id="messages" class="messages">
 {#each messages as c, i (c.id)}
   <div id={`m_${c.id}`} class="message message-pad" data-id="{c.id}" data-index="{i}" class:linear="{c.linear}" style="--depth: {c.ddepth}">
@@ -396,8 +408,14 @@ function createMessage(values, index = 0) {
 <div id="messages" class="messages"></div>
 <div id="scroll-restoration" style="height: 50000px;"></div>
 {/if}
+</div>
 
 <style>
+.session-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .title-input {
   width: 40ch;
 }
@@ -408,6 +426,10 @@ function createMessage(values, index = 0) {
 }
 .role:hover {
   color: var(--brand-hover-color);
+}
+
+.messages {
+  max-width: fit-content; /* tmp! */
 }
 
 .message {

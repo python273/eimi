@@ -1,7 +1,6 @@
 <script>
 import { onMount, untrack } from 'svelte'
 import { db } from '../db.js'
-import windowsStore from './windowsStore.js'
 import { notifyDbScripts, AsyncFunction } from '../utils.js'
 
 let { windowId, closeWindow, id } = $props()
@@ -84,7 +83,7 @@ function hasUnsavedChanges() {
 $effect(() => {
   const newTitle = getWindowTitle()
   // TODO: circular dependency? probably can bind instead of this??
-  untrack(() => windowsStore.updateById(windowId, {title: newTitle}))
+  untrack(() => window._windowSystem?.updateWindow(windowId, {title: newTitle}))
 })
 
 async function deleteScript(event) {

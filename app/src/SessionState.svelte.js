@@ -69,6 +69,7 @@ export class SessionState {
     $effect(() => {  // Autosave
       // Touch all fields for reactivity
       this.sessionData?.title
+      this.sessionData?.windowLayout
       Object.keys(this.sessionData?.parameters || {})
       for (const i of this.messages) {  // TODO: is there a better way?
         i.parentId

@@ -1,14 +1,17 @@
 <script>
 import SessionPage from './SessionPage.svelte'
+import SessionList from './SessionList.svelte'
 import Settings from './Settings.svelte'
 import SearchPage from './SearchPage.svelte'
-import WindowManager from './lib/WindowManager.svelte'
-import { genSessionId, openEmptySession } from './utils.js'
+import { genSessionId } from './utils.js'
 import { themeStore } from './themeStore.js'
 import Theme from './Theme.svelte'
 import Welcome from './Welcome.svelte'
 
+window.svStateSnapshot = (obj) => ($state.snapshot(obj))
+
 let hash = $state(window.location.hash.slice(1))
+let sessionsOpen = $state(false)
 
 window.addEventListener('popstate', () => {
   window.scrollTo(0, 0)
@@ -42,6 +45,13 @@ let {page, props} = $derived.by(() => {
   return {page, props}
 })
 
+let isSessionPage = $derived(page === 'session' && !!props.sessionId)
+let sessionLeftInset = $derived(sessionsOpen ? 'calc(24ch + 8px)' : '8px')
+
+$effect(() => {
+  if (!isSessionPage) sessionsOpen = false
+})
+
 </script>
 
 <Theme/>
@@ -49,6 +59,11 @@ let {page, props} = $derived.by(() => {
 <div class="header">
   <!-- svelte-ignore a11y_invalid_attribute -->
   <div class="home"><a href="#" class="no-vs">Eimi</a></div>
+  {#if isSessionPage}
+    <button onclick={() => sessionsOpen = !sessionsOpen} aria-pressed={sessionsOpen}>
+      sessions
+    </button>
+  {/if}
   <div class='ml-auto'></div>
   <div class="settings">
     <a
@@ -72,8 +87,13 @@ let {page, props} = $derived.by(() => {
 </div>
 
 <div class="page">
-{#if page === "session" && props.sessionId}
-  <SessionPage {...props}/>
+{#if isSessionPage}
+  {#if sessionsOpen}
+    <aside class="sidebar">
+      <SessionList sessionId={props.sessionId} />
+    </aside>
+  {/if}
+  <SessionPage {...props} leftInset={sessionLeftInset} />
 {/if}
 {#if page === "search"}
   <SearchPage {...props}/>
@@ -84,7 +104,6 @@ let {page, props} = $derived.by(() => {
 </div>
 
 <Welcome/>
-<WindowManager/>
 
 <style>
 :global(html, body) {
@@ -116,6 +135,17 @@ let {page, props} = $derived.by(() => {
   width: 100%;
   overflow-x: hidden;
 }
+
+.sidebar {
+  width: calc(24ch + 8px);
+  height: calc(100vh - 32px);
+  position: fixed;
+  left: 0;
+  top: 32px;
+  overflow: hidden;
+  z-index: 5;
+}
+
 .settings {
   right: 16px;
 }

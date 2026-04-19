@@ -2,12 +2,12 @@
 import { db } from "../db"
 import { notifyDbScripts, uniqueId } from "../utils"
 import ScriptEditorWindow from "./ScriptEditorWindow.svelte"
-import windowsStore from "./windowsStore"
 import { CONFIG, configUpdated } from '../config.svelte'
 import { favoriteModels } from './favoriteModelsStore'
 import VirtualList from '../VirtualList.svelte'
+import Window from './Window.svelte'
 
-let {sessionId, parameters = $bindable(), scripts} = $props()
+let {state: windowState, sessionId, parameters = $bindable(), scripts} = $props()
 
 // TODO: proper ids instead of api + id
 const MODELS = CONFIG.models || []
@@ -131,7 +131,7 @@ async function createScript(event) {
   let { clientX: left, clientY: top } = event
   top += 16
   left -= 512
-  windowsStore.add({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
+  window._windowSystem?.addWindow({component: ScriptEditorWindow, data: { id: newScript.id }, left, top})
 }
 
 const apisWithToken = $derived.by(() => {
@@ -181,6 +181,7 @@ function onModelQueryKeydown(e) {
 }
 </script>
 
+<Window state={windowState} name="parameters" title="Parameters" bodyClass="parameters-body" floatable={true}>
 <div class="params-panel">
   <div>
     <div class="flex">
@@ -200,12 +201,12 @@ function onModelQueryKeydown(e) {
         <label for={`script_enabled_${i.id}`} class="script-name">{i.name}</label>
         <div class="ml-auto"></div>
         {#if i.sessionId}<span>⛓&#xFE0E;</span>{/if}
-        <button title="edit" onclick={(event) => {
+        <button aria-label="Edit script" title="edit" onclick={(event) => {
           event.preventDefault()
           let { clientX: left, clientY: top } = event
           top += 16
           left -= 512
-          windowsStore.add({component: ScriptEditorWindow, data: { id: i.id }, left, top})
+          window._windowSystem?.addWindow({component: ScriptEditorWindow, data: { id: i.id }, left, top})
         }}><span class="ic--baseline-mode-edit"></span></button>
       </div>
     {/each}
@@ -301,8 +302,15 @@ function onModelQueryKeydown(e) {
     </VirtualList>
   </div>
 </div>
+</Window>
 
 <style>
+:global(.parameters-body) {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+
 .models-favorite {
   display: flex;
   flex-direction: column;
@@ -321,6 +329,7 @@ function onModelQueryKeydown(e) {
     flex: 1;
     font-size: 0.75em;
     min-height: 300px;
+    min-width: 0;
     overflow-x: scroll;
     scrollbar-width: thin;
     border-radius: 3px;
@@ -385,23 +394,16 @@ input {
 }
 
 .params-panel {
-  position: fixed;
-  right: 0;
-  width: 256px;
+  flex: 1;
   padding: 10px;
-  margin: 0 8px 0 0;
-  overflow-y: auto;
-  max-height: calc(100vh - 2.5em);
-  border-radius: 5px;
-
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-
-  background-color: var(--panel-bg-color);
-  color: var(--text-color);
-  box-shadow: 0px 1px 6px #00000047;
 }
 .params-panel > div {
+  min-width: 0;
   width: 100%;
 }
 .param {

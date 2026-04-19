@@ -57,8 +57,13 @@ $effect(() => {
 
 $effect(() => {
   const onResize = () => update()
+  const observer = listEl && new ResizeObserver(() => update())
+  if (observer && listEl) observer.observe(listEl)
   window.addEventListener('resize', onResize)
-  return () => window.removeEventListener('resize', onResize)
+  return () => {
+    observer?.disconnect()
+    window.removeEventListener('resize', onResize)
+  }
 })
 </script>
 
