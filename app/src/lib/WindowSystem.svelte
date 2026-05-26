@@ -307,7 +307,7 @@ function undock(entry) {
 }
 
 function renderButton(entry, button) {
-  return () => windowState.callButton(entry.id, button)
+  return (event) => windowState.callButton(entry.id, button, event)
 }
 
 function closeSlot(event, slotId) {
@@ -318,6 +318,7 @@ function closeSlot(event, slotId) {
 </script>
 
 {#snippet windowChrome({ entry, rect, showMenu = false, draggable = false, pageBody = false })}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class={`window-titlebar ${draggable ? 'draggable' : ''}`.trim()}
     onpointerdown={draggable ? (event) => onTitlePointerDown(event, entry) : undefined}

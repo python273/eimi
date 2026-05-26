@@ -174,6 +174,7 @@ export class WindowSystemState {
     slotRects: {},
   }
   constructor({ layout }) {
+    this.initialLayout = layout
     this.layout = normalizeLayoutNode(layout, this)
     dedupeEmptyIds(this.layout, this)
   }
@@ -586,11 +587,33 @@ export class WindowSystemState {
   }
 
   loadSessionLayout(sessionLayout) {
-    if (sessionLayout?.layout) {
-      this.layout = normalizeLayoutNode(sessionLayout.layout, this)
-      dedupeEmptyIds(this.layout, this)
+    const loadedLayout = sessionLayout?.layout
+    if (loadedLayout) {
+      this.layout = normalizeLayoutNode(loadedLayout, this)
+    } else {
+      this.layout = normalizeLayoutNode(this.initialLayout, this)
     }
+    dedupeEmptyIds(this.layout, this)
     this.floatingWindows = cloneValue(sessionLayout?.windows) || {}
+
+    const layoutWindowIds = new Set()
+    const collectWindowIds = (node) => {
+      if (!node) return
+      if (node.type === 'split') {
+        for (const child of node.children) collectWindowIds(child.node)
+      } else if (node.type === 'window' && node.id) {
+        layoutWindowIds.add(node.id)
+      }
+    }
+    collectWindowIds(this.layout)
+    // TODO: likely needs to be moved to layout updates place or something
+
+    for (const id of Object.values(this.windows)
+      .filter((w) => !layoutWindowIds.has(w.id))
+      .map((w) => w.id)) {
+      this.closeWindow(id)
+    }
+
     for (const windowRecord of Object.values(this.windows)) {
       this.applySavedPlacement(windowRecord)
     }
@@ -644,8 +667,9 @@ export class WindowSystemState {
         : { left: rect.left, top: rect.top + offset, width: rect.width, height: sizes[index] }
       offset += sizes[index] + PANEL_GAP
       const innerSize = Math.max(0, totalSize - Math.max(0, node.children.length - 1) * PANEL_GAP)
+      const ratio = innerSize > 0 ? sizes[index] / innerSize : (Number.isFinite(child.ratio) ? child.ratio : 0)
       return {
-        ratio: innerSize > 0 ? sizes[index] / innerSize : 0,
+        ratio,
         node: this.serializeLayout(child.node, childRect),
       }
     })

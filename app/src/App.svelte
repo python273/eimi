@@ -60,6 +60,7 @@ $effect(() => {
   <!-- svelte-ignore a11y_invalid_attribute -->
   <div class="home"><a href="#" class="no-vs">Eimi</a></div>
   {#if isSessionPage}
+    <div class="text-meta" style="margin: 0 1em;font-family: monospace;">/</div>
     <button onclick={() => sessionsOpen = !sessionsOpen} aria-pressed={sessionsOpen}>
       sessions
     </button>

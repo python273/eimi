@@ -637,7 +637,8 @@ function preprocessMessages(messages, apiConfig) {
   
   if (apiConfig.baseurl === 'https://api.deepseek.com/v1/') {
     return messages.map((message, index) => {
-      if (message.role !== 'assistant' || !(message.tool_calls && message.tool_calls.length > 0)) return message
+      // if (message.role !== 'assistant' || !(message.tool_calls && message.tool_calls.length > 0)) return message
+      if (message.role !== 'assistant') return message
       return {
         ...message,
         reasoning_content: message._thinking || '',

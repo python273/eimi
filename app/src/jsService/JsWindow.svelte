@@ -66,6 +66,8 @@ const iFrameSrc = `
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
 <style>html, body { padding: 0; margin: 0; }</style>
 <scri`+`pt>
 window.close = () => { window.top.postMessage('close', '*') };

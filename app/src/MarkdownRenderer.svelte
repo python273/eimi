@@ -6,21 +6,9 @@ let ast = $state([])
 let currentContent = $state("")
 let copyButtonText = $state("")
 
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-})
-
-const renderer = new marked.Renderer()
-renderer.html = (html) => {
-  return html.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-marked.use({ renderer })
-
 function parseContent() {
   if (content === currentContent) return
-  ast = marked.lexer(content)
+  ast = marked.lexer(content, { gfm: true, breaks: true })
   currentContent = content
 }
 
@@ -49,6 +37,8 @@ $effect(() => {
       <strong>{@render RenderTokens(token.tokens || [])}</strong>
     {:else if token.type === 'em'}
       <em>{@render RenderTokens(token.tokens || [])}</em>
+    {:else if token.type === 'checkbox'}
+      <input type="checkbox" checked={token.checked} disabled />
     {:else if token.type === 'codespan'}
       <code>{token.text}</code>
     {:else if token.type === 'code'}

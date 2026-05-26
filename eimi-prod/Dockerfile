@@ -8,7 +8,7 @@ RUN npm ci --no-progress
 COPY ./app/ /src/app/
 RUN npm run build
 
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 RUN pip install pipenv
 
 WORKDIR /src/

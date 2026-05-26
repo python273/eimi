@@ -37,6 +37,7 @@ ALLOWED_BASEURLS = [
     "https://api.minimax.io/v1",
     "https://api.minimax.io/anthropic/v1/",
     "https://api.kimi.com/coding/v1/",
+    "https://opencode.ai/zen/go/v1/",
 
     #
     "https://api.anthropic.com/v1/messages",

@@ -6,6 +6,7 @@ import WindowSystem from './lib/WindowSystem.svelte'
 import Window from './lib/Window.svelte'
 
 let { sessionId, autoReply, leftInset = '8px' } = $props()
+// svelte-ignore state_referenced_locally
 if (!sessionId) { throw new Error('sessionId is required') }
 
 const windowSystem = new WindowSystemState({

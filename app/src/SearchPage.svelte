@@ -6,6 +6,7 @@ import Collapsible from './lib/Collapsible.svelte'
 
 let { query } = $props()
 
+// svelte-ignore state_referenced_locally
 let searchQuery = $state(query || '')
 let searchResults = $state([])
 let searching = $state(false)
